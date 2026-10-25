@@ -4,76 +4,38 @@ namespace App\Controllers;
 
 use App\Enums\Role;
 use App\Models\UserModel;
-use CodeIgniter\Exceptions\PageNotFoundException;
 
 class Auth extends BaseController
 {
-    /**
-     * Konfigurasi tiap halaman login.
-     *
-     * @var array<string, array{dokumen: string, judul: string, sub: string, chip: string, bantuan: string, aksi: string}>
-     */
-    private const HALAMAN = [
-        'kasir' => [
-            'dokumen' => 'Masuk Kasir',
-            'judul'   => 'Selamat Datang',
-            'sub'     => 'Silakan masuk untuk mengakses sistem kasir Optik Mekar Jaya.',
-            'chip'    => 'Cabang mengikuti akun',
-            'bantuan' => 'Hubungi admin di cabang atau tim IT.',
-            'aksi'    => 'login',
-        ],
-        'admin' => [
-            'dokumen' => 'Masuk Admin Cabang',
-            'judul'   => 'Masuk sebagai Admin Cabang',
-            'sub'     => 'Kelola produk, stok, dan pesanan untuk cabang Anda.',
-            'chip'    => 'Cabang tetap, mengikuti akun',
-            'bantuan' => 'Hubungi pemilik sistem atau tim IT.',
-            'aksi'    => 'admin/login',
-        ],
-        'pemilik' => [
-            'dokumen' => 'Masuk Pemilik',
-            'judul'   => 'Masuk sebagai Pemilik',
-            'sub'     => 'Pantau seluruh lokasi dan tentukan alokasi distribusi.',
-            'chip'    => 'Seluruh cabang + Pusat',
-            'bantuan' => 'Hubungi tim IT.',
-            'aksi'    => 'owner/login',
-        ],
-    ];
-
-    public function login(string $peran = 'kasir')
+    public function login()
     {
         if (session()->get('isLoggedIn')) {
-            return redirect()->to('/dashboard');
+            return redirect()->to($this->tujuanSetelahLogin((string) session()->get('role')));
         }
 
-        $halaman = $this->halamanLogin($peran);
-
         return view('auth/login', [
-            'judul'             => $halaman['dokumen'],
-            'judulMasuk'        => $halaman['judul'],
-            'subJudul'          => $halaman['sub'],
-            'chipCabang'        => $halaman['chip'],
-            'bantuan'           => $halaman['bantuan'],
-            'aksiLogin'         => $halaman['aksi'],
+            'judul'             => 'Masuk ke SIMPOS',
+            'judulMasuk'        => 'Selamat Datang',
+            'subJudul'          => 'Masukkan username dan password untuk mengakses sistem Optik Mekar Jaya.',
+            'infoAkses'         => 'Akses mengikuti peran dan cabang akun',
+            'bantuan'           => 'Hubungi pengelola sistem atau tim IT.',
             'usernameTersimpan' => (string) ($this->request->getCookie('simpos_username') ?? ''),
             'pesanError'        => session()->getFlashdata('error'),
             'pesanSukses'       => session()->getFlashdata('success'),
         ]);
     }
 
-    public function prosesLogin(string $peran = 'kasir')
+    public function prosesLogin()
     {
         if (session()->get('isLoggedIn')) {
-            return redirect()->to('/dashboard');
+            return redirect()->to($this->tujuanSetelahLogin((string) session()->get('role')));
         }
-
-        $halaman = $this->halamanLogin($peran);
 
         $username = trim((string) $this->request->getPost('username'));
         $password = (string) $this->request->getPost('password');
 
         if ($username === '' || $password === '') {
-            return redirect()->to($halaman['aksi'])
+            return redirect()->to('/login')
                 ->withInput()
                 ->with('error', 'Username dan password wajib diisi.');
         }
@@ -85,7 +47,7 @@ class Auth extends BaseController
             ->first();
 
         if (! $user || $user['status'] !== 'aktif') {
-            return redirect()->to($halaman['aksi'])
+            return redirect()->to('/login')
                 ->withInput()
                 ->with('error', 'Username atau password salah, atau akun tidak aktif.');
         }
@@ -104,7 +66,7 @@ class Auth extends BaseController
         }
 
         if (! $passwordValid) {
-            return redirect()->to($halaman['aksi'])
+            return redirect()->to('/login')
                 ->withInput()
                 ->with('error', 'Username atau password salah.');
         }
@@ -112,19 +74,13 @@ class Auth extends BaseController
         $role = Role::tryFrom((string) $user['role']);
 
         if ($role === null) {
-            return redirect()->to($halaman['aksi'])
+            return redirect()->to('/login')
                 ->withInput()
                 ->with('error', 'Peran akun tidak valid.');
         }
 
-        if ($role->value !== $peran) {
-            return redirect()->to($halaman['aksi'])
-                ->withInput()
-                ->with('error', 'Akun ini adalah akun ' . $role->label() . '. Silakan masuk melalui halaman login ' . $role->label() . '.');
-        }
-
         if ($role->requiresCabang() && empty($user['cabang_id'])) {
-            return redirect()->to($halaman['aksi'])
+            return redirect()->to('/login')
                 ->withInput()
                 ->with('error', 'Akun belum terhubung dengan cabang.');
         }
@@ -140,7 +96,7 @@ class Auth extends BaseController
             'isLoggedIn' => true,
         ]);
 
-        $redirect = redirect()->to('/dashboard');
+        $redirect = redirect()->to($this->tujuanSetelahLogin($role->value));
 
         if ($this->request->getPost('remember') !== null) {
             $redirect->setCookie([
@@ -155,6 +111,14 @@ class Auth extends BaseController
         }
 
         return $redirect;
+    }
+
+    /**
+     * Halaman tujuan setelah login, mengikuti peran akun.
+     */
+    private function tujuanSetelahLogin(string $role): string
+    {
+        return $role === Role::Kasir->value ? '/kasir/dashboard' : '/dashboard';
     }
 
     public function logout()
@@ -174,17 +138,5 @@ class Auth extends BaseController
         $session->setFlashdata('success', 'Kamu berhasil logout.');
 
         return redirect()->to('/login');
-    }
-
-    /**
-     * @return array{dokumen: string, judul: string, sub: string, chip: string, bantuan: string, aksi: string}
-     */
-    private function halamanLogin(string $peran): array
-    {
-        if (! isset(self::HALAMAN[$peran])) {
-            throw PageNotFoundException::forPageNotFound();
-        }
-
-        return self::HALAMAN[$peran];
     }
 }

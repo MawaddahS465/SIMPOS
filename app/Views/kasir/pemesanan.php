@@ -1,0 +1,221 @@
+<?= $this->extend('layouts/kasir') ?>
+
+<?= $this->section('content') ?>
+<?php
+$qs = static fn (array $ubah): string => '?' . http_build_query(array_merge([
+    'status' => $status,
+    'q'      => $cariQ,
+], $ubah));
+
+$filterList = [
+    'Semua'        => '',
+    'Dipesan'      => 'dipesan',
+    'Diproses'     => 'diproses',
+    'Sudah Datang' => 'sudah_datang',
+    'Selesai'      => 'selesai',
+];
+?>
+<div class="page">
+    <div class="pagehead">
+        <div class="pagehead-main">
+            <div>
+                <div class="overline">MANAJEMEN PESANAN</div>
+                <h1>Pemesanan (PO)</h1>
+                <p>Pantau perkembangan pesanan pelanggan di <?= esc(current_branch_name()) ?></p>
+            </div>
+            <div class="pagehead-actions">
+                <a class="btn btn-primary" href="<?= site_url('kasir/pemesanan?buat=1') ?>">
+                    <?= icon('plus', 16) ?>
+                    Buat PO Baru
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-row">
+        <div class="stat-card tone-violet">
+            <div class="stat-body">
+                <div class="stat-label">Pesanan Baru</div>
+                <div class="stat-value"><?= str_pad((string) $hitung['dipesan'], 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="stat-caption">Menunggu pemrosesan admin</div>
+            </div>
+            <span class="stat-icon"><?= icon('package-plus', 22) ?></span>
+        </div>
+        <div class="stat-card tone-amber">
+            <div class="stat-body">
+                <div class="stat-label">Sedang Diproses</div>
+                <div class="stat-value"><?= str_pad((string) $hitung['diproses'], 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="stat-caption">Dalam penanganan cabang</div>
+            </div>
+            <span class="stat-icon"><?= icon('clipboard-list', 22) ?></span>
+        </div>
+        <div class="stat-card tone-green">
+            <div class="stat-body">
+                <div class="stat-label">Sudah Datang</div>
+                <div class="stat-value"><?= str_pad((string) $hitung['sudah_datang'], 2, '0', STR_PAD_LEFT) ?></div>
+                <div class="stat-caption">Siap dinubungi pelanggan</div>
+            </div>
+            <span class="stat-icon"><?= icon('package-check', 22) ?></span>
+        </div>
+    </div>
+
+    <?php if ($poKode !== null): ?>
+        <div class="notice notice-ok" role="status">
+            <?= icon('check', 16) ?>
+            PO <?= esc($poKode) ?> tercatat (Dipesan) dan diteruskan ke antrean Admin Cabang.
+            <a class="link-action" href="<?= site_url('kasir/pemesanan/' . (int) $poId) ?>">
+                Lihat detail
+                <?= icon('chevron-right', 15) ?>
+            </a>
+        </div>
+    <?php endif; ?>
+
+    <section class="section-block">
+        <div class="section-head">
+            <div>
+                <h2>Daftar Pemesanan</h2>
+                <div class="section-desc">Informasi pesanan dan status terbaru</div>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <form method="get" action="<?= site_url('kasir/pemesanan') ?>">
+                <input type="hidden" name="status" value="<?= esc($status) ?>">
+                <label class="toolbar-search">
+                    <?= icon('search', 16) ?>
+                    <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nomor PO atau nama pelanggan...">
+                </label>
+            </form>
+
+            <div class="toolbar-chips">
+                <?php foreach ($filterList as $label => $kunci): ?>
+                    <a class="chip <?= $status === $kunci ? 'active' : '' ?>" href="<?= site_url('kasir/pemesanan' . $qs(['status' => $kunci])) ?>">
+                        <?= esc($label) ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="table-wrap">
+            <table class="tt">
+                <thead>
+                    <tr>
+                        <th>NO. PO / TANGGAL</th>
+                        <th>PELANGGAN</th>
+                        <th>PRODUK DIPESAN</th>
+                        <th>STATUS PO</th>
+                        <th class="tt-right">AKSI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rows as $o): ?>
+                        <?php
+                        $labelProduk = $o['produk_label'] !== null && $o['produk_label'] !== ''
+                            ? explode('|', $o['produk_label'])
+                            : [];
+                        ?>
+                        <tr>
+                            <td>
+                                <div class="tt-num"><?= esc($o['kode_po']) ?></div>
+                                <div class="tt-sub"><?= esc(tgl_id($o['tanggal_po'])) ?></div>
+                            </td>
+                            <td>
+                                <div class="cell-person">
+                                    <?= avatar($o['nama_pelanggan'] ?? '-', 40) ?>
+                                    <span>
+                                        <b><?= esc($o['nama_pelanggan'] ?? '-') ?></b>
+                                        <span><?= esc($o['no_hp'] ?? '-') ?></span>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tt-num" style="font-size:13px"><?= esc($labelProduk[0] ?? '-') ?></div>
+                                <div class="tt-sub"><?= esc($labelProduk[1] ?? ((int) $o['jml_item'] . ' item')) ?></div>
+                            </td>
+                            <td><?= status_pill($o['status']) ?></td>
+                            <td class="tt-right">
+                                <a class="link-action" href="<?= site_url('kasir/pemesanan/' . (int) $o['id_po']) ?>">
+                                    Lihat detail
+                                    <?= icon('chevron-right', 15) ?>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+
+                    <?php if ($rows === []): ?>
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-note">Tidak ada pesanan yang cocok dengan filter.</div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+            <div class="table-foot">
+                <span class="foot-note">Menampilkan <?= count($rows) ?> dari <?= (int) $total ?> pesanan</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<?php if ($buat): ?>
+    <div class="overlay">
+        <div class="drawer" role="dialog" aria-modal="true">
+            <div class="drawer-head">
+                <div>
+                    <h2>Buat PO Baru</h2>
+                    <div class="section-desc">Status awal Dipesan · diteruskan ke Admin Cabang</div>
+                </div>
+                <a class="icon-pill" aria-label="Tutup" href="<?= site_url('kasir/pemesanan') ?>">
+                    <?= icon('x', 18) ?>
+                </a>
+            </div>
+
+            <form class="drawer-form" method="post" action="<?= site_url('kasir/pemesanan') ?>">
+                <?= csrf_field() ?>
+
+                <label class="afield">
+                    <span>Pelanggan</span>
+                    <select name="pelanggan_id" required>
+                        <?php foreach ($pelanggan as $c): ?>
+                            <option value="<?= (int) $c['id_pelanggan'] ?>">
+                                <?= esc($c['nama_pelanggan']) ?> · PLG-<?= str_pad((string) $c['id_pelanggan'], 4, '0', STR_PAD_LEFT) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
+                <label class="afield">
+                    <span>Produk (frame / lensa)</span>
+                    <select name="barang_id" required>
+                        <?php foreach ($produk as $p): ?>
+                            <option value="<?= (int) $p['id'] ?>">
+                                <?= esc($p['nama_barang']) ?> · <?= esc($p['merek']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+
+                <label class="afield">
+                    <span>Jumlah</span>
+                    <input name="qty" inputmode="numeric" value="1" placeholder="cth. 1" required>
+                </label>
+
+                <label class="afield">
+                    <span>Catatan (opsional)</span>
+                    <input name="catatan" placeholder="cth. lensa sesuai resep">
+                </label>
+
+                <div class="tt-sub" style="font-weight:600">
+                    Snapshot ukuran lensa disalin otomatis dari resep terakhir pelanggan saat PO dibuat.
+                </div>
+
+                <div class="drawer-foot">
+                    <a class="btn btn-ghost" href="<?= site_url('kasir/pemesanan') ?>">Batal</a>
+                    <button type="submit" class="btn btn-primary">Buat PO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
+<?= $this->endSection() ?>

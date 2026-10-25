@@ -16,6 +16,10 @@ class Dashboard extends BaseController
             return redirect()->to('/login');
         }
 
+        if ($role === Role::Kasir) {
+            return redirect()->to('kasir/dashboard');
+        }
+
         return view('dashboard/index', [
             'judul' => $role->dashboardTitle(),
             'role'  => $role,

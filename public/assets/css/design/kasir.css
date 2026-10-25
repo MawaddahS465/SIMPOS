@@ -1,0 +1,223 @@
+/* Tambahan gaya Kasir yang tidak ada di pages.css/layout.css. */
+
+/* Overlay + drawer */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 20, 60, 0.42);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 80;
+}
+
+.overlay .confirm {
+  margin: auto;
+}
+
+.drawer {
+  width: min(440px, 100%);
+  height: 100%;
+  background: var(--panel-soft);
+  box-shadow: var(--shadow-lg);
+  padding: 26px 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.drawer-head h2 {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.drawer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.afield {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.afield > span {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+
+.afield input,
+.afield select {
+  height: 48px;
+  border-radius: 13px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0 15px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+  width: 100%;
+}
+
+.afield input:focus,
+.afield select:focus {
+  box-shadow: var(--ring);
+}
+
+.drawer-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.form-error {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+/* Ikon SVG sprite */
+.ic {
+  flex: none;
+  display: block;
+}
+
+/* Form tambahan */
+.inline-form {
+  display: inline;
+  margin: 0;
+}
+
+.qty-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.qty-form button {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 4px;
+}
+
+.cart-empty a {
+  color: var(--accent-ink);
+  font-weight: 700;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mt-24 {
+  margin-top: 24px;
+}
+
+.two-col-wide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .two-col-wide {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Form pembungkus agar tetap mengikuti grid/flex desain. */
+.product-form {
+  display: contents;
+}
+
+.product-card {
+  width: 100%;
+  font-family: inherit;
+}
+
+.toolbar > form {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+}
+
+.toolbar > form .toolbar-search {
+  width: 100%;
+}
+
+/* Metode pembayaran sebagai radio asli (tetap bisa dioperasikan tanpa JS). */
+.pay-opt {
+  position: relative;
+  cursor: pointer;
+}
+
+.pay-opt input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pay-opt:has(input:checked) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.pay-opt:has(input:checked) .radio-dot {
+  border-color: var(--accent);
+}
+
+.pay-opt:has(input:checked) .radio-dot::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Grid dua kolom tidak boleh melebar gara-gara tabel di dalamnya. */
+.split > *,
+.section-block {
+  min-width: 0;
+}
+
+/* Tabel lebar digeser di dalam kartu, bukan memaksa halaman melebar. */
+.table-wrap {
+  overflow-x: auto;
+}
+
+/* Jarak antar pesan flash dan konten halaman. */
+.main-content > .notice {
+  margin-bottom: 16px;
+}
+
+/* Tombol kuantitas di checkout. */
+.qty-box form {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Drawer form grid tetap rapi di layar kecil. */
+@media (max-width: 560px) {
+  .drawer {
+    padding: 20px 16px;
+  }
+}
