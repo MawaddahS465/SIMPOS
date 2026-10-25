@@ -20,6 +20,7 @@ $ikonMetode = [
     'Transfer Bank'      => 'wallet',
     'Kartu Debit/Kredit' => 'credit-card',
     'QRIS'               => 'qr-code',
+    'E-Wallet'           => 'wallet',
 ];
 ?>
 <div class="page">

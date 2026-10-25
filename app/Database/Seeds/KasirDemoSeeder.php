@@ -186,7 +186,7 @@ class KasirDemoSeeder extends Seeder
 
         /* ---------- Transaksi + pembayaran ---------- */
         if ($db->table('transaksi')->countAllResults() === 0) {
-            $metode = ['Tunai', 'QRIS', 'Transfer Bank', 'Kartu Debit/Kredit'];
+            $metode = ['Tunai', 'QRIS', 'Transfer Bank', 'Kartu Debit/Kredit', 'E-Wallet'];
 
             $daftar = [
                 [0, '14:23', 'selesai', 'Rian Pratama', [['P-010', 1], ['P-007', 1]], 0, 'pembelian'],
@@ -197,7 +197,7 @@ class KasirDemoSeeder extends Seeder
                 [2, '17:30', 'dibatalkan', 'Fitri Ananda', [['P-012', 1]], 1, 'pembelian'],
                 [3, '12:15', 'pending', 'Zulfa Ramadhani', [['P-007', 1]], 2, 'pemesanan'],
                 [3, '15:40', 'selesai', 'Hendra Wijaya', [['P-005', 1]], 3, 'pembelian'],
-                [4, '09:20', 'selesai', 'Nadia Putri', [['P-011', 1], ['P-010', 1]], 0, 'pembelian'],
+                [4, '09:20', 'selesai', 'Nadia Putri', [['P-011', 1], ['P-010', 1]], 4, 'pembelian'],
             ];
 
             foreach ($daftar as [$hari, $jam, $status, $nama, $items, $metodeIdx, $jenis]) {

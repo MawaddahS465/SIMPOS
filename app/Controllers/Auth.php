@@ -16,9 +16,8 @@ class Auth extends BaseController
         return view('auth/login', [
             'judul'             => 'Masuk ke SIMPOS',
             'judulMasuk'        => 'Selamat Datang',
-            'subJudul'          => 'Masukkan username dan password untuk mengakses sistem Optik Mekar Jaya.',
-            'infoAkses'         => 'Akses mengikuti peran dan cabang akun',
-            'bantuan'           => 'Hubungi pengelola sistem atau tim IT.',
+            'subJudul'          => 'Silakan masuk untuk mengakses sistem kasir Optik Mekar Jaya.',
+            'bantuan'           => 'Hubungi admin di cabang atau tim IT.',
             'usernameTersimpan' => (string) ($this->request->getCookie('simpos_username') ?? ''),
             'pesanError'        => session()->getFlashdata('error'),
             'pesanSukses'       => session()->getFlashdata('success'),
@@ -98,7 +97,7 @@ class Auth extends BaseController
 
         $redirect = redirect()->to($this->tujuanSetelahLogin($role->value));
 
-        if ($this->request->getPost('remember') !== null) {
+        if ($this->request->getPost('remember') === '1') {
             $redirect->setCookie([
                 'name'     => 'simpos_username',
                 'value'    => $user['username'],

@@ -38,7 +38,10 @@ class TransaksiModel extends Model
                 ->groupEnd();
         }
 
-        return $builder->orderBy('t.tanggal_transaksi', 'DESC')->get()->getResultArray();
+        return $builder->orderBy('t.tanggal_transaksi', 'DESC')
+            ->orderBy('t.id_transaksi', 'DESC')
+            ->get()
+            ->getResultArray();
     }
 
     public function detail(int $transaksiId): array

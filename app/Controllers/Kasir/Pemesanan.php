@@ -111,7 +111,6 @@ class Pemesanan extends BaseKasir
         ]);
 
         return redirect()->to('kasir/pemesanan')
-            ->with('success', 'PO ' . $kode . ' tercatat dan diteruskan ke antrean Admin Cabang.')
             ->with('po_kode', $kode)
             ->with('po_id', $poId);
     }

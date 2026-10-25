@@ -113,6 +113,14 @@ class Pelanggan extends BaseKasir
             return redirect()->to('kasir/pelanggan')->with('error', 'Pelanggan gagal disimpan.');
         }
 
+        if ($this->request->getPost('kembali') === 'checkout') {
+            $cart                 = $this->cartData();
+            $cart['pelanggan_id'] = $id;
+            $this->simpanCart($cart);
+
+            return redirect()->to('kasir/checkout')->with('success', 'Pelanggan ' . $nama . ' ditambahkan dan dipilih.');
+        }
+
         return redirect()->to('kasir/pelanggan?pilih=' . $id)->with('success', 'Pelanggan ' . $nama . ' ditambahkan.');
     }
 

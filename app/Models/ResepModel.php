@@ -22,6 +22,7 @@ class ResepModel extends Model
             ->select('r.*, p.nama_pelanggan, p.no_hp')
             ->join('pelanggan p', 'p.id_pelanggan = r.fk_id_pelanggan')
             ->orderBy('r.tanggal_resep', 'DESC')
+            ->orderBy('r.id_resep', 'DESC')
             ->get()
             ->getResultArray();
     }
@@ -30,6 +31,7 @@ class ResepModel extends Model
     {
         return $this->where('fk_id_pelanggan', $pelangganId)
             ->orderBy('tanggal_resep', 'DESC')
+            ->orderBy('id_resep', 'DESC')
             ->first();
     }
 }

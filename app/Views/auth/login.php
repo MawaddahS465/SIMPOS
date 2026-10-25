@@ -10,7 +10,6 @@
             <div class="tint"></div>
 
             <div class="auth-copy">
-                <span class="overline">OPTIK MEKAR JAYA</span>
                 <h1>
                     Solusi Penglihatan untuk Hidup yang <em>Lebih Baik</em>
                 </h1>
@@ -24,14 +23,13 @@
                 <span>FRAME</span>
                 <span>LENSA</span>
                 <span>GAYA</span>
-                <span>KEPERCAYAAN</span>
             </div>
         </section>
 
         <section class="auth-form">
-            <div class="brand-row">
-                <span class="brand-badge-lg">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <div class="form-brand">
+                <span class="mark">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <circle cx="6" cy="15" r="4"/>
                         <circle cx="18" cy="15" r="4"/>
                         <path d="M14 15a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/>
@@ -40,7 +38,6 @@
                     </svg>
                 </span>
                 <b>Optik Mekar Jaya</b>
-                <span>Sistem Informasi Optik</span>
             </div>
 
             <h2><?= esc($judulMasuk) ?></h2>
@@ -111,33 +108,26 @@
                             </svg>
                         </button>
                     </div>
-                </div>
-
-                <div class="field">
-                    <span class="branch-chip">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="6" cy="15" r="4"/>
-                            <circle cx="18" cy="15" r="4"/>
-                            <path d="M14 15a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/>
-                            <path d="M2.5 13 5 7c.7-1.3 1.4-2 3-2"/>
-                            <path d="M21.5 13 19 7c-.7-1.3-1.5-2-3-2"/>
+                    <span class="caps-warn" id="caps-warn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 19V5"/>
+                            <path d="m5 12 7-7 7 7"/>
                         </svg>
-                        <?= esc($infoAkses) ?>
+                        Caps Lock aktif
                     </span>
                 </div>
 
                 <div class="form-row">
                     <label class="check">
+                        <input type="hidden" name="remember" value="0">
                         <input
                             type="checkbox"
                             name="remember"
                             value="1"
-                            <?= old('remember') ? 'checked' : '' ?>
+                            <?= old('remember', '1') === '0' ? '' : 'checked' ?>
                         >
                         Ingat saya
                     </label>
-
-                    <span class="auth-hint">Lupa password? Hubungi admin</span>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-block" id="tombol-masuk">
@@ -149,6 +139,8 @@
                 <b>Butuh bantuan masuk?</b>
                 <span><?= esc($bantuan) ?></span>
             </div>
+
+            <div class="brand-foot">v1.0 — © 2026 Optik Mekar Jaya</div>
         </section>
 
     </div>
@@ -158,6 +150,7 @@
     (function () {
         var password = document.getElementById('password');
         var toggle = document.getElementById('toggle-password');
+        var capsWarn = document.getElementById('caps-warn');
 
         if (password && toggle) {
             toggle.addEventListener('click', function () {
@@ -167,6 +160,20 @@
                 toggle.classList.toggle('is-visible', tampil);
                 toggle.setAttribute('aria-label', tampil ? 'Sembunyikan password' : 'Tampilkan password');
                 password.focus();
+            });
+        }
+
+        if (password && capsWarn) {
+            var cekCaps = function (event) {
+                if (typeof event.getModifierState === 'function') {
+                    capsWarn.classList.toggle('is-on', event.getModifierState('CapsLock'));
+                }
+            };
+
+            password.addEventListener('keydown', cekCaps);
+            password.addEventListener('keyup', cekCaps);
+            password.addEventListener('blur', function () {
+                capsWarn.classList.remove('is-on');
             });
         }
 

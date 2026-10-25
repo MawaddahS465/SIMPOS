@@ -10,7 +10,7 @@ use App\Models\TransaksiModel;
 
 class Transaksi extends BaseKasir
 {
-    private const METODE = ['Tunai', 'Transfer Bank', 'Kartu Debit/Kredit', 'QRIS'];
+    private const METODE = ['Tunai', 'Transfer Bank', 'Kartu Debit/Kredit', 'QRIS', 'E-Wallet'];
 
     public function index()
     {

@@ -204,6 +204,14 @@
   overflow-x: auto;
 }
 
+/* Form checkout mengikuti irama jarak panel ringkasan. */
+.summary > form {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  width: 100%;
+}
+
 /* Jarak antar pesan flash dan konten halaman. */
 .main-content > .notice {
   margin-bottom: 16px;

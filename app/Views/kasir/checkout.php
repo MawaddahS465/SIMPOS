@@ -9,12 +9,14 @@ $ikonMetode = [
     'Transfer Bank'       => 'building-2',
     'Kartu Debit/Kredit'  => 'credit-card',
     'QRIS'                => 'qr-code',
+    'E-Wallet'            => 'wallet',
 ];
 $ketMetode = [
     'Tunai'              => 'Pembayaran dengan uang tunai',
     'Transfer Bank'      => 'Pembayaran melalui transfer bank',
     'Kartu Debit/Kredit' => 'Visa, Mastercard, JCB, dll',
     'QRIS'               => 'Pembayaran dengan QRIS',
+    'E-Wallet'           => 'GoPay, OVO, DANA, ShopeePay',
 ];
 ?>
 <div class="page">
@@ -35,7 +37,7 @@ $ketMetode = [
                 <div class="section-head">
                     <h2>Data Pelanggan</h2>
                     <div class="section-action">
-                        <a class="btn btn-ghost btn-sm" href="<?= site_url('kasir/checkout?ubah=1') ?>">
+                        <a class="btn btn-ghost btn-sm" href="<?= site_url('kasir/checkout?tambah=1') ?>">
                             <?= icon('user-plus', 15) ?>
                             Tambah Pelanggan
                         </a>
@@ -239,4 +241,45 @@ $ketMetode = [
         </aside>
     </div>
 </div>
+
+<?php if (request()->getGet('tambah') === '1'): ?>
+    <div class="overlay">
+        <div class="drawer" role="dialog" aria-modal="true">
+            <div class="drawer-head">
+                <div>
+                    <h2>Tambah Pelanggan</h2>
+                    <div class="section-desc">Pelanggan baru langsung dipilih untuk transaksi ini.</div>
+                </div>
+                <a class="icon-pill" aria-label="Tutup" href="<?= site_url('kasir/checkout') ?>">
+                    <?= icon('x', 18) ?>
+                </a>
+            </div>
+
+            <form class="drawer-form" method="post" action="<?= site_url('kasir/pelanggan') ?>">
+                <?= csrf_field() ?>
+                <input type="hidden" name="kembali" value="checkout">
+
+                <label class="afield">
+                    <span>Nama pelanggan</span>
+                    <input name="nama_pelanggan" required minlength="2" placeholder="cth. Andi Saputra">
+                </label>
+
+                <label class="afield">
+                    <span>Nomor HP</span>
+                    <input name="no_hp" placeholder="cth. 0812 3456 7890">
+                </label>
+
+                <label class="afield">
+                    <span>Alamat</span>
+                    <input name="alamat" placeholder="cth. Jl. Khatib Sulaiman No. 12">
+                </label>
+
+                <div class="drawer-foot">
+                    <a class="btn btn-ghost" href="<?= site_url('kasir/checkout') ?>">Batal</a>
+                    <button type="submit" class="btn btn-primary">Tambah &amp; Pilih</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<?php endif; ?>
 <?= $this->endSection() ?>

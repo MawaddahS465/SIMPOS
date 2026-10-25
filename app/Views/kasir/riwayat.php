@@ -41,7 +41,7 @@ $rentang    = '01 ' . $bulanId[(int) date('n')] . ' ' . date('Y') . ' – ' . da
             <input type="hidden" name="status" value="<?= esc($status) ?>">
             <label class="toolbar-search">
                 <?= icon('search', 16) ?>
-                <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nomor transaksi, nama pelanggan, atau produk...">
+                <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nomor transaksi, nama pelanggan, atau nomor HP...">
             </label>
         </form>
 
