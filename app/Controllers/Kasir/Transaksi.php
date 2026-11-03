@@ -34,7 +34,7 @@ class Transaksi extends BaseKasir
             }
 
             if ($cari !== '') {
-                $haystack = mb_strtolower($p['nama_barang'] . ' ' . $p['merek'] . ' ' . $p['jenis']);
+                $haystack = mb_strtolower($p['nama_barang'] . ' ' . $p['merek'] . ' ' . $p['kode_barang'] . ' ' . $p['jenis']);
 
                 if (! str_contains($haystack, mb_strtolower($cari))) {
                     return false;
@@ -132,6 +132,12 @@ class Transaksi extends BaseKasir
 
     public function hapus()
     {
+        if ($this->request->getPost('semua') !== null) {
+            $this->kosongkanCart();
+
+            return redirect()->back();
+        }
+
         $barangId = (int) $this->request->getPost('barang_id');
         $cart     = $this->cartData();
 

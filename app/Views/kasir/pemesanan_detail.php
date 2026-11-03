@@ -2,20 +2,25 @@
 
 <?= $this->section('content') ?>
 <?php
-$flow = ['dipesan', 'diproses', 'sudah_datang', 'selesai'];
+$flow      = ['dipesan', 'diproses', 'sudah_datang', 'selesai'];
 $flowLabel = ['dipesan' => 'Dipesan', 'diproses' => 'Diproses', 'sudah_datang' => 'Sudah Datang', 'selesai' => 'Selesai'];
-$flowDesc = [
-    'dipesan'      => 'Menunggu proses',
-    'diproses'     => 'Sedang diproses',
-    'sudah_datang' => 'Siap dinubungi',
-    'selesai'      => 'Pesanan selesai',
+$flowDesc  = [
+    'dipesan'      => 'Menunggu diproses Admin Cabang',
+    'diproses'     => 'Sedang disiapkan Admin Cabang',
+    'sudah_datang' => 'Barang tersedia & siap diambil pelanggan',
+    'selesai'      => 'Pesanan selesai & telah diambil pelanggan',
+    'dibatalkan'   => 'Dibatalkan oleh Admin Cabang',
 ];
 
 $statusNow = $po['status'] === 'menunggu' ? 'dipesan' : $po['status'];
+$cancelled = $statusNow === 'dibatalkan';
 $current   = array_search($statusNow, $flow, true);
 $current   = $current === false ? 0 : $current;
 
-$adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd']);
+$adaResep  = ! empty($po['resep_id']);
+$canPickup = $statusNow === 'sudah_datang';
+$total     = (float) ($po['total'] ?? 0);
+$kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT);
 ?>
 <div class="page">
     <div class="pagehead">
@@ -28,16 +33,29 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
             <div>
                 <div class="overline">DETAIL PEMESANAN</div>
                 <h1>Detail Pemesanan</h1>
-                <p>Pantau pesanan pelanggan dan perkembangan status dari Admin Cabang.</p>
+                <p>Informasi pesanan pelanggan dan tahapan status yang diperbarui oleh Admin Cabang.</p>
             </div>
             <div class="pagehead-actions">
                 <a class="btn btn-ghost" href="<?= site_url('kasir/pemesanan') ?>">
                     <?= icon('arrow-left', 16) ?>
                     Daftar PO
                 </a>
+                <?php if ($canPickup): ?>
+                    <a class="btn btn-primary" href="<?= site_url('kasir/transaksi') ?>">
+                        <?= icon('shopping-bag', 16) ?>
+                        Proses Pengambilan
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
     </div>
+
+    <?php if ($canPickup): ?>
+        <div class="notice notice-ok" role="status">
+            <?= icon('package-check', 16) ?>
+            Barang sudah datang. Proses pengambilan membuka transaksi baru; pilih produk PO dan pelanggan secara manual.
+        </div>
+    <?php endif; ?>
 
     <div class="po-status-card">
         <div>
@@ -47,7 +65,7 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
         </div>
         <div class="po-status-right">
             <div class="po-mini-label">STATUS PESANAN</div>
-            <?= status_pill($po['status']) ?>
+            <?= status_pill($statusNow) ?>
             <span style="font-size:12.5px;color:var(--muted);font-weight:600"><?= esc($flowDesc[$statusNow] ?? '-') ?></span>
         </div>
     </div>
@@ -56,18 +74,29 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
         <div class="section-head">
             <div>
                 <h2>Progres Pemesanan</h2>
-                <div class="section-desc">Status diperbarui oleh Admin Cabang</div>
+                <div class="section-desc">Status diperbarui oleh Admin Cabang secara real-time</div>
             </div>
         </div>
-        <div class="progress">
+        <div class="progress" style="opacity:<?= $cancelled ? '0.45' : '1' ?>">
             <?php foreach ($flow as $i => $step): ?>
-                <div class="pnode <?= $i < $current ? 'done' : '' ?> <?= $i === $current ? 'current' : '' ?>">
-                    <span class="pdot"><?= $i < $current ? icon('check', 14) : $i + 1 ?></span>
+                <?php
+                $done  = $i < $current || $statusNow === 'selesai';
+                $kelas = trim(($done ? 'done' : '') . ' ' . ($i === $current && $statusNow !== 'selesai' ? 'current' : ''));
+                ?>
+                <div class="pnode <?= $kelas ?>">
+                    <span class="pdot"><?= $done ? icon('check', 14) : $i + 1 ?></span>
                     <b><?= esc($flowLabel[$step]) ?></b>
-                    <span><?= $i === $current ? esc(tgl_id($po['tanggal_po'])) : esc($flowDesc[$step]) ?></span>
+                    <span>
+                        <?= esc($i === $current ? tgl_id($po['tanggal_po'], true) : $flowDesc[$step]) ?>
+                    </span>
                 </div>
             <?php endforeach; ?>
         </div>
+        <?php if ($cancelled): ?>
+            <div class="notice" role="status">
+                PO ini dibatalkan oleh Admin Cabang.
+            </div>
+        <?php endif; ?>
     </section>
 
     <div class="two-col">
@@ -81,12 +110,9 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
                     <div class="cc-body">
                         <b><?= esc($po['nama_pelanggan'] ?? '-') ?></b>
                         <div class="cc-meta">
-                            <span>PLG-<?= str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT) ?></span>
+                            <span><?= esc($kodePlg) ?></span>
                             <span><?= esc($po['no_hp'] ?? '-') ?></span>
                         </div>
-                        <?php if (! empty($po['alamat'])): ?>
-                            <div class="cc-meta"><?= esc($po['alamat']) ?></div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </section>
@@ -99,22 +125,34 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
                     </div>
                 </div>
                 <?php foreach ($detail as $d): ?>
+                    <?php $subtotal = (float) ($d['subtotal'] ?? ((float) $d['harga'] * (int) $d['jumlah'])); ?>
                     <div class="cart-line">
                         <span class="cl-ico"><?= icon('glasses', 20) ?></span>
                         <span class="cl-body">
                             <b><?= esc($d['nama_barang']) ?></b>
-                            <span><?= esc($d['merek']) ?> · <?= esc($d['jenis']) ?> · <?= rupiah($d['harga']) ?></span>
+                            <span><?= esc($d['jenis']) ?> · <?= esc($d['merek']) ?></span>
                         </span>
-                        <b style="font-size:13.5px">×<?= (int) $d['jumlah'] ?></b>
+                        <span style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+                            <b style="font-size:13.5px">×<?= (int) $d['jumlah'] ?></b>
+                            <span style="font-size:11.5px;color:var(--muted);font-weight:700">
+                                <?= esc(rupiah($subtotal)) ?>
+                            </span>
+                        </span>
                     </div>
                 <?php endforeach; ?>
+                <?php if ($total > 0): ?>
+                    <div class="simple-total-bar" style="margin-top:12px">
+                        <span>Total Estimasi Pesanan</span>
+                        <b><?= esc(rupiah($total)) ?></b>
+                    </div>
+                <?php endif; ?>
             </section>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:20px">
             <section class="co-card">
                 <div class="section-head">
-                    <h2>Resep Mata</h2>
+                    <h2>Resep Mata (Snapshot PO)</h2>
                 </div>
                 <?php if ($adaResep): ?>
                     <table class="rx-table">
@@ -125,6 +163,7 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
                                 <th>CYL</th>
                                 <th>AXIS</th>
                                 <th>ADD</th>
+                                <th>PD</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -134,6 +173,7 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
                                 <td><?= esc($po['od_cyl'] ?? '-') ?></td>
                                 <td><?= esc($po['od_axis'] ?? '-') ?></td>
                                 <td><?= esc($po['add_power'] ?? '-') ?></td>
+                                <td><?= esc($po['pd'] ?? '-') ?></td>
                             </tr>
                             <tr>
                                 <td>OS (Kiri)</td>
@@ -141,10 +181,11 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
                                 <td><?= esc($po['os_cyl'] ?? '-') ?></td>
                                 <td><?= esc($po['os_axis'] ?? '-') ?></td>
                                 <td><?= esc($po['add_power'] ?? '-') ?></td>
+                                <td><?= esc($po['pd'] ?? '-') ?></td>
                             </tr>
                         </tbody>
                     </table>
-                    <div class="tt-sub" style="font-weight:600">Resep tersimpan bersama pesanan ini.</div>
+                    <div class="tt-sub" style="font-weight:600">Ukuran lensa tersimpan pada detail PO ini.</div>
                 <?php else: ?>
                     <div class="empty-note">PO ini tidak menyertakan resep mata.</div>
                 <?php endif; ?>
@@ -161,7 +202,7 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
                     </div>
                     <div class="note-line">
                         <i></i>
-                        Hubungi pelanggan saat pesanan tersedia.
+                        Hubungi pelanggan (<?= esc($po['no_hp'] ?? '-') ?>) saat pesanan berstatus Sudah Datang.
                     </div>
                 </div>
             </section>
@@ -169,7 +210,7 @@ $adaResep = ! empty($po['od_sph']) || ! empty($po['os_sph']) || ! empty($po['pd'
     </div>
 
     <div class="tt-sub" style="padding:0 6px;font-weight:600">
-        Kasir dapat memantau PO. Proses dan perubahan status ditangani Admin Cabang.
+        Kasir mencatat pemesanan dan memantau status PO. Pemrosesan dan pembaruan status PO ditangani oleh Admin Cabang.
     </div>
 </div>
 <?= $this->endSection() ?>

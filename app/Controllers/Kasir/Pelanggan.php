@@ -25,7 +25,8 @@ class Pelanggan extends BaseKasir
             }
 
             if ($cari !== '') {
-                $haystack = mb_strtolower($c['nama_pelanggan'] . ' ' . $c['no_hp'] . ' ' . $c['alamat']);
+                $kode     = 'PLG-' . str_pad((string) $c['id_pelanggan'], 4, '0', STR_PAD_LEFT);
+                $haystack = mb_strtolower($c['nama_pelanggan'] . ' ' . $c['no_hp'] . ' ' . $c['alamat'] . ' ' . $kode);
 
                 if (! str_contains($haystack, mb_strtolower($cari))) {
                     return false;

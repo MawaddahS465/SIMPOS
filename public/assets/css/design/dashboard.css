@@ -14,8 +14,23 @@
   min-height: 346px;
   border-radius: var(--r-lg);
   overflow: hidden;
-  background: linear-gradient(115deg, #ebeafe 0%, #dfe0fb 46%, #d6d6f8 100%);
+  background: linear-gradient(115deg, #e9f3fd 0%, #ddeffc 46%, #d3e7f8 100%);
+  border: 1px solid var(--line);
   box-shadow: var(--shadow-md);
+}
+
+/* Cincin lensa samar sebagai penanda subjek optik */
+.hero::before {
+  content: "";
+  position: absolute;
+  left: -90px;
+  bottom: -140px;
+  width: 330px;
+  height: 330px;
+  border-radius: 50%;
+  border: 42px solid rgba(255, 255, 255, 0.5);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .hero-copy {
@@ -30,6 +45,18 @@
   font-weight: 800;
   letter-spacing: 2.4px;
   color: var(--accent-ink);
+}
+
+/* Penanda lensa kecil sebelum label — motif optik yang konsisten */
+.overline::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  vertical-align: 1px;
 }
 
 .hero-copy h1 {
@@ -63,7 +90,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #e3e3fc 0%, rgba(227, 227, 252, 0.35) 30%, rgba(227, 227, 252, 0) 60%);
+  background: linear-gradient(90deg, #d9ecfc 0%, rgba(217, 236, 252, 0.35) 30%, rgba(217, 236, 252, 0) 60%);
 }
 
 .hero-media img {
@@ -93,17 +120,19 @@
 
 .btn-primary {
   color: #fff;
-  background: linear-gradient(150deg, #6a65fd, var(--accent));
-  box-shadow: 0 18px 34px -16px rgba(91, 85, 251, 0.85);
+  background: linear-gradient(150deg, #3f8ce8, var(--accent));
+  box-shadow: 0 12px 26px -16px rgba(31, 111, 208, 0.9);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(150deg, #5f5afc, var(--accent-strong));
+  background: linear-gradient(150deg, var(--accent), var(--accent-strong));
+  box-shadow: 0 16px 30px -16px rgba(31, 111, 208, 0.95);
 }
 
 .btn-ghost {
   color: var(--accent-ink);
   background: #fff;
+  border: 1px solid var(--line);
   box-shadow: var(--shadow-sm);
 }
 
@@ -130,24 +159,26 @@
 
 .menu-card {
   position: relative;
-  background: var(--panel-soft);
+  background: var(--panel);
   border-radius: var(--r-lg);
   padding: 24px 30px 22px;
   min-height: 178px;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-md);
-  border: 1.5px solid transparent;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--line);
   transition: transform 0.16s, box-shadow 0.18s, border-color 0.18s;
 }
 
 .menu-card:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(47, 125, 225, 0.35);
 }
 
 .menu-card.featured {
-  border-color: rgba(91, 85, 251, 0.45);
+  border-color: rgba(47, 125, 225, 0.55);
+  background: linear-gradient(180deg, #ffffff 0%, #f3f9fe 100%);
 }
 
 .menu-card .m-icon {
@@ -196,15 +227,91 @@
   opacity: 1;
 }
 
+/* ---------------- Ringkasan hari ini ---------------- */
+.dash-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dash-metric {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  color: inherit;
+}
+
+.dash-metric .dm-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.dash-metric .tone-violet {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.dash-metric .tone-green {
+  background: var(--ok-bg);
+  color: var(--ok-ink);
+}
+
+.dash-metric .tone-amber {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+
+.dash-metric .dm-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.dash-metric b {
+  display: block;
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-metric .dm-caption {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.dash-metric .dm-arrow {
+  margin-left: auto;
+  align-self: center;
+  color: var(--accent);
+  flex: none;
+}
+
 /* ---------------- History strip ---------------- */
 .history-strip {
   display: flex;
   align-items: center;
   gap: 20px;
-  background: var(--panel-soft);
+  background: var(--panel);
+  border: 1px solid var(--line);
   border-radius: var(--r-lg);
   padding: 22px 26px;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
   margin-top: 38px;
 }
 
@@ -238,6 +345,9 @@
 @media (max-width: 1180px) {
   .menu-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dash-metrics {
+    grid-template-columns: 1fr;
   }
   .hero {
     grid-template-columns: 1fr;

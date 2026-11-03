@@ -25,6 +25,36 @@ $menu = [
         </div>
     </section>
 
+    <section class="dash-metrics" aria-label="Ringkasan hari ini">
+        <div class="dash-metric">
+            <span class="dm-icon tone-violet"><?= icon('receipt', 20) ?></span>
+            <div>
+                <span class="dm-label">Transaksi hari ini</span>
+                <b><?= esc((string) $trxHariIni) ?></b>
+                <span class="dm-caption">Transaksi lunas · <?= esc($tanggalHariIni) ?></span>
+            </div>
+        </div>
+        <div class="dash-metric">
+            <span class="dm-icon tone-green"><?= icon('wallet', 20) ?></span>
+            <div>
+                <span class="dm-label">Penerimaan hari ini</span>
+                <b><?= esc(rupiah($penerimaanHariIni)) ?></b>
+                <span class="dm-caption">Total pembayaran lunas</span>
+            </div>
+        </div>
+        <a class="dash-metric" href="<?= site_url('kasir/pemesanan') ?>">
+            <span class="dm-icon tone-amber"><?= icon('package-check', 20) ?></span>
+            <div>
+                <span class="dm-label">PO siap diambil</span>
+                <b><?= esc((string) $poSiapDiambil) ?></b>
+                <span class="dm-caption">
+                    <?= $poSiapDiambil > 0 ? 'Barang sudah datang di cabang' : 'Tidak ada PO menunggu pengambilan' ?>
+                </span>
+            </div>
+            <svg class="ic dm-arrow" width="17" height="17" aria-hidden="true"><use href="<?= base_url('assets/icons/sprite.svg') ?>#i-arrow-right"></use></svg>
+        </a>
+    </section>
+
     <section>
         <div class="section-head">
             <h2>Menu Utama</h2>
@@ -47,11 +77,7 @@ $menu = [
         <span class="h-icon"><?= icon('history', 24) ?></span>
         <div>
             <h3>Riwayat Transaksi</h3>
-            <p>
-                <?= $trxHariIni > 0
-                    ? esc($trxHariIni . ' transaksi selesai hari ini. Lihat atau cari transaksi sebelumnya.')
-                    : 'Lihat transaksi hari ini atau cari transaksi sebelumnya' ?>
-            </p>
+            <p>Lihat transaksi hari ini atau cari transaksi sebelumnya</p>
         </div>
         <a class="btn btn-ghost" href="<?= site_url('kasir/riwayat') ?>">
             Buka

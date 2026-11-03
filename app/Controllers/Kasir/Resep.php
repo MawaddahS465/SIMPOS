@@ -11,34 +11,51 @@ class Resep extends BaseKasir
     {
         $cari   = trim((string) ($this->request->getGet('q') ?? ''));
         $filter = (string) ($this->request->getGet('filter') ?? 'semua');
+        $filter = in_array($filter, ['semua', 'terbaru'], true) ? $filter : 'semua';
         $pilih  = (int) ($this->request->getGet('pilih') ?? 0);
 
         $semua = (new ResepModel())->denganPelanggan();
 
         foreach ($semua as &$row) {
-            $row['kode_resep'] = 'RS-' . date('Y', strtotime($row['tanggal_resep'])) . '-' . str_pad((string) $row['id_resep'], 4, '0', STR_PAD_LEFT);
+            $row['kode_resep'] = 'RX-' . str_pad((string) $row['id_resep'], 3, '0', STR_PAD_LEFT);
         }
         unset($row);
 
-        $rows = array_values(array_filter($semua, static function (array $r) use ($cari, $filter): bool {
-            if ($filter === 'aktif' && $r['status'] !== 'aktif') {
-                return false;
-            }
+        $rows = $semua;
 
-            if ($filter === 'expired' && $r['status'] === 'aktif') {
-                return false;
-            }
+        // "Resep Terbaru" hanya menampilkan satu resep terbaru per pelanggan.
+        if ($filter === 'terbaru') {
+            $sudah = [];
 
-            if ($cari !== '') {
-                $haystack = mb_strtolower($r['nama_pelanggan'] . ' ' . $r['kode_resep']);
+            $rows = array_values(array_filter($rows, static function (array $r) use (&$sudah): bool {
+                $nama = (string) $r['nama_pelanggan'];
 
-                if (! str_contains($haystack, mb_strtolower($cari))) {
+                if (isset($sudah[$nama])) {
                     return false;
                 }
-            }
 
-            return true;
-        }));
+                $sudah[$nama] = true;
+
+                return true;
+            }));
+        }
+
+        // Pencarian mendukung nama, nomor HP, kode resep, tanggal, dan catatan.
+        if ($cari !== '') {
+            $needle = mb_strtolower($cari);
+
+            $rows = array_values(array_filter($rows, static function (array $r) use ($needle): bool {
+                $haystack = mb_strtolower(implode(' ', [
+                    (string) $r['nama_pelanggan'],
+                    (string) ($r['no_hp'] ?? ''),
+                    (string) $r['kode_resep'],
+                    (string) $r['tanggal_resep'],
+                    (string) ($r['catatan'] ?? ''),
+                ]));
+
+                return str_contains($haystack, $needle);
+            }));
+        }
 
         $terpilih = null;
         foreach ($semua as $r) {
@@ -49,19 +66,18 @@ class Resep extends BaseKasir
             }
         }
 
-        if ($terpilih === null) {
-            $terpilih = $rows[0] ?? $semua[0] ?? null;
+        $namaUnik = [];
+        foreach ($semua as $r) {
+            $namaUnik[mb_strtolower((string) $r['nama_pelanggan'])] = true;
         }
-
-        $aktif = count(array_filter($semua, static fn (array $r): bool => $r['status'] === 'aktif'));
 
         return view('kasir/resep', [
             'judul'     => 'Resep Mata',
             'aktif'     => 'resep',
             'rows'      => $rows,
             'total'     => count($semua),
-            'aktifCount' => $aktif,
-            'expired'   => count($semua) - $aktif,
+            'unik'      => count($namaUnik),
+            'terbaru'   => $semua[0] ?? null,
             'terpilih'  => $terpilih,
             'cariQ'     => $cari,
             'filter'    => $filter,
@@ -104,6 +120,6 @@ class Resep extends BaseKasir
             return redirect()->to('kasir/resep')->with('error', 'Resep gagal disimpan.');
         }
 
-        return redirect()->to('kasir/resep?pilih=' . $id)->with('success', 'Resep baru berhasil disimpan.');
+        return redirect()->to('kasir/resep')->with('success', 'Resep baru berhasil disimpan.');
     }
 }

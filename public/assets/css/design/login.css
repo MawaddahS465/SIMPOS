@@ -6,9 +6,8 @@
 .page-bg.auth {
   padding: 40px 32px;
   background:
-    radial-gradient(1200px 780px at 6% -8%, #fcfcfe 0%, rgba(252, 252, 254, 0) 58%),
-    radial-gradient(1000px 700px at 100% 0%, #f1f2f8 0%, rgba(241, 242, 248, 0) 55%),
-    linear-gradient(155deg, #f0f1f7 0%, #e9eaf3 42%, #e3e4ee 72%, #dde0ea 100%);
+    radial-gradient(1300px 820px at 4% -12%, #ffffff 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(168deg, #cfe6f9 0%, #dfedfd 48%, #eaf5fe 78%, #f2faff 100%);
 }
 
 .auth {
@@ -20,13 +19,15 @@
 
 .auth-card {
   width: 100%;
-  max-width: 1480px;
-  min-height: 840px;
+  max-width: 1280px;
+  min-height: min(790px, calc(100vh - 80px));
   display: grid;
-  grid-template-columns: 1fr 580px;
+  grid-template-columns: 1fr 1fr;
   gap: 0;
   border-radius: var(--r-xl);
   overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
   box-shadow: var(--shadow-lg);
 }
 
@@ -38,7 +39,34 @@
   flex-direction: column;
   justify-content: flex-end;
   padding: 48px 52px 52px;
-  background: #e7e6fb;
+  background: #e0effb;
+}
+
+/* Cincin lensa samar — penanda subjek optik */
+.auth-visual::before {
+  content: "";
+  position: absolute;
+  top: -110px;
+  right: -90px;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  border: 46px solid rgba(255, 255, 255, 0.16);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.auth-visual::after {
+  content: "";
+  position: absolute;
+  top: 44px;
+  right: 78px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  z-index: 2;
+  pointer-events: none;
 }
 
 .auth-visual > img {
@@ -84,7 +112,7 @@
 
 .auth-copy h1 em {
   font-style: normal;
-  color: #c9c6ff;
+  color: #b8d9f8;
 }
 
 .auth-copy p {
@@ -126,8 +154,9 @@
 
 /* ---------------- Panel kanan ---------------- */
 .auth-form {
-  background: var(--panel-soft);
-  padding: 60px 56px 44px;
+  background: #fff;
+  border-left: 1px solid var(--line);
+  padding: 54px 56px 44px;
   display: flex;
   flex-direction: column;
 }
@@ -136,18 +165,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 32px;
-}
-
-.form-brand .mark {
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  color: #fff;
-  background: linear-gradient(150deg, #6f6afd, var(--accent));
-  box-shadow: 0 14px 26px -14px rgba(91, 85, 251, 0.8);
+  margin-bottom: 28px;
 }
 
 .form-brand b {
@@ -159,20 +177,27 @@
 
 .auth-form h2 {
   margin-top: 0;
-  font-size: 38px;
+  font-size: 36px;
   font-weight: 800;
-  letter-spacing: -0.8px;
+  letter-spacing: -1px;
+  color: var(--ink);
 }
 
 .auth-form .sub {
   margin-top: 12px;
+  min-height: 48px;
   font-size: 15px;
   line-height: 1.6;
   color: var(--muted);
 }
 
+.auth-form .sub b {
+  color: var(--ink-2);
+  font-weight: 800;
+}
+
 .auth-form form {
-  margin-top: 46px;
+  margin-top: 40px;
 }
 
 .field {
@@ -181,21 +206,22 @@
 
 .field > label {
   display: block;
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
   color: var(--ink-2);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .input-wrap {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 60px;
+  height: 56px;
   padding: 0 16px;
   background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 15px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
   transition: border-color 0.16s, box-shadow 0.16s;
 }
 
@@ -311,7 +337,7 @@
 }
 
 .auth-help {
-  margin-top: 40px;
+  margin-top: 34px;
   text-align: center;
 }
 
@@ -336,17 +362,11 @@
 
 .brand-foot {
   margin-top: auto;
-  padding-top: 30px;
+  padding-top: 26px;
   text-align: center;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--muted-2);
-}
-
-@media (max-width: 1540px) {
-  .auth-card {
-    grid-template-columns: 1fr 560px;
-  }
 }
 
 @media (max-width: 1180px) {
@@ -355,14 +375,14 @@
     min-height: 0;
   }
   .auth-visual {
-    min-height: 440px;
-    padding: 40px 36px;
+    min-height: 360px;
+    padding: 36px 36px;
   }
   .auth-copy h1 {
-    font-size: 38px;
+    font-size: 36px;
   }
   .auth-form {
-    padding: 44px 40px 36px;
+    padding: 40px 40px 34px;
   }
   .auth-form h2 {
     font-size: 30px;
@@ -375,17 +395,86 @@
   }
 }
 
-@media (max-width: 620px) {
-  .page-bg.auth {
-    padding: 16px;
-  }
+@media (max-width: 900px) {
   .auth-visual {
-    padding: 32px 28px;
+    min-height: 320px;
+    padding: 32px 30px;
   }
   .auth-copy h1 {
-    font-size: 30px;
+    font-size: 32px;
   }
   .auth-form {
-    padding: 36px 24px 28px;
+    padding: 36px 32px 30px;
+  }
+}
+
+@media (max-width: 620px) {
+  .page-bg.auth {
+    padding: 12px;
+  }
+  .auth {
+    padding: 12px;
+  }
+  .auth-visual {
+    min-height: 240px;
+    padding: 24px 22px;
+  }
+  .auth-copy h1 {
+    font-size: 27px;
+    line-height: 1.16;
+    letter-spacing: -0.8px;
+  }
+  .auth-copy p {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .auth-tags {
+    margin-top: 16px;
+  }
+  .auth-tags span {
+    font-size: 11px;
+    letter-spacing: 2.4px;
+  }
+  .auth-form {
+    padding: 30px 22px 24px;
+  }
+  .form-brand {
+    margin-bottom: 24px;
+  }
+  .auth-form h2 {
+    font-size: 28px;
+    letter-spacing: -0.6px;
+  }
+  .auth-form .sub {
+    margin-top: 8px;
+    min-height: 0;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .auth-form form {
+    margin-top: 26px;
+  }
+  .field {
+    margin-bottom: 20px;
+  }
+  .field > label {
+    margin-bottom: 9px;
+  }
+  .input-wrap {
+    height: 54px;
+    border-radius: 13px;
+  }
+  .form-row {
+    margin: 20px 0 24px;
+  }
+  .btn-block {
+    padding: 16px;
+  }
+  .auth-help {
+    margin-top: 26px;
+  }
+  .brand-foot {
+    padding-top: 22px;
   }
 }

@@ -16,7 +16,6 @@ class Auth extends BaseController
         return view('auth/login', [
             'judul'             => 'Masuk ke SIMPOS',
             'judulMasuk'        => 'Selamat Datang',
-            'subJudul'          => 'Silakan masuk untuk mengakses sistem kasir Optik Mekar Jaya.',
             'bantuan'           => 'Hubungi admin di cabang atau tim IT.',
             'usernameTersimpan' => (string) ($this->request->getCookie('simpos_username') ?? ''),
             'pesanError'        => session()->getFlashdata('error'),

@@ -6,7 +6,6 @@ $navUtama = [
     ['kunci' => 'transaksi', 'label' => 'Transaksi Baru', 'path' => 'kasir/transaksi', 'ikon' => 'shopping-cart'],
     ['kunci' => 'pemesanan', 'label' => 'Pemesanan (PO)', 'path' => 'kasir/pemesanan', 'ikon' => 'clipboard-list'],
     ['kunci' => 'riwayat', 'label' => 'Riwayat Transaksi', 'path' => 'kasir/riwayat', 'ikon' => 'history'],
-    ['kunci' => 'pembayaran', 'label' => 'Pembayaran', 'path' => 'kasir/pembayaran', 'ikon' => 'credit-card'],
 ];
 $navLain = [
     ['kunci' => 'pelanggan', 'label' => 'Pelanggan', 'path' => 'kasir/pelanggan', 'ikon' => 'users'],
@@ -42,7 +41,7 @@ $aktif = $aktif ?? '';
     <div class="app-grid">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-brand">
-                <span class="brand-badge"><?= icon('glasses', 24) ?></span>
+                <img src="<?= base_url('assets/logo-mk.png') ?>" width="44" height="44" alt="Logo Optik Mekar Jaya">
                 <span class="brand-text">
                     <b>Optik Mekar Jaya</b>
                     <span>Sistem Informasi Optik</span>
@@ -57,7 +56,7 @@ $aktif = $aktif ?? '';
                     </a>
                 <?php endforeach; ?>
 
-                <div class="nav-sep">LAINNYA</div>
+                <div class="nav-sep"></div>
 
                 <?php foreach ($navLain as $item): ?>
                     <a class="nav-item <?= $aktif === $item['kunci'] ? 'active' : '' ?>" href="<?= site_url($item['path']) ?>">
@@ -86,11 +85,11 @@ $aktif = $aktif ?? '';
                     <?= icon('menu', 20) ?>
                 </button>
 
-                <?php if (! empty($cari)): ?>
+                <?php if ($aktif === 'dashboard'): ?>
                     <form class="search-field" method="get" action="<?= site_url('kasir/transaksi') ?>" role="search">
                         <?= icon('search', 18) ?>
                         <input type="search" name="q" value="<?= esc($cariQ ?? '') ?>" placeholder="Cari produk, pelanggan, atau transaksi..." aria-label="Pencarian">
-                        <span class="kbd">Ctrl + K</span>
+                        <span class="kbd">Enter</span>
                     </form>
                 <?php endif; ?>
 

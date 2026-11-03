@@ -8,20 +8,20 @@ $qs = static fn (array $ubah): string => '?' . http_build_query(array_merge([
     'pilih'  => $terpilih['id_pelanggan'] ?? null,
 ], $ubah));
 
-$filterList = ['semua' => 'Semua', 'resep' => 'Punya resep', 'po' => 'PO aktif'];
+$filterList = ['semua' => 'Semua Pelanggan', 'resep' => 'Punya Resep', 'po' => 'PO Aktif'];
 
 $tambah = request()->getGet('tambah') === '1';
 $ubah   = request()->getGet('ubah') === '1' && $terpilih !== null;
 $drawer = $tambah || $ubah;
+$showDetail = (int) request()->getGet('pilih') > 0 && ! $drawer && $terpilih !== null;
 ?>
 <div class="page">
     <div class="pagehead">
-        <div class="crumbs"><b>Kasir</b> › Pelanggan</div>
         <div class="pagehead-main">
             <div>
                 <div class="overline">PENGELOLAAN PELANGGAN</div>
                 <h1>Data Pelanggan</h1>
-                <p>Cari informasi pelanggan dan kelola riwayat resep untuk pelayanan yang lebih cepat.</p>
+                <p>Cari pelanggan berdasarkan nama atau nomor HP, kelola data pelanggan, dan catat riwayat resep.</p>
             </div>
             <div class="pagehead-actions">
                 <a class="btn btn-primary" href="<?= site_url('kasir/pelanggan' . $qs(['tambah' => 1, 'ubah' => null])) ?>">
@@ -59,90 +59,96 @@ $drawer = $tambah || $ubah;
         </div>
     </div>
 
-    <div class="split">
-        <section class="section-block">
-            <div class="section-head">
-                <div>
-                    <h2>Daftar Pelanggan</h2>
-                    <div class="section-desc">Informasi pelanggan dan ringkasan aktivitas</div>
-                </div>
-                <div class="section-action">
-                    <span class="foot-note" style="color:var(--muted);font-size:12.5px;font-weight:700">
-                        <?= (int) $total ?> data tersedia
-                    </span>
-                </div>
+    <section class="section-block pelanggan-list">
+        <div class="section-head">
+            <div>
+                <h2>Daftar Pelanggan</h2>
+                <div class="section-desc">Informasi pelanggan dan ringkasan aktivitas</div>
             </div>
-
-            <div class="toolbar">
-                <form method="get" action="<?= site_url('kasir/pelanggan') ?>">
-                    <input type="hidden" name="filter" value="<?= esc($filter) ?>">
-                    <label class="toolbar-search">
-                        <?= icon('search', 16) ?>
-                        <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nama atau nomor HP pelanggan...">
-                    </label>
-                </form>
-
-                <div class="toolbar-chips">
-                    <?php foreach ($filterList as $kunci => $label): ?>
-                        <a class="chip <?= $filter === $kunci ? 'active' : '' ?>" href="<?= site_url('kasir/pelanggan' . $qs(['filter' => $kunci, 'pilih' => null])) ?>">
-                            <?= esc($label) ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
+            <div class="section-action">
+                <span class="foot-note" style="color:var(--muted);font-size:12.5px;font-weight:700">
+                    <?= count($rows) ?> dari <?= (int) $total ?> data
+                </span>
             </div>
+        </div>
 
-            <div class="table-wrap">
-                <table class="tt">
-                    <thead>
+        <form class="toolbar pelanggan-toolbar" method="get" action="<?= site_url('kasir/pelanggan') ?>">
+            <label class="toolbar-search">
+                <?= icon('search', 16) ?>
+                <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nama, kode, atau nomor HP pelanggan...">
+            </label>
+            <select class="chip-select" name="filter" aria-label="Filter pelanggan" onchange="this.form.submit()">
+                <?php foreach ($filterList as $kunci => $label): ?>
+                    <option value="<?= esc($kunci) ?>" <?= $filter === $kunci ? 'selected' : '' ?>>
+                        <?= esc($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+
+        <div class="table-wrap">
+            <table class="tt">
+                <thead>
+                    <tr>
+                        <th>NAMA PELANGGAN</th>
+                        <th>NOMOR HP</th>
+                        <th class="tt-center">RESEP</th>
+                        <th>PO AKTIF</th>
+                        <th class="tt-right">AKSI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rows as $c): ?>
+                        <?php
+                        $editUrl = site_url('kasir/pelanggan' . $qs(['pilih' => (int) $c['id_pelanggan'], 'tambah' => null, 'ubah' => 1]));
+                        ?>
                         <tr>
-                            <th>NAMA PELANGGAN</th>
-                            <th>NOMOR HP</th>
-                            <th>RESEP</th>
-                            <th>PO AKTIF</th>
-                            <th class="tt-right">AKSI</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($rows as $c): ?>
-                            <?php $url = site_url('kasir/pelanggan' . $qs(['pilih' => (int) $c['id_pelanggan'], 'tambah' => null, 'ubah' => null])); ?>
-                            <tr class="<?= (int) ($terpilih['id_pelanggan'] ?? 0) === (int) $c['id_pelanggan'] ? 'is-active' : '' ?>"
-                                style="cursor:pointer" onclick="window.location='<?= $url ?>'">
-                                <td>
-                                    <div class="cell-person">
-                                        <?= avatar($c['nama_pelanggan'], 40) ?>
-                                        <span>
-                                            <b><?= esc($c['nama_pelanggan']) ?></b>
-                                            <span>PLG-<?= str_pad((string) $c['id_pelanggan'], 4, '0', STR_PAD_LEFT) ?></span>
-                                        </span>
-                                    </div>
-                                </td>
-                                <td><?= esc($c['no_hp'] ?? '-') ?></td>
-                                <td><?= status_text((int) $c['jml_resep'] > 0 ? 'Ada' : 'Belum ada') ?></td>
-                                <td>
-                                    <span class="tt-sub" style="margin-top:0">
-                                        <?= (int) $c['po_aktif'] > 0 ? (int) $c['po_aktif'] . ' pesanan' : 'Tidak ada' ?>
+                            <td>
+                                <div class="cell-person">
+                                    <?= avatar($c['nama_pelanggan'], 40) ?>
+                                    <span>
+                                        <b><?= esc($c['nama_pelanggan']) ?></b>
+                                        <span>PLG-<?= str_pad((string) $c['id_pelanggan'], 4, '0', STR_PAD_LEFT) ?></span>
                                     </span>
-                                </td>
-                                <td class="tt-right">
-                                    <a class="link-action" href="<?= $url ?>">
-                                        Detail
-                                        <?= icon('chevron-right', 15) ?>
+                                </div>
+                            </td>
+                            <td><?= esc($c['no_hp'] ?? '-') ?></td>
+                            <td class="tt-center"><?= status_text((int) $c['jml_resep'] > 0 ? 'Ada' : 'Belum ada') ?></td>
+                            <td>
+                                <span class="tt-sub" style="margin-top:0">
+                                    <?= (int) $c['po_aktif'] > 0 ? (int) $c['po_aktif'] . ' pesanan' : 'Tidak ada' ?>
+                                </span>
+                            </td>
+                            <td class="tt-right">
+                                <span class="row-actions">
+                                    <a class="link-action" href="<?= $editUrl ?>">
+                                        <?= icon('pencil', 14) ?>
+                                        Edit
                                     </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
+                                </span>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
 
-                        <?php if ($rows === []): ?>
-                            <tr>
-                                <td colspan="5"><div class="empty-note">Pelanggan tidak ditemukan.</div></td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+                    <?php if ($rows === []): ?>
+                        <tr>
+                            <td colspan="5"><div class="empty-note">Pelanggan tidak ditemukan.</div></td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-        <aside class="detail-panel">
+    <?php if ($showDetail): ?>
+        <div class="overlay po-modal-overlay pelanggan-detail-overlay">
+            <aside class="detail-panel pelanggan-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="pelanggan-detail-title">
+                <div class="detail-dialog-head">
+                    <span id="pelanggan-detail-title" class="mini-label">DETAIL PELANGGAN</span>
+                    <a class="icon-pill" aria-label="Tutup detail" href="<?= site_url('kasir/pelanggan' . $qs(['pilih' => null])) ?>">
+                        <?= icon('x', 18) ?>
+                    </a>
+                </div>
             <?php if ($terpilih !== null): ?>
                 <div class="detail-head">
                     <?= avatar($terpilih['nama_pelanggan'], 48) ?>
@@ -226,8 +232,9 @@ $drawer = $tambah || $ubah;
             <?php else: ?>
                 <div class="empty-note">Pilih pelanggan untuk melihat detail.</div>
             <?php endif; ?>
-        </aside>
-    </div>
+            </aside>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php if ($drawer): ?>

@@ -2,17 +2,13 @@
 
 <?= $this->section('content') ?>
 <?php
-$qs = static fn (array $ubah): string => '?' . http_build_query(array_merge([
-    'status' => $status,
-    'q'      => $cariQ,
-], $ubah));
-
 $filterList = [
-    'Semua'        => '',
+    'Semua Status' => '',
     'Dipesan'      => 'dipesan',
     'Diproses'     => 'diproses',
     'Sudah Datang' => 'sudah_datang',
     'Selesai'      => 'selesai',
+    'Dibatalkan'   => 'dibatalkan',
 ];
 ?>
 <div class="page">
@@ -21,7 +17,7 @@ $filterList = [
             <div>
                 <div class="overline">MANAJEMEN PESANAN</div>
                 <h1>Pemesanan (PO)</h1>
-                <p>Pantau perkembangan pesanan pelanggan di <?= esc(current_branch_name()) ?></p>
+                <p>Catat pemesanan pelanggan (frame/lensa) dan pantau perkembangan status pesanan di <?= esc(current_branch_name()) ?></p>
             </div>
             <div class="pagehead-actions">
                 <a class="btn btn-primary" href="<?= site_url('kasir/pemesanan?buat=1') ?>">
@@ -53,7 +49,7 @@ $filterList = [
             <div class="stat-body">
                 <div class="stat-label">Sudah Datang</div>
                 <div class="stat-value"><?= str_pad((string) $hitung['sudah_datang'], 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="stat-caption">Siap dinubungi pelanggan</div>
+                <div class="stat-caption">Siap diambil pelanggan</div>
             </div>
             <span class="stat-icon"><?= icon('package-check', 22) ?></span>
         </div>
@@ -62,9 +58,9 @@ $filterList = [
     <?php if ($poKode !== null): ?>
         <div class="notice notice-ok" role="status">
             <?= icon('check', 16) ?>
-            PO <?= esc($poKode) ?> tercatat (Dipesan) dan diteruskan ke antrean Admin Cabang.
+            PO <?= esc($poKode) ?> berhasil dicatat dengan status <b>Dipesan</b> dan diteruskan ke Admin Cabang.
             <a class="link-action" href="<?= site_url('kasir/pemesanan/' . (int) $poId) ?>">
-                Lihat detail
+                Lihat Detail
                 <?= icon('chevron-right', 15) ?>
             </a>
         </div>
@@ -74,27 +70,26 @@ $filterList = [
         <div class="section-head">
             <div>
                 <h2>Daftar Pemesanan</h2>
-                <div class="section-desc">Informasi pesanan dan status terbaru</div>
+                <div class="section-desc">Informasi pesanan pelanggan dan status terbaru dari Admin Cabang</div>
             </div>
         </div>
 
-        <div class="toolbar">
-            <form method="get" action="<?= site_url('kasir/pemesanan') ?>">
-                <input type="hidden" name="status" value="<?= esc($status) ?>">
-                <label class="toolbar-search">
-                    <?= icon('search', 16) ?>
-                    <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nomor PO atau nama pelanggan...">
-                </label>
-            </form>
+        <form class="toolbar" method="get" action="<?= site_url('kasir/pemesanan') ?>">
+            <label class="toolbar-search">
+                <?= icon('search', 16) ?>
+                <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nomor PO, nama pelanggan, atau nomor HP...">
+            </label>
 
             <div class="toolbar-chips">
-                <?php foreach ($filterList as $label => $kunci): ?>
-                    <a class="chip <?= $status === $kunci ? 'active' : '' ?>" href="<?= site_url('kasir/pemesanan' . $qs(['status' => $kunci])) ?>">
-                        <?= esc($label) ?>
-                    </a>
-                <?php endforeach; ?>
+                <select class="chip-select" name="status" aria-label="Filter Status" onchange="this.form.submit()">
+                    <?php foreach ($filterList as $label => $kunci): ?>
+                        <option value="<?= esc($kunci) ?>" <?= $status === $kunci ? 'selected' : '' ?>>
+                            <?= esc($label) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-        </div>
+        </form>
 
         <div class="table-wrap">
             <table class="tt">
@@ -103,7 +98,7 @@ $filterList = [
                         <th>NO. PO / TANGGAL</th>
                         <th>PELANGGAN</th>
                         <th>PRODUK DIPESAN</th>
-                        <th>STATUS PO</th>
+                        <th class="tt-center">STATUS PO</th>
                         <th class="tt-right">AKSI</th>
                     </tr>
                 </thead>
@@ -132,10 +127,10 @@ $filterList = [
                                 <div class="tt-num" style="font-size:13px"><?= esc($labelProduk[0] ?? '-') ?></div>
                                 <div class="tt-sub"><?= esc($labelProduk[1] ?? ((int) $o['jml_item'] . ' item')) ?></div>
                             </td>
-                            <td><?= status_pill($o['status']) ?></td>
+                            <td class="tt-center"><?= status_pill($o['status']) ?></td>
                             <td class="tt-right">
                                 <a class="link-action" href="<?= site_url('kasir/pemesanan/' . (int) $o['id_po']) ?>">
-                                    Lihat detail
+                                    Lihat Detail
                                     <?= icon('chevron-right', 15) ?>
                                 </a>
                             </td>

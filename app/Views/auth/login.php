@@ -28,20 +28,14 @@
 
         <section class="auth-form">
             <div class="form-brand">
-                <span class="mark">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="6" cy="15" r="4"/>
-                        <circle cx="18" cy="15" r="4"/>
-                        <path d="M14 15a2 2 0 0 0-2-2 2 2 0 0 0-2 2"/>
-                        <path d="M2.5 13 5 7c.7-1.3 1.4-2 3-2"/>
-                        <path d="M21.5 13 19 7c-.7-1.3-1.5-2-3-2"/>
-                    </svg>
-                </span>
+                <img src="<?= base_url('assets/logo-mk.png') ?>" width="46" height="46" alt="Logo Optik Mekar Jaya">
                 <b>Optik Mekar Jaya</b>
             </div>
 
             <h2><?= esc($judulMasuk) ?></h2>
-            <p class="sub"><?= esc($subJudul) ?></p>
+            <p class="sub">
+                Silakan masuk untuk mengakses sistem Optik Mekar Jaya dengan <b>akun Anda</b>.
+            </p>
 
             <form id="form-login" action="<?= site_url('login') ?>" method="post" novalidate>
                 <?= csrf_field() ?>

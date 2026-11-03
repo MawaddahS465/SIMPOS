@@ -4,6 +4,9 @@
 <?php
 $picking = $terpilih === null || request()->getGet('ubah') === '1';
 
+$metodeAktif = $metode ?? 'Tunai';
+$total       = (float) $ringkasan['total'];
+
 $ikonMetode = [
     'Tunai'               => 'banknote',
     'Transfer Bank'       => 'building-2',
@@ -25,7 +28,7 @@ $ketMetode = [
             <div>
                 <div class="overline">CHECKOUT</div>
                 <h1>Lengkapi data transaksi dan selesaikan pembayaran</h1>
-                <p>Pastikan data pelanggan, resep, dan produk sudah sesuai sebelum memproses pembayaran.</p>
+                <p>Pastikan data pelanggan, resep, dan ketersediaan stok produk sudah sesuai sebelum memproses pembayaran.</p>
             </div>
             <div class="pagehead-actions"><?= steps(2) ?></div>
         </div>
@@ -66,31 +69,29 @@ $ketMetode = [
                         <form method="get" action="<?= site_url('kasir/checkout') ?>">
                             <input type="hidden" name="ubah" value="1">
                             <label class="toolbar-search" style="margin-bottom:12px">
-                                <?= icon('search', 16) ?>
-                                <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari pelanggan (nama atau nomor HP).">
+                                <?= icon('glasses', 16) ?>
+                                <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari pelanggan (nama, nomor HP, atau kode).">
                             </label>
                         </form>
 
-                        <div class="cust-pick">
-                            <?php foreach ($pelanggan as $c): ?>
-                                <form class="inline-form" method="post" action="<?= site_url('kasir/checkout/pelanggan') ?>">
-                                    <?= csrf_field() ?>
-                                    <input type="hidden" name="pelanggan_id" value="<?= (int) $c['id_pelanggan'] ?>">
-                                    <button class="cust-pick-row" type="submit">
+                        <form method="post" action="<?= site_url('kasir/checkout/pelanggan') ?>">
+                            <?= csrf_field() ?>
+                            <div class="cust-pick">
+                                <?php foreach ($pelanggan as $c): ?>
+                                    <button class="cust-pick-row" type="submit" name="pelanggan_id" value="<?= (int) $c['id_pelanggan'] ?>">
                                         <?= avatar($c['nama_pelanggan'], 40) ?>
-                                        <span style="flex:1;min-width:0">
+                                        <span class="pick-body">
                                             <b><?= esc($c['nama_pelanggan']) ?></b>
                                             <span>PLG-<?= str_pad((string) $c['id_pelanggan'], 4, '0', STR_PAD_LEFT) ?> · <?= esc($c['no_hp'] ?? '-') ?></span>
                                         </span>
-                                        <?= icon('chevron-right', 15) ?>
                                     </button>
-                                </form>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
 
-                            <?php if ($pelanggan === []): ?>
-                                <div class="empty-note">Pelanggan tidak ditemukan.</div>
-                            <?php endif; ?>
-                        </div>
+                                <?php if ($pelanggan === []): ?>
+                                    <div class="empty-note">Pelanggan tidak ditemukan.</div>
+                                <?php endif; ?>
+                            </div>
+                        </form>
                     </div>
                 <?php endif; ?>
             </section>
@@ -119,16 +120,16 @@ $ketMetode = [
                             <tr>
                                 <td>OD (Kanan)</td>
                                 <td><?= esc($resep['od_sph'] ?? '-') ?></td>
-                                <td><?= esc($resep['od_cyl'] ?? '-') ?></td>
-                                <td><?= esc($resep['od_axis'] ?? '-') ?></td>
+                                <td><?= esc($resep['od_cyl'] !== null && $resep['od_cyl'] !== '' ? $resep['od_cyl'] : '0.00') ?></td>
+                                <td><?= esc($resep['od_axis'] !== null && $resep['od_axis'] !== '' ? $resep['od_axis'] : '-') ?></td>
                                 <td><?= esc($resep['add_power'] ?? '-') ?></td>
                                 <td><?= esc($resep['pd'] ?? '-') ?></td>
                             </tr>
                             <tr>
                                 <td>OS (Kiri)</td>
                                 <td><?= esc($resep['os_sph'] ?? '-') ?></td>
-                                <td><?= esc($resep['os_cyl'] ?? '-') ?></td>
-                                <td><?= esc($resep['os_axis'] ?? '-') ?></td>
+                                <td><?= esc($resep['os_cyl'] !== null && $resep['os_cyl'] !== '' ? $resep['os_cyl'] : '0.00') ?></td>
+                                <td><?= esc($resep['os_axis'] !== null && $resep['os_axis'] !== '' ? $resep['os_axis'] : '-') ?></td>
                                 <td><?= esc($resep['add_power'] ?? '-') ?></td>
                                 <td><?= esc($resep['pd'] ?? '-') ?></td>
                             </tr>
@@ -136,7 +137,7 @@ $ketMetode = [
                     </table>
                 <?php else: ?>
                     <div class="empty-note">
-                        Belum ada resep tersimpan untuk pelanggan ini. Pilih pelanggan atau ambil resep tersimpan.
+                        Belum ada resep tersimpan untuk pelanggan ini.
                     </div>
                 <?php endif; ?>
             </section>
@@ -156,11 +157,13 @@ $ketMetode = [
                     <div class="empty-note">Belum ada produk dipilih.</div>
                 <?php else: ?>
                     <?php foreach ($ringkasan['rows'] as $i): ?>
-                        <div class="cart-line">
+                        <div class="cart-line" style="flex-wrap:wrap">
                             <span class="cl-ico"><?= icon('glasses', 20) ?></span>
                             <span class="cl-body">
                                 <b><?= esc($i['nama_barang']) ?></b>
-                                <span><?= esc($i['merek']) ?> · <?= esc($i['jenis']) ?></span>
+                                <span>
+                                    <?= esc($i['merek']) ?> · <?= esc($i['jenis']) ?> · Stok cabang: <?= (int) $i['stok'] ?> unit
+                                </span>
                             </span>
                             <span class="qty-box">
                                 <form class="inline-form" method="post" action="<?= site_url('kasir/transaksi/qty') ?>">
@@ -207,7 +210,7 @@ $ketMetode = [
                 <div class="sum-row">
                     <span>% Diskon</span>
                     <span class="sum-inline">
-                        <input class="sum-input" value="0" readonly aria-label="Diskon">
+                        <input class="sum-input" value="0" readonly aria-label="Diskon dalam persen">
                         <b>Rp 0</b>
                     </span>
                 </div>
@@ -224,16 +227,55 @@ $ketMetode = [
                 <div class="mini-label" style="letter-spacing:1.3px">METODE PEMBAYARAN</div>
                 <div class="pay-list">
                     <?php foreach ($daftarMetode as $m): ?>
-                        <label class="pay-opt">
-                            <input type="radio" name="metode" value="<?= esc($m) ?>" <?= $metode === $m ? 'checked' : '' ?>>
-                            <span class="po-ico"><?= icon($ikonMetode[$m], 18) ?></span>
+                        <label class="pay-opt <?= $metodeAktif === $m ? 'on' : '' ?>">
+                            <input type="radio" name="metode" value="<?= esc($m) ?>" <?= $metodeAktif === $m ? 'checked' : '' ?>>
+                            <span class="po-ico"><?= icon($ikonMetode[$m] ?? 'wallet', 18) ?></span>
                             <span class="po-body">
                                 <b><?= esc($m) ?></b>
-                                <span><?= esc($ketMetode[$m]) ?></span>
+                                <span><?= esc($ketMetode[$m] ?? '') ?></span>
                             </span>
                             <span class="radio-dot"></span>
                         </label>
                     <?php endforeach; ?>
+                </div>
+
+                <div class="cash-box" id="cash-box" <?= $metodeAktif !== 'Tunai' ? 'style="display:none"' : '' ?>>
+                    <div class="cash-mode-toggle" role="group" aria-label="Cara pembayaran tunai">
+                        <button type="button" class="cash-mode-btn on" id="cash-mode-exact" aria-pressed="true">
+                            Uang Pas
+                        </button>
+                        <button type="button" class="cash-mode-btn" id="cash-mode-manual" aria-pressed="false">
+                            Input Manual
+                        </button>
+                    </div>
+
+                    <div class="cash-exact-display" id="cash-exact-panel">
+                        <span>Jumlah Dibayar</span>
+                        <b><?= rupiah($ringkasan['total']) ?></b>
+                    </div>
+
+                    <div class="cash-field" id="cash-manual-panel" style="display:none">
+                        <div class="cash-label-row">
+                            <label for="cash-paid-input">Jumlah Dibayar</label>
+                        </div>
+                        <div class="cash-input-wrap">
+                            <span class="cash-prefix">Rp</span>
+                            <input
+                                id="cash-paid-input"
+                                name="jumlah_dibayar"
+                                type="text"
+                                inputmode="numeric"
+                                autocomplete="off"
+                                placeholder="<?= number_format($total, 0, ',', '.') ?>"
+                                value="<?= number_format($total, 0, ',', '.') ?>"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="cash-change-row" id="cash-change-row">
+                        <span id="cash-change-label">Kembalian</span>
+                        <b id="cash-change-value">Rp 0</b>
+                    </div>
                 </div>
 
                 <button class="btn btn-primary full" type="submit">Selesaikan Transaksi</button>
@@ -282,4 +324,110 @@ $ketMetode = [
         </div>
     </div>
 <?php endif; ?>
+
+<script>
+    (function () {
+        var form = document.getElementById('form-checkout');
+
+        if (!form) {
+            return;
+        }
+
+        var total = <?= (int) $ringkasan['total'] ?>;
+
+        var cashBox     = document.getElementById('cash-box');
+        var exactBtn    = document.getElementById('cash-mode-exact');
+        var manualBtn   = document.getElementById('cash-mode-manual');
+        var exactPanel  = document.getElementById('cash-exact-panel');
+        var manualPanel = document.getElementById('cash-manual-panel');
+        var input       = document.getElementById('cash-paid-input');
+        var changeRow   = document.getElementById('cash-change-row');
+        var changeLabel = document.getElementById('cash-change-label');
+        var changeValue = document.getElementById('cash-change-value');
+        var radios      = form.querySelectorAll('input[name="metode"]');
+        var payOpts     = form.querySelectorAll('.pay-opt');
+        var mode        = 'exact';
+
+        function formatRp(value) {
+            return 'Rp ' + Math.round(value).toLocaleString('id-ID');
+        }
+
+        function refreshChange() {
+            var digits = input.value.replace(/[^\d]/g, '');
+            var paid   = digits === '' ? (mode === 'exact' ? total : 0) : Number(digits);
+            var diff   = paid - total;
+
+            if (diff < 0) {
+                changeLabel.textContent = 'Kurang Bayar';
+                changeValue.textContent = '- ' + formatRp(-diff);
+                changeRow.classList.add('is-short');
+            } else {
+                changeLabel.textContent = 'Kembalian';
+                changeValue.textContent = formatRp(diff);
+                changeRow.classList.remove('is-short');
+            }
+        }
+
+        function setMode(next) {
+            mode = next;
+
+            var exact = next === 'exact';
+
+            exactBtn.classList.toggle('on', exact);
+            exactBtn.setAttribute('aria-pressed', exact ? 'true' : 'false');
+            manualBtn.classList.toggle('on', !exact);
+            manualBtn.setAttribute('aria-pressed', exact ? 'false' : 'true');
+
+            exactPanel.style.display  = exact ? '' : 'none';
+            manualPanel.style.display = exact ? 'none' : '';
+
+            if (exact) {
+                input.value = String(total);
+                refreshChange();
+            } else {
+                input.value = '';
+                refreshChange();
+                input.focus();
+            }
+        }
+
+        function syncCashVisibility() {
+            var checked = form.querySelector('input[name="metode"]:checked');
+            var tunai   = checked !== null && checked.value === 'Tunai';
+
+            cashBox.style.display = tunai ? '' : 'none';
+
+            payOpts.forEach(function (opt) {
+                var radio = opt.querySelector('input[name="metode"]');
+                opt.classList.toggle('on', radio !== null && radio.checked);
+            });
+
+            if (tunai && mode === 'exact') {
+                input.value = String(total);
+                refreshChange();
+            }
+        }
+
+        exactBtn.addEventListener('click', function () {
+            setMode('exact');
+        });
+
+        manualBtn.addEventListener('click', function () {
+            setMode('manual');
+        });
+
+        input.addEventListener('input', function () {
+            var digits = input.value.replace(/[^\d]/g, '');
+            input.value = digits === '' ? '' : Number(digits).toLocaleString('id-ID');
+            refreshChange();
+        });
+
+        radios.forEach(function (radio) {
+            radio.addEventListener('change', syncCashVisibility);
+        });
+
+        setMode('exact');
+        syncCashVisibility();
+    })();
+</script>
 <?= $this->endSection() ?>

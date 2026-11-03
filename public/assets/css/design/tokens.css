@@ -1,55 +1,55 @@
 :root {
-  /* Surfaces */
-  --bg-0: #e4e7f9;
-  --bg-1: #eef0fd;
-  --shell: #f3f4fd;
+  /* Surfaces — putih tegas di atas ladang biru muda */
+  --bg-0: #d7e8f6;
+  --bg-1: #e6f1fb;
+  --shell: #ecf5fd;
   --panel: #ffffff;
-  --panel-soft: #f7f8fe;
-  --panel-2: #eef0fd;
+  --panel-soft: rgba(255, 255, 255, 0.88);
+  --panel-2: #eaf4fd;
 
-  /* Text */
-  --ink: #171733;
-  --ink-2: #474872;
-  --muted: #8d8eb4;
-  --muted-2: #a7a8cb;
+  /* Text — kontras AA di atas putih */
+  --ink: #0f2b46;
+  --ink-2: #37566f;
+  --muted: #5f7c96;
+  --muted-2: #8099af;
 
   /* Lines */
-  --line: #e7e8f7;
-  --line-2: #dcddf1;
+  --line: #d9e8f5;
+  --line-2: #cfe1f1;
 
-  /* Accent (violet / indigo) */
-  --accent: #5b55fb;
-  --accent-strong: #4a44ee;
-  --accent-soft: #eae9fe;
-  --accent-ink: #3a34c9;
-  --violet-head: #5f5cdd;
+  /* Accent (blue) */
+  --accent: #2f7de1;
+  --accent-strong: #1f6fd0;
+  --accent-soft: #dcebfb;
+  --accent-ink: #1659a8;
+  --violet-head: #2f7de1;
 
   /* Lavender fills */
-  --lav-1: #dfe0fa;
-  --lav-2: #eceefa;
+  --lav-1: #d5e8f8;
+  --lav-2: #e6f2fc;
 
   /* Status */
   --ok-bg: #e2f7ec;
-  --ok-ink: #1f9d63;
+  --ok-ink: #1b8f5a;
   --warn-bg: #fdf0d6;
-  --warn-ink: #b57a12;
+  --warn-ink: #a86f0f;
   --danger-bg: #fde7ea;
-  --danger-ink: #d8455f;
-  --info-bg: #e6e8fd;
-  --info-ink: #4a44ee;
+  --danger-ink: #d13f59;
+  --info-bg: #e0efff;
+  --info-ink: #1f6fd0;
 
-  /* Radii */
-  --r-xl: 30px;
-  --r-lg: 22px;
-  --r-md: 15px;
-  --r-sm: 11px;
+  /* Radii — sudut lebih tegas (presisi, bukan bulat lembut) */
+  --r-xl: 26px;
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 10px;
   --r-pill: 999px;
 
-  /* Shadows */
-  --shadow-lg: 0 40px 90px -46px rgba(58, 50, 150, 0.5);
-  --shadow-md: 0 22px 55px -34px rgba(58, 50, 150, 0.42);
-  --shadow-sm: 0 12px 32px -22px rgba(58, 50, 150, 0.5);
-  --ring: 0 0 0 3px rgba(91, 85, 251, 0.28);
+  /* Shadows — tipis, tidak berkabut */
+  --shadow-lg: 0 30px 70px -48px rgba(23, 74, 133, 0.5);
+  --shadow-md: 0 18px 44px -34px rgba(23, 74, 133, 0.42);
+  --shadow-sm: 0 10px 26px -22px rgba(23, 74, 133, 0.45);
+  --ring: 0 0 0 3px rgba(47, 125, 225, 0.3);
 
   /* Type */
   --font: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
