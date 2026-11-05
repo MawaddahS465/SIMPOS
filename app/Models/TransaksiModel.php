@@ -53,4 +53,16 @@ class TransaksiModel extends Model
             ->get()
             ->getResultArray();
     }
+
+    public function riwayatSatuCabang(int $cabangId, int $transaksiId): ?array
+    {
+        return $this->db->table('transaksi t')
+            ->select('t.*, p.nama_pelanggan, p.no_hp, pb.metode_pembayaran, pb.jumlah_bayar, pb.status AS status_bayar')
+            ->join('pelanggan p', 'p.id_pelanggan = t.pelanggan_id', 'left')
+            ->join('pembayaran pb', 'pb.transaksi_id = t.id_transaksi', 'left')
+            ->where('t.cabang_id', $cabangId)
+            ->where('t.id_transaksi', $transaksiId)
+            ->get()
+            ->getRowArray();
+    }
 }

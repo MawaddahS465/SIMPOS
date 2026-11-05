@@ -157,29 +157,22 @@ if (! function_exists('current_role_label')) {
 }
 
 if (! function_exists('steps')) {
-    /**
-     * Indikator langkah transaksi (Pilih Produk -> Checkout -> Selesai).
-     */
     function steps(int $current): string
     {
-        $labels = ['Pilih Produk', 'Checkout', 'Selesai'];
-        $html   = '<div class="steps" aria-label="Langkah transaksi">';
+        $labels = ['Pilih Produk', 'Pilih Pelanggan', 'Konfirmasi', 'Pembayaran', 'Selesai'];
+        $html   = '<ol class="steps" aria-label="Langkah transaksi">';
 
         foreach ($labels as $i => $label) {
-            $no    = $i + 1;
-            $kelas = $no === $current ? 'active' : ($no < $current ? 'done' : '');
-            $html .= '<span style="display:inline-flex;align-items:center;gap:14px">'
-                . '<span class="step ' . $kelas . '"><i></i>' . $label . '</span>';
-
-            if ($no < count($labels)) {
-                $html .= '<svg class="step-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">'
-                    . '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>';
-            }
-
-            $html .= '</span>';
+            $no          = $i + 1;
+            $kelas       = $no === $current ? 'active' : ($no < $current ? 'done' : '');
+            $currentStep = $no === $current ? ' aria-current="step"' : '';
+            $html .= '<li class="step ' . $kelas . '"' . $currentStep . '>'
+                . '<span class="step-number">' . $no . '</span>'
+                . '<span class="step-label">' . esc($label) . '</span>'
+                . '</li>';
         }
 
-        return $html . '</div>';
+        return $html . '</ol>';
     }
 }
 

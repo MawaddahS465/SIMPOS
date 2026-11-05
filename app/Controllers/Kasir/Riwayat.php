@@ -15,6 +15,7 @@ class Riwayat extends BaseKasir
         'QRIS'          => 'QRIS',
         'Transfer Bank' => 'Transfer Bank',
         'Kartu'         => 'Kartu Debit/Kredit',
+        'E-Wallet'      => 'E-Wallet',
     ];
 
     private const PERIODE = [
@@ -35,6 +36,10 @@ class Riwayat extends BaseKasir
         $metode  = (string) ($this->request->getGet('metode') ?? '');
         $periode = (string) ($this->request->getGet('periode') ?? 'semua');
         $buka    = (int) ($this->request->getGet('buka') ?? 0);
+
+        if ($buka > 0) {
+            return redirect()->to(site_url('kasir/riwayat/' . $buka));
+        }
 
         if (! in_array($status, ['', 'selesai', 'pending', 'dibatalkan'], true)) {
             $status = '';
@@ -148,57 +153,10 @@ class Riwayat extends BaseKasir
             return $this->ekspor($rows, $periodeLabel, $status, $metode);
         }
 
-        // Detail transaksi (termasuk transaksi yang dibuka lewat ?buka=).
-        $detailMap = [];
-        $ids       = array_map(static fn (array $r): int => (int) $r['id_transaksi'], $rows);
-
-        if ($buka > 0) {
-            $ids[] = $buka;
-        }
-
-        $ids = array_values(array_unique($ids));
-
-        if ($ids !== []) {
-            $detail = db_connect()->table('detail_transaksi d')
-                ->select('d.*, b.nama_barang, b.merek, b.jenis')
-                ->join('barang b', 'b.id = d.barang_id')
-                ->whereIn('d.transaksi_id', $ids)
-                ->get()
-                ->getResultArray();
-
-            foreach ($detail as $d) {
-                $detailMap[(int) $d['transaksi_id']][] = $d;
-            }
-        }
-
-        $bukaRow = null;
-        if ($buka > 0) {
-            foreach ($rows as $row) {
-                if ((int) $row['id_transaksi'] === $buka) {
-                    $bukaRow = $row;
-
-                    break;
-                }
-            }
-
-            if ($bukaRow === null) {
-                $bukaRow = $model->where('cabang_id', $this->cabangId())->find($buka);
-            }
-        }
-
-        $resep = null;
-        if ($bukaRow !== null && ! empty($bukaRow['pelanggan_id'])) {
-            $resep = (new ResepModel())->terakhirPelanggan((int) $bukaRow['pelanggan_id']);
-        }
-
         return view('kasir/riwayat', [
             'judul'          => 'Riwayat Transaksi',
             'aktif'          => 'riwayat',
             'rows'           => $rows,
-            'detailMap'      => $detailMap,
-            'buka'           => $buka,
-            'bukaRow'        => $bukaRow,
-            'resep'          => $resep,
             'status'         => $status,
             'metode'         => $metode,
             'cariQ'          => $cari,
@@ -212,6 +170,46 @@ class Riwayat extends BaseKasir
             'diterima'       => $diterima,
             'tunai'          => $tunai,
             'nonTunai'       => $nonTunai,
+        ]);
+    }
+
+    public function detail(int $id)
+    {
+        $model = new TransaksiModel();
+        $trx   = $model->riwayatSatuCabang($this->cabangId(), $id);
+
+        if ($trx === null) {
+            return redirect()->to('kasir/riwayat')->with('error', 'Transaksi tidak ditemukan.');
+        }
+
+        $resep = ! empty($trx['pelanggan_id'])
+            ? (new ResepModel())->terakhirPelanggan((int) $trx['pelanggan_id'])
+            : null;
+        $db     = db_connect();
+        $cabang = $db->table('cabang')
+            ->where('id', (int) $trx['cabang_id'])
+            ->get()
+            ->getRowArray() ?? [];
+        $kasir  = $db->table('users')
+            ->select('nama')
+            ->where('id', (int) $trx['pengguna_id'])
+            ->get()
+            ->getRowArray();
+
+        return view('kasir/riwayat_detail', [
+            'judul'         => 'Detail Transaksi ' . $trx['kode_transaksi'],
+            'aktif'         => 'riwayat',
+            'trx'           => $trx,
+            'detail'        => $model->detail($id),
+            'resep'         => $resep,
+            'cabang'        => $cabang,
+            'kasirNama'     => (string) ($kasir['nama'] ?? ''),
+            'pelangganNama' => (string) ($trx['nama_pelanggan'] ?? ''),
+            'pembayaran'    => [
+                'metode_pembayaran' => $trx['metode_pembayaran'] ?? 'Tunai',
+                'jumlah_bayar'      => $trx['jumlah_bayar'] ?? $trx['total'],
+                'status'            => $trx['status_bayar'] ?? 'lunas',
+            ],
         ]);
     }
 

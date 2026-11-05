@@ -28,13 +28,13 @@ class Resep extends BaseKasir
             $sudah = [];
 
             $rows = array_values(array_filter($rows, static function (array $r) use (&$sudah): bool {
-                $nama = (string) $r['nama_pelanggan'];
+                $pelangganId = (int) $r['fk_id_pelanggan'];
 
-                if (isset($sudah[$nama])) {
+                if (isset($sudah[$pelangganId])) {
                     return false;
                 }
 
-                $sudah[$nama] = true;
+                $sudah[$pelangganId] = true;
 
                 return true;
             }));
@@ -91,11 +91,17 @@ class Resep extends BaseKasir
         $tanggal     = (string) $this->request->getPost('tanggal_resep');
 
         if ((new PelangganModel())->find($pelangganId) === null) {
-            return redirect()->to('kasir/resep')->with('error', 'Pelanggan tidak ditemukan.');
+            return redirect()->to('kasir/resep?tambah=1')
+                ->withInput()
+                ->with('error', 'Pelanggan tidak ditemukan.');
         }
 
-        if ($tanggal === '' || strtotime($tanggal) === false) {
-            return redirect()->to('kasir/resep')->with('error', 'Tanggal resep tidak valid.');
+        $tanggalObj = \DateTimeImmutable::createFromFormat('!Y-m-d', $tanggal);
+
+        if ($tanggalObj === false || $tanggalObj->format('Y-m-d') !== $tanggal) {
+            return redirect()->to('kasir/resep?tambah=1')
+                ->withInput()
+                ->with('error', 'Tanggal resep tidak valid.');
         }
 
         $ambil = static fn (string $key): ?string => trim((string) request()->getPost($key)) ?: null;
@@ -117,9 +123,11 @@ class Resep extends BaseKasir
         ], true);
 
         if ($id <= 0) {
-            return redirect()->to('kasir/resep')->with('error', 'Resep gagal disimpan.');
+            return redirect()->to('kasir/resep?tambah=1')
+                ->withInput()
+                ->with('error', 'Resep gagal disimpan.');
         }
 
-        return redirect()->to('kasir/resep')->with('success', 'Resep baru berhasil disimpan.');
+        return redirect()->to('kasir/resep?pilih=' . $id)->with('success', 'Resep baru berhasil disimpan.');
     }
 }

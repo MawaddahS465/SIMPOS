@@ -39,10 +39,12 @@ $routes->group('kasir', ['filter' => ['auth', 'role:kasir']], static function ($
     $routes->get('transaksi/berhasil/(:num)', 'Kasir\Transaksi::berhasil/$1');
 
     $routes->get('pemesanan', 'Kasir\Pemesanan::index');
+    $routes->get('notifikasi', 'Kasir\Pemesanan::notifikasi');
     $routes->post('pemesanan', 'Kasir\Pemesanan::simpan');
     $routes->get('pemesanan/(:num)', 'Kasir\Pemesanan::detail/$1');
 
     $routes->get('riwayat', 'Kasir\Riwayat::index');
+    $routes->get('riwayat/(:num)', 'Kasir\Riwayat::detail/$1');
 
     $routes->get('pelanggan', 'Kasir\Pelanggan::index');
     $routes->post('pelanggan', 'Kasir\Pelanggan::simpan');

@@ -17,7 +17,6 @@ $filterList = [
             <div>
                 <div class="overline">MANAJEMEN PESANAN</div>
                 <h1>Pemesanan (PO)</h1>
-                <p>Catat pemesanan pelanggan (frame/lensa) dan pantau perkembangan status pesanan di <?= esc(current_branch_name()) ?></p>
             </div>
             <div class="pagehead-actions">
                 <a class="btn btn-primary" href="<?= site_url('kasir/pemesanan?buat=1') ?>">
@@ -172,8 +171,9 @@ $filterList = [
                 <label class="afield">
                     <span>Pelanggan</span>
                     <select name="pelanggan_id" required>
+                        <option value="">Pilih pelanggan</option>
                         <?php foreach ($pelanggan as $c): ?>
-                            <option value="<?= (int) $c['id_pelanggan'] ?>">
+                            <option value="<?= (int) $c['id_pelanggan'] ?>" <?= (int) old('pelanggan_id', 0) === (int) $c['id_pelanggan'] ? 'selected' : '' ?>>
                                 <?= esc($c['nama_pelanggan']) ?> · PLG-<?= str_pad((string) $c['id_pelanggan'], 4, '0', STR_PAD_LEFT) ?>
                             </option>
                         <?php endforeach; ?>
@@ -183,8 +183,9 @@ $filterList = [
                 <label class="afield">
                     <span>Produk (frame / lensa)</span>
                     <select name="barang_id" required>
+                        <option value="">Pilih produk</option>
                         <?php foreach ($produk as $p): ?>
-                            <option value="<?= (int) $p['id'] ?>">
+                            <option value="<?= (int) $p['id'] ?>" <?= (int) old('barang_id', $barangId) === (int) $p['id'] ? 'selected' : '' ?>>
                                 <?= esc($p['nama_barang']) ?> · <?= esc($p['merek']) ?>
                             </option>
                         <?php endforeach; ?>
@@ -193,13 +194,20 @@ $filterList = [
 
                 <label class="afield">
                     <span>Jumlah</span>
-                    <input name="qty" inputmode="numeric" value="1" placeholder="cth. 1" required>
+                    <input name="qty" inputmode="numeric" value="<?= esc(old('qty', '1'), 'attr') ?>" placeholder="cth. 1" required>
                 </label>
 
                 <label class="afield">
                     <span>Catatan (opsional)</span>
-                    <input name="catatan" placeholder="cth. lensa sesuai resep">
+                    <input name="catatan" value="<?= esc(old('catatan', ''), 'attr') ?>" placeholder="cth. lensa sesuai resep">
                 </label>
+
+                <?php if ($pelanggan === []): ?>
+                    <div class="notice">Tambahkan pelanggan terlebih dahulu sebelum membuat PO.</div>
+                <?php endif; ?>
+                <?php if ($produk === []): ?>
+                    <div class="notice">Belum ada produk frame atau lensa aktif untuk dipesan.</div>
+                <?php endif; ?>
 
                 <div class="tt-sub" style="font-weight:600">
                     Snapshot ukuran lensa disalin otomatis dari resep terakhir pelanggan saat PO dibuat.
@@ -207,7 +215,7 @@ $filterList = [
 
                 <div class="drawer-foot">
                     <a class="btn btn-ghost" href="<?= site_url('kasir/pemesanan') ?>">Batal</a>
-                    <button type="submit" class="btn btn-primary">Buat PO</button>
+                    <button type="submit" class="btn btn-primary" <?= $pelanggan === [] || $produk === [] ? 'disabled' : '' ?>>Buat PO</button>
                 </div>
             </form>
         </div>

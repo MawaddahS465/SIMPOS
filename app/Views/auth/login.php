@@ -59,7 +59,7 @@
                             id="username"
                             type="text"
                             name="username"
-                            value="<?= old('username', $usernameTersimpan) ?>"
+                            value="<?= esc(old('username', $usernameTersimpan), 'attr') ?>"
                             placeholder="Masukkan username"
                             autocomplete="username"
                             maxlength="50"
@@ -118,7 +118,7 @@
                             type="checkbox"
                             name="remember"
                             value="1"
-                            <?= old('remember', '1') === '0' ? '' : 'checked' ?>
+                            <?= old('remember', $ingatUsername ? '1' : '0') === '1' ? 'checked' : '' ?>
                         >
                         Ingat saya
                     </label>

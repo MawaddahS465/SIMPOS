@@ -13,11 +13,14 @@ class Auth extends BaseController
             return redirect()->to($this->tujuanSetelahLogin((string) session()->get('role')));
         }
 
+        $usernameTersimpan = (string) ($this->request->getCookie('simpos_username') ?? '');
+
         return view('auth/login', [
             'judul'             => 'Masuk ke SIMPOS',
             'judulMasuk'        => 'Selamat Datang',
             'bantuan'           => 'Hubungi admin di cabang atau tim IT.',
-            'usernameTersimpan' => (string) ($this->request->getCookie('simpos_username') ?? ''),
+            'usernameTersimpan' => $usernameTersimpan,
+            'ingatUsername'     => $usernameTersimpan !== '',
             'pesanError'        => session()->getFlashdata('error'),
             'pesanSukses'       => session()->getFlashdata('success'),
         ]);
@@ -46,7 +49,7 @@ class Auth extends BaseController
 
         if (! $user || $user['status'] !== 'aktif') {
             return redirect()->to('/login')
-                ->withInput()
+                ->deleteCookie('simpos_username')
                 ->with('error', 'Username atau password salah, atau akun tidak aktif.');
         }
 
@@ -86,12 +89,13 @@ class Auth extends BaseController
         session()->regenerate(true);
 
         session()->set([
-            'user_id'    => $user['id'],
-            'nama'       => $user['nama'],
-            'username'   => $user['username'],
-            'role'       => $role->value,
-            'cabang_id'  => $user['cabang_id'],
-            'isLoggedIn' => true,
+            'user_id'          => $user['id'],
+            'nama'             => $user['nama'],
+            'username'         => $user['username'],
+            'role'             => $role->value,
+            'cabang_id'        => $user['cabang_id'],
+            'remember_username' => $this->request->getPost('remember') === '1',
+            'isLoggedIn'       => true,
         ]);
 
         $redirect = redirect()->to($this->tujuanSetelahLogin($role->value));
@@ -122,6 +126,7 @@ class Auth extends BaseController
     public function logout()
     {
         $session = session();
+        $ingatUsername = (bool) $session->get('remember_username');
 
         $session->remove([
             'user_id',
@@ -129,12 +134,19 @@ class Auth extends BaseController
             'username',
             'role',
             'cabang_id',
+            'remember_username',
             'isLoggedIn',
         ]);
 
         $session->regenerate(true);
         $session->setFlashdata('success', 'Kamu berhasil logout.');
 
-        return redirect()->to('/login');
+        $redirect = redirect()->to('/login');
+
+        if (! $ingatUsername) {
+            $redirect->deleteCookie('simpos_username');
+        }
+
+        return $redirect;
     }
 }

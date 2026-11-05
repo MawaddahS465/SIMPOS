@@ -247,6 +247,22 @@
   color: inherit;
 }
 
+.dash-metric[href] {
+  transition: transform 0.16s, box-shadow 0.18s, border-color 0.18s;
+}
+
+.dash-metric[href]:hover,
+.dash-metric[href]:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(47, 125, 225, 0.45);
+  box-shadow: var(--shadow-md);
+}
+
+.dash-metric[href]:focus-visible {
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
 .dash-metric .dm-icon {
   width: 44px;
   height: 44px;

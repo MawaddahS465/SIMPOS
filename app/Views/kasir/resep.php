@@ -343,8 +343,9 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
                         <label class="afield">
                             <span>Pelanggan *</span>
                             <select name="pelanggan_id" required>
+                                <option value="">Pilih pelanggan</option>
                                 <?php foreach ($pelanggan as $c): ?>
-                                    <option value="<?= (int) $c['id_pelanggan'] ?>">
+                                    <option value="<?= (int) $c['id_pelanggan'] ?>" <?= (int) old('pelanggan_id', 0) === (int) $c['id_pelanggan'] ? 'selected' : '' ?>>
                                         <?= esc($c['nama_pelanggan']) ?> · <?= esc($c['no_hp'] ?? '-') ?> (PLG-<?= str_pad((string) $c['id_pelanggan'], 4, '0', STR_PAD_LEFT) ?>)
                                     </option>
                                 <?php endforeach; ?>
@@ -353,7 +354,7 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
 
                         <label class="afield">
                             <span>Tanggal Pemeriksaan</span>
-                            <input type="date" name="tanggal_resep" value="<?= date('Y-m-d') ?>" required>
+                            <input type="date" name="tanggal_resep" value="<?= esc(old('tanggal_resep', date('Y-m-d')), 'attr') ?>" required>
                         </label>
                     </div>
 
@@ -362,15 +363,15 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
                         <div class="srb-grid">
                             <label class="afield">
                                 <span>SPH *</span>
-                                <input name="od_sph" placeholder="-1.50" required>
+                                <input name="od_sph" value="<?= esc(old('od_sph', ''), 'attr') ?>" placeholder="-1.50" required>
                             </label>
                             <label class="afield">
                                 <span>CYL</span>
-                                <input name="od_cyl" placeholder="-0.75">
+                                <input name="od_cyl" value="<?= esc(old('od_cyl', ''), 'attr') ?>" placeholder="-0.75">
                             </label>
                             <label class="afield">
                                 <span>AXIS</span>
-                                <input name="od_axis" placeholder="180">
+                                <input name="od_axis" value="<?= esc(old('od_axis', ''), 'attr') ?>" placeholder="180">
                             </label>
                         </div>
                     </div>
@@ -380,15 +381,15 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
                         <div class="srb-grid">
                             <label class="afield">
                                 <span>SPH *</span>
-                                <input name="os_sph" placeholder="-1.25" required>
+                                <input name="os_sph" value="<?= esc(old('os_sph', ''), 'attr') ?>" placeholder="-1.25" required>
                             </label>
                             <label class="afield">
                                 <span>CYL</span>
-                                <input name="os_cyl" placeholder="-0.50">
+                                <input name="os_cyl" value="<?= esc(old('os_cyl', ''), 'attr') ?>" placeholder="-0.50">
                             </label>
                             <label class="afield">
                                 <span>AXIS</span>
-                                <input name="os_axis" placeholder="170">
+                                <input name="os_axis" value="<?= esc(old('os_axis', ''), 'attr') ?>" placeholder="170">
                             </label>
                         </div>
                     </div>
@@ -396,17 +397,17 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
                     <div class="simple-two-col">
                         <label class="afield">
                             <span>PD (mm) *</span>
-                            <input name="pd" placeholder="cth. 62" required>
+                            <input name="pd" value="<?= esc(old('pd', ''), 'attr') ?>" placeholder="cth. 62" required>
                         </label>
                         <label class="afield">
                             <span>ADD (opsional)</span>
-                            <input name="add_power" placeholder="cth. +1.00">
+                            <input name="add_power" value="<?= esc(old('add_power', ''), 'attr') ?>" placeholder="cth. +1.00">
                         </label>
                     </div>
 
                     <label class="afield">
                         <span>Keterangan / Catatan (opsional)</span>
-                        <input name="catatan" placeholder="cth. Resep dokter mata / lensa blue control">
+                        <input name="catatan" value="<?= esc(old('catatan', ''), 'attr') ?>" placeholder="cth. Resep dokter mata / lensa blue control">
                     </label>
 
                     <div class="drawer-foot">

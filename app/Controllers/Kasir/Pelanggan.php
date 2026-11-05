@@ -98,9 +98,11 @@ class Pelanggan extends BaseKasir
         $nama   = trim((string) $this->request->getPost('nama_pelanggan'));
         $hp     = trim((string) $this->request->getPost('no_hp'));
         $alamat = trim((string) $this->request->getPost('alamat'));
+        $dariCheckout = $this->request->getPost('kembali') === 'checkout';
+        $formUrl      = $dariCheckout ? 'kasir/checkout?tambah=1' : 'kasir/pelanggan?tambah=1';
 
         if (mb_strlen($nama) < 2) {
-            return redirect()->to('kasir/pelanggan')->with('error', 'Nama pelanggan minimal 2 karakter.');
+            return redirect()->to($formUrl)->withInput()->with('error', 'Nama pelanggan minimal 2 karakter.');
         }
 
         $model = new PelangganModel();
@@ -111,15 +113,18 @@ class Pelanggan extends BaseKasir
         ], true);
 
         if ($id <= 0) {
-            return redirect()->to('kasir/pelanggan')->with('error', 'Pelanggan gagal disimpan.');
+            return redirect()->to($formUrl)
+                ->withInput()
+                ->with('error', 'Pelanggan gagal disimpan.');
         }
 
-        if ($this->request->getPost('kembali') === 'checkout') {
+        if ($dariCheckout) {
             $cart                 = $this->cartData();
             $cart['pelanggan_id'] = $id;
             $this->simpanCart($cart);
 
-            return redirect()->to('kasir/checkout')->with('success', 'Pelanggan ' . $nama . ' ditambahkan dan dipilih.');
+            return redirect()->to('kasir/checkout?step=confirm')
+                ->with('success', 'Pelanggan ' . $nama . ' ditambahkan dan dipilih.');
         }
 
         return redirect()->to('kasir/pelanggan?pilih=' . $id)->with('success', 'Pelanggan ' . $nama . ' ditambahkan.');
@@ -140,14 +145,19 @@ class Pelanggan extends BaseKasir
 
         if (mb_strlen($nama) < 2) {
             return redirect()->to('kasir/pelanggan?pilih=' . $id . '&ubah=1')
+                ->withInput()
                 ->with('error', 'Nama pelanggan minimal 2 karakter.');
         }
 
-        $model->update($id, [
+        if (! $model->update($id, [
             'nama_pelanggan' => $nama,
             'no_hp'          => $hp !== '' ? $hp : null,
             'alamat'         => $alamat !== '' ? $alamat : null,
-        ]);
+        ])) {
+            return redirect()->to('kasir/pelanggan?pilih=' . $id . '&ubah=1')
+                ->withInput()
+                ->with('error', 'Data pelanggan gagal diperbarui.');
+        }
 
         return redirect()->to('kasir/pelanggan?pilih=' . $id)->with('success', 'Data pelanggan diperbarui.');
     }

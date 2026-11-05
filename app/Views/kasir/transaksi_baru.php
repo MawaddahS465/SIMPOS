@@ -17,13 +17,14 @@ $adaItem = $ringkasan['rows'] !== [];
 ?>
 <div class="page">
     <div class="pagehead">
-        <div class="pagehead-main">
+        <div class="pagehead-main transaction-pagehead">
             <div>
-                <div class="overline">TRANSAKSI BARU &amp; CEK STOK CABANG</div>
-                <h1>Pilih frame dan lensa untuk pelanggan</h1>
-                <p>Periksa ketersediaan stok cabang, tambahkan produk ke keranjang, atau ajukan PO bila stok habis.</p>
+                <div class="overline">TRANSAKSI BARU</div>
+                <h1>Mulai Transaksi</h1>
+                <p>Pilih frame dan lensa untuk pelanggan.</p>
             </div>
         </div>
+        <div class="transaction-progress"><?= steps(1) ?></div>
     </div>
 
     <div class="catalog-grid">
@@ -86,6 +87,7 @@ $adaItem = $ringkasan['rows'] !== [];
                           action="<?= site_url('kasir/transaksi/tambah') ?>">
                         <?= csrf_field() ?>
                         <input type="hidden" name="barang_id" value="<?= $pid ?>">
+                        <input type="hidden" name="kembali" value="kasir/transaksi">
 
                         <div class="product-thumb">
                             <?php if (isset($tagMap[$p['kode_barang']])): ?>
@@ -113,7 +115,7 @@ $adaItem = $ringkasan['rows'] !== [];
                             <b><?= rupiah($p['harga_jual']) ?></b>
 
                             <?php if ($habis): ?>
-                                <a class="btn btn-ghost btn-sm" href="<?= site_url('kasir/pemesanan?buat=1') ?>">
+                                <a class="btn btn-ghost btn-sm" href="<?= site_url('kasir/pemesanan?buat=1&productId=' . $pid) ?>">
                                     <?= icon('clipboard-list', 14) ?>
                                     Buat PO
                                 </a>
@@ -149,7 +151,7 @@ $adaItem = $ringkasan['rows'] !== [];
             </div>
         </div>
 
-        <aside class="cart-panel">
+        <aside class="cart-panel" id="cart-panel" aria-labelledby="cart-title">
             <div class="cart-head-rich">
                 <div class="cart-head-left">
                     <div class="cart-head-icon">
@@ -159,21 +161,27 @@ $adaItem = $ringkasan['rows'] !== [];
                         <?php endif; ?>
                     </div>
                     <div>
-                        <h2>Keranjang</h2>
+                        <h2 id="cart-title">Keranjang</h2>
                         <p><?= $ringkasan['count'] > 0 ? (int) $ringkasan['count'] . ' item dipilih' : 'Belum ada produk' ?></p>
                     </div>
                 </div>
 
-                <?php if ($adaItem): ?>
+                <div class="cart-head-actions">
+                    <?php if ($adaItem): ?>
                     <form id="form-kosongkan" class="inline-form" style="display:none" method="post" action="<?= site_url('kasir/transaksi/hapus') ?>">
                         <?= csrf_field() ?>
                         <input type="hidden" name="semua" value="1">
+                        <input type="hidden" name="kembali" value="kasir/transaksi">
                     </form>
                     <button type="submit" form="form-kosongkan" class="cart-clear-btn" title="Kosongkan seluruh isi keranjang">
                         <?= icon('trash-2', 13) ?>
                         Kosongkan
                     </button>
-                <?php endif; ?>
+                    <?php endif; ?>
+                    <button class="cart-close-btn" id="cart-close" type="button" aria-label="Tutup keranjang">
+                        <?= icon('x', 18) ?>
+                    </button>
+                </div>
             </div>
 
             <?php if ($adaItem): ?>
@@ -183,10 +191,12 @@ $adaItem = $ringkasan['rows'] !== [];
                         <form id="fq-<?= $iid ?>" class="inline-form" style="display:none" method="post" action="<?= site_url('kasir/transaksi/qty') ?>">
                             <?= csrf_field() ?>
                             <input type="hidden" name="barang_id" value="<?= $iid ?>">
+                            <input type="hidden" name="kembali" value="kasir/transaksi">
                         </form>
                         <form id="fh-<?= $iid ?>" class="inline-form" style="display:none" method="post" action="<?= site_url('kasir/transaksi/hapus') ?>">
                             <?= csrf_field() ?>
                             <input type="hidden" name="barang_id" value="<?= $iid ?>">
+                            <input type="hidden" name="kembali" value="kasir/transaksi">
                         </form>
 
                         <div class="cart-item-card">
@@ -246,16 +256,113 @@ $adaItem = $ringkasan['rows'] !== [];
                 </div>
             </div>
 
-            <a class="btn btn-primary full cart-checkout-btn" href="<?= site_url('kasir/checkout') ?>"
-               <?= $adaItem ? '' : 'style="opacity:.55;pointer-events:none"' ?>
-               aria-disabled="<?= $adaItem ? 'false' : 'true' ?>">
-                <?= icon('shopping-bag', 17) ?>
-                <?= $adaItem
-                    ? 'Lanjut ke Checkout (' . (int) $ringkasan['count'] . ' unit)'
-                    : 'Pilih Produk Terlebih Dahulu' ?>
-                <?= icon('arrow-right', 16) ?>
-            </a>
+            <?php if ($adaItem): ?>
+                <a class="btn btn-primary full cart-checkout-btn" href="<?= site_url('kasir/checkout') ?>">
+                    <?= icon('shopping-bag', 17) ?>
+                    Lanjut ke Checkout (<?= (int) $ringkasan['count'] ?> unit)
+                    <?= icon('arrow-right', 16) ?>
+                </a>
+            <?php else: ?>
+                <button class="btn btn-primary full cart-checkout-btn" type="button" disabled style="opacity:.55">
+                    <?= icon('shopping-bag', 17) ?>
+                    Pilih Produk Terlebih Dahulu
+                </button>
+            <?php endif; ?>
         </aside>
     </div>
+
+    <button class="mobile-cart-backdrop" id="mobile-cart-backdrop" type="button" aria-label="Tutup keranjang" hidden></button>
+    <button class="mobile-cart-bar" id="mobile-cart-toggle" type="button" aria-controls="cart-panel" aria-expanded="false">
+        <span class="mobile-cart-icon">
+            <?= icon('shopping-bag', 19) ?>
+            <?php if ($ringkasan['count'] > 0): ?>
+                <span><?= (int) $ringkasan['count'] ?></span>
+            <?php endif; ?>
+        </span>
+        <span class="mobile-cart-copy">
+            <b><?= $ringkasan['count'] > 0 ? (int) $ringkasan['count'] . ' item di keranjang' : 'Keranjang kosong' ?></b>
+            <span>Subtotal sementara</span>
+        </span>
+        <b class="mobile-cart-total"><?= esc(rupiah($ringkasan['subtotal'])) ?></b>
+        <?= icon('chevron-up', 18) ?>
+    </button>
 </div>
+<script>
+    (function () {
+        var breakpoint = window.matchMedia('(max-width: 1180px)');
+        var panel = document.getElementById('cart-panel');
+        var toggle = document.getElementById('mobile-cart-toggle');
+        var close = document.getElementById('cart-close');
+        var backdrop = document.getElementById('mobile-cart-backdrop');
+
+        if (! panel || ! toggle || ! close || ! backdrop) {
+            return;
+        }
+
+        function setOpen(open) {
+            panel.classList.toggle('is-open', open);
+            panel.inert = ! open;
+            panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+            panel.setAttribute('role', open ? 'dialog' : 'complementary');
+            panel.setAttribute('aria-modal', open ? 'true' : 'false');
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            backdrop.hidden = ! open;
+        }
+
+        function syncViewport() {
+            document.body.classList.toggle('mobile-cart-enabled', breakpoint.matches);
+            setOpen(false);
+
+            if (! breakpoint.matches) {
+                panel.inert = false;
+                panel.setAttribute('aria-hidden', 'false');
+                panel.removeAttribute('aria-modal');
+            }
+        }
+
+        toggle.addEventListener('click', function () {
+            var open = toggle.getAttribute('aria-expanded') !== 'true';
+            setOpen(open);
+
+            if (open) {
+                close.focus();
+            }
+        });
+
+        close.addEventListener('click', function () {
+            setOpen(false);
+            toggle.focus();
+        });
+
+        backdrop.addEventListener('click', function () {
+            setOpen(false);
+            toggle.focus();
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+                setOpen(false);
+                toggle.focus();
+                return;
+            }
+
+            if (event.key === 'Tab' && toggle.getAttribute('aria-expanded') === 'true') {
+                var focusable = panel.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+                var first = focusable[0];
+                var last = focusable[focusable.length - 1];
+
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (! event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+
+        breakpoint.addEventListener('change', syncViewport);
+        syncViewport();
+    })();
+</script>
 <?= $this->endSection() ?>

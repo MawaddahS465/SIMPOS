@@ -99,8 +99,7 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
         <?php endif; ?>
     </section>
 
-    <div class="two-col">
-        <div style="display:flex;flex-direction:column;gap:20px">
+    <div class="po-detail-sections">
             <section class="co-card">
                 <div class="section-head">
                     <h2>Data Pelanggan</h2>
@@ -147,44 +146,44 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
                     </div>
                 <?php endif; ?>
             </section>
-        </div>
 
-        <div style="display:flex;flex-direction:column;gap:20px">
             <section class="co-card">
                 <div class="section-head">
                     <h2>Resep Mata (Snapshot PO)</h2>
                 </div>
                 <?php if ($adaResep): ?>
-                    <table class="rx-table">
-                        <thead>
-                            <tr>
-                                <th>MATA</th>
-                                <th>SPH</th>
-                                <th>CYL</th>
-                                <th>AXIS</th>
-                                <th>ADD</th>
-                                <th>PD</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>OD (Kanan)</td>
-                                <td><?= esc($po['od_sph'] ?? '-') ?></td>
-                                <td><?= esc($po['od_cyl'] ?? '-') ?></td>
-                                <td><?= esc($po['od_axis'] ?? '-') ?></td>
-                                <td><?= esc($po['add_power'] ?? '-') ?></td>
-                                <td><?= esc($po['pd'] ?? '-') ?></td>
-                            </tr>
-                            <tr>
-                                <td>OS (Kiri)</td>
-                                <td><?= esc($po['os_sph'] ?? '-') ?></td>
-                                <td><?= esc($po['os_cyl'] ?? '-') ?></td>
-                                <td><?= esc($po['os_axis'] ?? '-') ?></td>
-                                <td><?= esc($po['add_power'] ?? '-') ?></td>
-                                <td><?= esc($po['pd'] ?? '-') ?></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-wrap">
+                        <table class="rx-table">
+                            <thead>
+                                <tr>
+                                    <th>MATA</th>
+                                    <th>SPH</th>
+                                    <th>CYL</th>
+                                    <th>AXIS</th>
+                                    <th>ADD</th>
+                                    <th>PD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>OD (Kanan)</td>
+                                    <td><?= esc($po['od_sph'] ?? '-') ?></td>
+                                    <td><?= esc($po['od_cyl'] ?? '-') ?></td>
+                                    <td><?= esc($po['od_axis'] ?? '-') ?></td>
+                                    <td><?= esc($po['add_power'] ?? '-') ?></td>
+                                    <td><?= esc($po['pd'] ?? '-') ?></td>
+                                </tr>
+                                <tr>
+                                    <td>OS (Kiri)</td>
+                                    <td><?= esc($po['os_sph'] ?? '-') ?></td>
+                                    <td><?= esc($po['os_cyl'] ?? '-') ?></td>
+                                    <td><?= esc($po['os_axis'] ?? '-') ?></td>
+                                    <td><?= esc($po['add_power'] ?? '-') ?></td>
+                                    <td><?= esc($po['pd'] ?? '-') ?></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="tt-sub" style="font-weight:600">Ukuran lensa tersimpan pada detail PO ini.</div>
                 <?php else: ?>
                     <div class="empty-note">PO ini tidak menyertakan resep mata.</div>
@@ -206,7 +205,6 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
                     </div>
                 </div>
             </section>
-        </div>
     </div>
 
     <div class="tt-sub" style="padding:0 6px;font-weight:600">

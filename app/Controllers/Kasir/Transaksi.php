@@ -74,9 +74,10 @@ class Transaksi extends BaseKasir
     {
         $barangId = (int) $this->request->getPost('barang_id');
         $barang   = $this->barangAktif($barangId);
+        $kembali  = $this->tujuanKeranjang();
 
         if ($barang === null) {
-            return redirect()->back()->with('error', 'Produk tidak ditemukan atau sudah tidak aktif.');
+            return redirect()->to($kembali)->with('error', 'Produk tidak ditemukan atau sudah tidak aktif.');
         }
 
         $cart = $this->cartData();
@@ -84,13 +85,14 @@ class Transaksi extends BaseKasir
         $stok = $this->stokBarang($barangId);
 
         if ($qty > $stok) {
-            return redirect()->back()->with('error', 'Stok ' . $barang['nama_barang'] . ' hanya ' . $stok . ' unit.');
+            return redirect()->to($kembali)
+                ->with('error', 'Stok ' . $barang['nama_barang'] . ' hanya ' . $stok . ' unit.');
         }
 
         $cart['items'][$barangId] = $qty;
         $this->simpanCart($cart);
 
-        return redirect()->back();
+        return redirect()->to($kembali);
     }
 
     public function ubahQty()
@@ -98,9 +100,10 @@ class Transaksi extends BaseKasir
         $barangId = (int) $this->request->getPost('barang_id');
         $aksi     = (string) $this->request->getPost('aksi');
         $cart     = $this->cartData();
+        $kembali  = $this->tujuanKeranjang();
 
         if (! isset($cart['items'][$barangId])) {
-            return redirect()->back();
+            return redirect()->to($kembali);
         }
 
         $qty = (int) $cart['items'][$barangId];
@@ -119,7 +122,8 @@ class Transaksi extends BaseKasir
             $stok = $this->stokBarang($barangId);
 
             if ($qty > $stok) {
-                return redirect()->back()->with('error', 'Jumlah melebihi stok tersedia (' . $stok . ' unit).');
+                return redirect()->to($kembali)
+                    ->with('error', 'Jumlah melebihi stok tersedia (' . $stok . ' unit).');
             }
 
             $cart['items'][$barangId] = $qty;
@@ -127,15 +131,17 @@ class Transaksi extends BaseKasir
 
         $this->simpanCart($cart);
 
-        return redirect()->back();
+        return redirect()->to($kembali);
     }
 
     public function hapus()
     {
+        $kembali = $this->tujuanKeranjang();
+
         if ($this->request->getPost('semua') !== null) {
             $this->kosongkanCart();
 
-            return redirect()->back();
+            return redirect()->to($kembali);
         }
 
         $barangId = (int) $this->request->getPost('barang_id');
@@ -144,7 +150,16 @@ class Transaksi extends BaseKasir
         unset($cart['items'][$barangId]);
         $this->simpanCart($cart);
 
-        return redirect()->back();
+        return redirect()->to($kembali);
+    }
+
+    private function tujuanKeranjang(): string
+    {
+        $tujuan = (string) $this->request->getPost('kembali');
+
+        return in_array($tujuan, ['kasir/transaksi', 'kasir/checkout?step=confirm', 'kasir/checkout?step=payment'], true)
+            ? $tujuan
+            : 'kasir/transaksi';
     }
 
     public function checkout()
@@ -155,15 +170,22 @@ class Transaksi extends BaseKasir
             return redirect()->to('kasir/transaksi')->with('error', 'Keranjang masih kosong.');
         }
 
+        $step         = (string) $this->request->getGet('step');
+        $konfirmasi   = in_array($step, ['confirm', 'payment'], true);
+        $ringkasanStep = $step === 'payment';
         $cart    = $this->cartData();
         $cari    = trim((string) ($this->request->getGet('q') ?? ''));
         $builder = (new PelangganModel())->orderBy('nama_pelanggan', 'ASC');
 
         if ($cari !== '') {
-            $builder->groupStart()
-                ->like('nama_pelanggan', $cari)
-                ->orLike('no_hp', $cari)
-                ->groupEnd();
+            if (preg_match('/^PLG-0*(\d+)$/i', $cari, $kodePelanggan)) {
+                $builder->where('id_pelanggan', (int) $kodePelanggan[1]);
+            } else {
+                $builder->groupStart()
+                    ->like('nama_pelanggan', $cari)
+                    ->orLike('no_hp', $cari)
+                    ->groupEnd();
+            }
         }
 
         $pelanggan = $builder->findAll();
@@ -174,20 +196,26 @@ class Transaksi extends BaseKasir
             $terpilih = (new PelangganModel())->find((int) $cart['pelanggan_id']);
         }
 
+        if ($konfirmasi && $terpilih === null) {
+            return redirect()->to('kasir/checkout')->with('error', 'Pilih pelanggan terlebih dahulu.');
+        }
+
         if ($terpilih !== null) {
             $resep = (new ResepModel())->terakhirPelanggan((int) $terpilih['id_pelanggan']);
         }
 
         return view('kasir/checkout', [
-            'judul'     => 'Checkout',
-            'aktif'     => 'transaksi',
-            'ringkasan' => $ringkasan,
-            'pelanggan' => $pelanggan,
-            'terpilih'  => $terpilih,
-            'resep'     => $resep,
-            'metode'    => $cart['metode'] ?? 'Tunai',
+            'judul'        => $ringkasanStep ? 'Ringkasan & Pembayaran' : ($konfirmasi ? 'Konfirmasi Transaksi' : 'Pilih Pelanggan'),
+            'aktif'        => 'transaksi',
+            'ringkasan'    => $ringkasan,
+            'pelanggan'    => $pelanggan,
+            'terpilih'     => $terpilih,
+            'resep'        => $resep,
+            'metode'       => $cart['metode'] ?? 'Tunai',
             'daftarMetode' => self::METODE,
-            'cariQ'     => $cari,
+            'cariQ'        => $cari,
+            'konfirmasi'   => $konfirmasi,
+            'ringkasanStep' => $ringkasanStep,
         ]);
     }
 
@@ -204,7 +232,7 @@ class Transaksi extends BaseKasir
         $cart['pelanggan_id'] = $id;
         $this->simpanCart($cart);
 
-        return redirect()->to('kasir/checkout');
+        return redirect()->to('kasir/checkout?step=confirm');
     }
 
     public function selesaikan()
@@ -230,12 +258,32 @@ class Transaksi extends BaseKasir
         $metode = (string) $this->request->getPost('metode');
 
         if (! in_array($metode, self::METODE, true)) {
-            return redirect()->to('kasir/checkout')->with('error', 'Metode pembayaran tidak valid.');
+            return redirect()->to('kasir/checkout?step=payment')->with('error', 'Metode pembayaran tidak valid.');
+        }
+
+        $jumlahBayar = (float) $ringkasan['total'];
+
+        if ($metode === 'Tunai') {
+            $jumlahInput = trim((string) $this->request->getPost('jumlah_dibayar'));
+
+            if (! preg_match('/^(?:\d+|\d{1,3}(?:\.\d{3})+)$/D', $jumlahInput)) {
+                return redirect()->to('kasir/checkout?step=payment')
+                    ->withInput()
+                    ->with('error', 'Jumlah pembayaran tunai harus berupa angka rupiah yang valid.');
+            }
+
+            $jumlahBayar = (float) str_replace('.', '', $jumlahInput);
+
+            if ($jumlahBayar < $ringkasan['total']) {
+                return redirect()->to('kasir/checkout?step=payment')
+                    ->withInput()
+                    ->with('error', 'Jumlah pembayaran tunai tidak boleh kurang dari total transaksi.');
+            }
         }
 
         foreach ($ringkasan['rows'] as $row) {
             if ((int) $row['qty'] > (int) $row['stok']) {
-                return redirect()->to('kasir/checkout')
+                return redirect()->to('kasir/checkout?step=payment')
                     ->with('error', 'Stok ' . $row['nama_barang'] . ' tidak mencukupi (tersedia ' . $row['stok'] . ').');
             }
         }
@@ -292,7 +340,7 @@ class Transaksi extends BaseKasir
                 'transaksi_id'       => $trxId,
                 'tanggal_pembayaran' => $tanggal,
                 'metode_pembayaran'  => $metode,
-                'jumlah_bayar'       => $ringkasan['total'],
+                'jumlah_bayar'       => $jumlahBayar,
                 'status'             => 'lunas',
             ]);
 
@@ -300,7 +348,7 @@ class Transaksi extends BaseKasir
         } catch (\Throwable $e) {
             $db->transRollback();
 
-            return redirect()->to('kasir/checkout')->with('error', $e->getMessage());
+            return redirect()->to('kasir/checkout?step=payment')->withInput()->with('error', $e->getMessage());
         }
 
         $this->kosongkanCart();
@@ -322,14 +370,21 @@ class Transaksi extends BaseKasir
         $cust   = ! empty($trx['pelanggan_id'])
             ? (new PelangganModel())->find((int) $trx['pelanggan_id'])
             : null;
+        $cabang = db_connect()->table('cabang')
+            ->where('id', (int) $trx['cabang_id'])
+            ->get()
+            ->getRowArray() ?? [];
 
         return view('kasir/transaksi_berhasil', [
-            'judul'  => 'Transaksi Berhasil',
-            'aktif'  => 'transaksi',
-            'trx'    => $trx,
-            'detail' => $detail,
-            'bayar'  => $bayar,
-            'cust'   => $cust,
+            'judul'       => 'Transaksi Berhasil',
+            'aktif'       => 'transaksi',
+            'trx'         => $trx,
+            'detail'      => $detail,
+            'bayar'       => $bayar,
+            'cust'        => $cust,
+            'cabang'      => $cabang,
+            'kasirNama'   => (string) session()->get('nama'),
+            'pelangganNama' => (string) ($cust['nama_pelanggan'] ?? ''),
         ]);
     }
 }

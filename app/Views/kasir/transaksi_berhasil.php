@@ -4,10 +4,13 @@
 <?php
 $subtotal = (float) $trx['total'] - (float) $trx['pajak'] - (float) $trx['diskon'];
 $metode   = $bayar['metode_pembayaran'] ?? '-';
+$pembayaran = $bayar ?? [];
+$dibayar  = (float) ($bayar['jumlah_bayar'] ?? $trx['total']);
+$kembalian = $metode === 'Tunai' ? max(0, $dibayar - (float) $trx['total']) : 0;
 ?>
 <div class="success page">
     <div style="display:flex;justify-content:flex-end;padding:6px 6px 0">
-        <?= steps(3) ?>
+        <?= steps(5) ?>
     </div>
 
     <div class="success-hero">
@@ -46,6 +49,16 @@ $metode   = $bayar['metode_pembayaran'] ?? '-';
                     <span>Total Pembayaran</span>
                     <b><?= rupiah($trx['total']) ?></b>
                 </div>
+                <?php if ($metode === 'Tunai'): ?>
+                    <div class="info-row">
+                        <span>Jumlah Dibayar</span>
+                        <b><?= rupiah($dibayar) ?></b>
+                    </div>
+                    <div class="info-row">
+                        <span>Kembalian</span>
+                        <b><?= rupiah($kembalian) ?></b>
+                    </div>
+                <?php endif; ?>
                 <div class="info-row">
                     <span>Status</span>
                     <?= status_pill($bayar['status'] ?? 'lunas') ?>
@@ -115,5 +128,6 @@ $metode   = $bayar['metode_pembayaran'] ?? '-';
             </a>
         </div>
     </div>
+    <?= $this->include('kasir/_struk_transaksi') ?>
 </div>
 <?= $this->endSection() ?>

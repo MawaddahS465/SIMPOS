@@ -9,10 +9,30 @@ use App\Models\ResepModel;
 
 class Pemesanan extends BaseKasir
 {
+    public function notifikasi()
+    {
+        $notifikasi = (new PemesananPoModel())->notifikasiSiapDiambil($this->cabangId());
+
+        $items = array_map(static function (array $po): array {
+            return [
+                'kode'      => $po['kode_po'],
+                'pelanggan' => $po['nama_pelanggan'] ?? 'Pelanggan',
+                'tanggal'   => tgl_id($po['tanggal_po'], true),
+                'url'       => site_url('kasir/pemesanan/' . (int) $po['id_po']),
+            ];
+        }, $notifikasi['items']);
+
+        return $this->response->setJSON([
+            'total' => $notifikasi['total'],
+            'items' => $items,
+        ]);
+    }
+
     public function index()
     {
         $status = (string) ($this->request->getGet('status') ?? '');
         $cari   = trim((string) ($this->request->getGet('q') ?? ''));
+        $barangId = (int) ($this->request->getGet('productId') ?? 0);
 
         $model = new PemesananPoModel();
         $rows  = $model->daftarCabang($this->cabangId(), $status, $cari);
@@ -43,6 +63,7 @@ class Pemesanan extends BaseKasir
             'cariQ'      => $cari,
             'pelanggan'  => (new PelangganModel())->orderBy('nama_pelanggan', 'ASC')->findAll(),
             'produk'     => $produk,
+            'barangId'   => $barangId,
             'poKode'     => session()->getFlashdata('po_kode'),
             'poId'       => session()->getFlashdata('po_id'),
             'buat'       => $this->request->getGet('buat') === '1',
@@ -58,17 +79,19 @@ class Pemesanan extends BaseKasir
 
         $pelanggan = (new PelangganModel())->find($pelangganId);
         $barang    = $this->barangAktif($barangId);
+        $formUrl   = 'kasir/pemesanan?buat=1&productId=' . $barangId;
 
         if ($pelanggan === null) {
-            return redirect()->to('kasir/pemesanan')->with('error', 'Pelanggan tidak ditemukan.');
+            return redirect()->to($formUrl)->withInput()->with('error', 'Pelanggan tidak ditemukan.');
         }
 
         if ($barang === null) {
-            return redirect()->to('kasir/pemesanan')->with('error', 'Produk tidak ditemukan atau tidak aktif.');
+            return redirect()->to($formUrl)->withInput()->with('error', 'Produk tidak ditemukan atau tidak aktif.');
         }
 
         if (! preg_match('/^[0-9]+$/', $qtyInput) || (int) $qtyInput < 1) {
-            return redirect()->to('kasir/pemesanan')
+            return redirect()->to($formUrl)
+                ->withInput()
                 ->with('error', 'Jumlah harus bilangan bulat lebih dari 0 (tanpa titik, koma, atau minus).');
         }
 
@@ -81,34 +104,53 @@ class Pemesanan extends BaseKasir
 
         $db       = db_connect();
         $poModel  = new PemesananPoModel();
+        $db->transBegin();
 
-        $poId = (int) $poModel->insert([
-            'kode_po'                  => 'TMP-' . uniqid(),
-            'pelanggan_id'             => $pelangganId,
-            'cabang_id'                => $this->cabangId(),
-            'pengguna_id'              => $this->kasirId(),
-            'resep_id'                 => $resep['id_resep'] ?? null,
-            'tanggal_po'               => $tanggal,
-            'tanggal_estimasi_selesai' => date('Y-m-d', strtotime('+7 days')),
-            'total'                    => $subtotal,
-            'status'                   => 'dipesan',
-            'catatan'                  => $catatan !== '' ? $catatan : null,
-        ], true);
+        try {
+            $poId = (int) $poModel->insert([
+                'kode_po'                  => 'TMP-' . uniqid(),
+                'pelanggan_id'             => $pelangganId,
+                'cabang_id'                => $this->cabangId(),
+                'pengguna_id'              => $this->kasirId(),
+                'resep_id'                 => $resep['id_resep'] ?? null,
+                'tanggal_po'               => $tanggal,
+                'tanggal_estimasi_selesai' => date('Y-m-d', strtotime('+7 days')),
+                'total'                    => $subtotal,
+                'status'                   => 'dipesan',
+                'catatan'                  => $catatan !== '' ? $catatan : null,
+            ], true);
 
-        if ($poId <= 0) {
-            return redirect()->to('kasir/pemesanan')->with('error', 'PO gagal disimpan.');
+            if ($poId <= 0) {
+                throw new \RuntimeException('PO gagal disimpan.');
+            }
+
+            $kode = 'PO-' . date('Y') . '-' . str_pad((string) $poId, 4, '0', STR_PAD_LEFT);
+
+            if (! $poModel->update($poId, ['kode_po' => $kode])) {
+                throw new \RuntimeException('Nomor PO gagal diperbarui.');
+            }
+
+            if (! $db->table('detail_po')->insert([
+                'po_id'     => $poId,
+                'barang_id' => $barangId,
+                'jumlah'    => $qty,
+                'harga'     => $harga,
+                'subtotal'  => $subtotal,
+            ]) || ! $db->transStatus()) {
+                throw new \RuntimeException('Rincian produk PO gagal disimpan.');
+            }
+
+            if (! $db->transCommit()) {
+                throw new \RuntimeException('PO gagal diselesaikan.');
+            }
+        } catch (\Throwable $e) {
+            $db->transRollback();
+            log_message('error', 'Gagal menyimpan PO kasir: {message}', ['message' => $e->getMessage()]);
+
+            return redirect()->to($formUrl)
+                ->withInput()
+                ->with('error', 'PO gagal disimpan. Periksa kembali data dan coba lagi.');
         }
-
-        $kode = 'PO-' . date('Y') . '-' . str_pad((string) $poId, 4, '0', STR_PAD_LEFT);
-        $poModel->update($poId, ['kode_po' => $kode]);
-
-        $db->table('detail_po')->insert([
-            'po_id'     => $poId,
-            'barang_id' => $barangId,
-            'jumlah'    => $qty,
-            'harga'     => $harga,
-            'subtotal'  => $subtotal,
-        ]);
 
         return redirect()->to('kasir/pemesanan')
             ->with('po_kode', $kode)

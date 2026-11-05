@@ -2,12 +2,6 @@
 
 <?= $this->section('content') ?>
 <?php
-$qs = static fn (array $ubah): string => '?' . http_build_query(array_merge([
-    'q'      => $cariQ,
-    'status' => $status,
-    'metode' => $metode,
-], $ubah));
-
 $filterList = [
     'Semua'      => '',
     'Lunas'      => 'lunas',
@@ -82,24 +76,23 @@ $ikonMetode = [
             </div>
         </div>
 
-        <div class="toolbar">
-            <form method="get" action="<?= site_url('kasir/pembayaran') ?>">
-                <input type="hidden" name="status" value="<?= esc($status) ?>">
-                <input type="hidden" name="metode" value="<?= esc($metode) ?>">
-                <label class="toolbar-search">
-                    <?= icon('search', 16) ?>
-                    <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nomor pembayaran atau nama pelanggan...">
-                </label>
-            </form>
+        <form class="toolbar" method="get" action="<?= site_url('kasir/pembayaran') ?>">
+            <input type="hidden" name="metode" value="<?= esc($metode) ?>">
+            <label class="toolbar-search">
+                <?= icon('search', 16) ?>
+                <input type="search" name="q" value="<?= esc($cariQ) ?>" placeholder="Cari nomor pembayaran atau nama pelanggan...">
+            </label>
 
             <div class="toolbar-chips">
-                <?php foreach ($filterList as $label => $kunci): ?>
-                    <a class="chip <?= $status === $kunci ? 'active' : '' ?>" href="<?= site_url('kasir/pembayaran' . $qs(['status' => $kunci])) ?>">
-                        <?= esc($label) ?>
-                    </a>
-                <?php endforeach; ?>
+                <select class="chip-select" name="status" aria-label="Filter Status" onchange="this.form.submit()">
+                    <?php foreach ($filterList as $label => $kunci): ?>
+                        <option value="<?= esc($kunci) ?>" <?= $status === $kunci ? 'selected' : '' ?>>
+                            <?= $kunci === '' ? 'Semua Status' : esc($label) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
-        </div>
+        </form>
 
         <div class="table-wrap">
             <table class="tt">
@@ -134,7 +127,7 @@ $ikonMetode = [
                             <td class="tt-money"><?= rupiah($p['jumlah_bayar']) ?></td>
                             <td><?= status_pill($p['status']) ?></td>
                             <td class="tt-right">
-                                <a class="link-action" href="<?= site_url('kasir/riwayat?buka=' . (int) $p['transaksi_id']) ?>">
+                                <a class="link-action" href="<?= site_url('kasir/riwayat/' . (int) $p['transaksi_id']) ?>">
                                     Detail
                                     <?= icon('chevron-right', 15) ?>
                                 </a>
