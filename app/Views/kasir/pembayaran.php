@@ -22,7 +22,6 @@ $ikonMetode = [
         <div class="crumbs"><b>Kasir</b> › Pembayaran</div>
         <div class="pagehead-main">
             <div>
-                <div class="overline">KEUANGAN CABANG</div>
                 <h1>Pembayaran</h1>
                 <p>Rekap pembayaran transaksi di <?= esc(current_branch_name()) ?>.</p>
             </div>
@@ -127,7 +126,7 @@ $ikonMetode = [
                             <td class="tt-money"><?= rupiah($p['jumlah_bayar']) ?></td>
                             <td><?= status_pill($p['status']) ?></td>
                             <td class="tt-right">
-                                <a class="link-action" href="<?= site_url('kasir/riwayat/' . (int) $p['transaksi_id']) ?>">
+                                <a class="link-action" href="<?= site_url('kasir/riwayat/' . (int) $p['transaksi_id']) ?>" target="_self">
                                     Detail
                                     <?= icon('chevron-right', 15) ?>
                                 </a>

@@ -21,7 +21,6 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
     <div class="pagehead">
         <div class="pagehead-main">
             <div>
-                <div class="overline">ARSIP RESEP</div>
                 <h1>Resep Mata</h1>
                 <p>Catat dan kelola riwayat resep ukuran lensa mata kanan (OD) dan kiri (OS) pelanggan.</p>
             </div>

@@ -60,12 +60,18 @@ class PemesananPoModel extends Model
         return ['total' => $total, 'items' => $items];
     }
 
-    public function detail(int $poId): array
+    public function detail(int $poId, ?int $cabangId = null): array
     {
-        return $this->db->table('detail_po d')
+        $builder = $this->db->table('detail_po d')
             ->select('d.*, b.nama_barang, b.merek, b.jenis')
-            ->join('barang b', 'b.id = d.barang_id')
-            ->where('d.po_id', $poId)
+            ->join('barang b', 'b.id = d.barang_id');
+
+        if ($cabangId !== null) {
+            $builder->select('COALESCE(s.jumlah_stok, 0) AS stok')
+                ->join('stok_cabang s', 's.barang_id = b.id AND s.cabang_id = ' . $cabangId, 'left');
+        }
+
+        return $builder->where('d.po_id', $poId)
             ->get()
             ->getResultArray();
     }

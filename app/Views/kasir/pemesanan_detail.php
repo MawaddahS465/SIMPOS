@@ -41,7 +41,7 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
                     Daftar PO
                 </a>
                 <?php if ($canPickup): ?>
-                    <a class="btn btn-primary" href="<?= site_url('kasir/transaksi') ?>">
+                    <a class="btn btn-primary" href="<?= site_url('kasir/pemesanan/' . (int) $po['id_po'] . '/pengambilan') ?>">
                         <?= icon('shopping-bag', 16) ?>
                         Proses Pengambilan
                     </a>
@@ -53,7 +53,7 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
     <?php if ($canPickup): ?>
         <div class="notice notice-ok" role="status">
             <?= icon('package-check', 16) ?>
-            Barang sudah datang. Proses pengambilan membuka transaksi baru; pilih produk PO dan pelanggan secara manual.
+            Barang sudah datang. Periksa data pesanan dan selesaikan pembayaran saat pelanggan mengambil pesanan.
         </div>
     <?php endif; ?>
 

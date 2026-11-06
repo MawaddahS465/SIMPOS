@@ -37,10 +37,6 @@ class Riwayat extends BaseKasir
         $periode = (string) ($this->request->getGet('periode') ?? 'semua');
         $buka    = (int) ($this->request->getGet('buka') ?? 0);
 
-        if ($buka > 0) {
-            return redirect()->to(site_url('kasir/riwayat/' . $buka));
-        }
-
         if (! in_array($status, ['', 'selesai', 'pending', 'dibatalkan'], true)) {
             $status = '';
         }
@@ -153,6 +149,47 @@ class Riwayat extends BaseKasir
             return $this->ekspor($rows, $periodeLabel, $status, $metode);
         }
 
+        $trx      = null;
+        $detail   = [];
+        $resep    = null;
+        $cabang   = [];
+        $kasirNama = '';
+        $pembayaran = [];
+
+        if ($buka > 0) {
+            foreach ($rows as $row) {
+                if ((int) $row['id_transaksi'] === $buka) {
+                    $trx = $model->riwayatSatuCabang($this->cabangId(), $buka);
+                    break;
+                }
+            }
+        }
+
+        if ($trx !== null) {
+            $detail = $model->detail($buka);
+            $resep  = ! empty($trx['pelanggan_id'])
+                ? (new ResepModel())->terakhirPelanggan((int) $trx['pelanggan_id'])
+                : null;
+
+            $db     = db_connect();
+            $cabang = $db->table('cabang')
+                ->where('id', (int) $trx['cabang_id'])
+                ->get()
+                ->getRowArray() ?? [];
+            $kasir  = $db->table('users')
+                ->select('nama')
+                ->where('id', (int) $trx['pengguna_id'])
+                ->get()
+                ->getRowArray();
+
+            $kasirNama = (string) ($kasir['nama'] ?? '');
+            $pembayaran = [
+                'metode_pembayaran' => $trx['metode_pembayaran'] ?? 'Tunai',
+                'jumlah_bayar'      => $trx['jumlah_bayar'] ?? $trx['total'],
+                'status'            => $trx['status_bayar'] ?? 'lunas',
+            ];
+        }
+
         return view('kasir/riwayat', [
             'judul'          => 'Riwayat Transaksi',
             'aktif'          => 'riwayat',
@@ -170,6 +207,14 @@ class Riwayat extends BaseKasir
             'diterima'       => $diterima,
             'tunai'          => $tunai,
             'nonTunai'       => $nonTunai,
+            'buka'           => $buka,
+            'trx'            => $trx,
+            'detail'         => $detail,
+            'resep'          => $resep,
+            'cabang'         => $cabang,
+            'kasirNama'      => $kasirNama,
+            'pelangganNama'  => (string) ($trx['nama_pelanggan'] ?? ''),
+            'pembayaran'     => $pembayaran,
         ]);
     }
 

@@ -385,6 +385,32 @@
   color: var(--info-ink);
 }
 
+.riwayat-summary .stat-card {
+  min-width: 0;
+  padding: 18px 20px;
+}
+
+.riwayat-summary .stat-body {
+  min-width: 0;
+}
+
+.riwayat-summary .stat-value {
+  font-size: clamp(20px, 2vw, 26px);
+  letter-spacing: -0.7px;
+  white-space: nowrap;
+}
+
+.riwayat-summary .stat-caption {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.riwayat-summary .stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+}
+
 /* ---------------- Table ---------------- */
 .table-wrap {
   background: var(--panel);
@@ -1837,9 +1863,23 @@ table.tt td:last-child .row-actions {
 
 /* ---------------- Riwayat — split with detail panel ---------------- */
 .riwayat-detail {
-  max-height: calc(100vh - 140px);
+  height: 100%;
+  max-height: 100vh;
   overflow-y: auto;
   scrollbar-gutter: stable;
+}
+
+.riwayat-overlay-close {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: transparent;
+  text-decoration: none;
+}
+
+.riwayat-overlay .drawer {
+  position: relative;
+  z-index: 1;
 }
 
 .riwayat-detail-actions {

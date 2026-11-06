@@ -6,9 +6,9 @@
 
     <title><?= esc($judul ?? 'Login') ?> - SIMPOS Optik Mekar Jaya</title>
 
-    <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('favicon-32.png') ?>">
-    <link rel="apple-touch-icon" href="<?= base_url('apple-touch-icon.png') ?>">
+    <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg?v=20261106') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('favicon-32.png?v=20261106') ?>">
+    <link rel="apple-touch-icon" href="<?= base_url('apple-touch-icon.png?v=20261106') ?>">
     <meta name="theme-color" content="#5b55fb">
 
     <link href="<?= base_url('assets/css/design/tokens.css') ?>" rel="stylesheet">

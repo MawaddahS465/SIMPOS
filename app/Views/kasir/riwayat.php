@@ -55,7 +55,6 @@ $metodeIkonMap = [
     <div class="pagehead">
         <div class="pagehead-main">
             <div>
-                <div class="overline">TRANSAKSI &amp; PEMBAYARAN CABANG</div>
                 <h1>Riwayat Transaksi</h1>
             </div>
             <div class="pagehead-actions">
@@ -108,12 +107,11 @@ $metodeIkonMap = [
         </div>
     <?php endif; ?>
 
-    <div class="stat-row">
+    <div class="stat-row riwayat-summary">
         <div class="stat-card tone-green">
             <div class="stat-body">
                 <div class="stat-label">Total diterima (Lunas)</div>
                 <div class="stat-value"><?= esc(rupiah($diterima)) ?></div>
-                <div class="stat-caption"><?= esc('Tunai ' . rupiah($tunai) . ' · Non-tunai ' . rupiah($nonTunai)) ?></div>
             </div>
             <span class="stat-icon"><?= icon('banknote', 22) ?></span>
         </div>
@@ -122,7 +120,6 @@ $metodeIkonMap = [
             <div class="stat-body">
                 <div class="stat-label">Transaksi selesai</div>
                 <div class="stat-value"><?= (int) $selesaiCount ?></div>
-                <div class="stat-caption">Transaksi telah dibayar lunas</div>
             </div>
             <span class="stat-icon"><?= icon('wallet', 22) ?></span>
         </div>
@@ -131,7 +128,6 @@ $metodeIkonMap = [
             <div class="stat-body">
                 <div class="stat-label">Jumlah ditampilkan</div>
                 <div class="stat-value"><?= (int) $jumlah ?></div>
-                <div class="stat-caption">Dari <?= (int) $total ?> total riwayat transaksi</div>
             </div>
             <span class="stat-icon"><?= icon('credit-card', 22) ?></span>
         </div>
@@ -141,7 +137,7 @@ $metodeIkonMap = [
         <div class="section-head">
             <div>
                 <h2>Daftar Transaksi</h2>
-                <div class="section-desc">Buka detail transaksi pada halaman terpisah</div>
+                <div class="section-desc">Pilih transaksi untuk melihat detail pembayaran dan struk</div>
             </div>
             <div class="section-action">
                 <span class="foot-note" style="color:var(--muted);font-size:12.5px;font-weight:700"><?= (int) $jumlah ?> transaksi</span>
@@ -199,9 +195,9 @@ $metodeIkonMap = [
                         $metodeIkon  = $metodeIkonMap[$metodeRow] ?? 'wallet';
                         $waktu       = strtotime((string) ($t['tanggal_transaksi'] ?? ''));
                         $jam         = $waktu !== false ? date('H:i', $waktu) : '-';
-                        $rowUrl      = site_url('kasir/riwayat/' . $id);
+                        $rowUrl      = site_url('kasir/riwayat' . $qs(['buka' => $id]));
                         ?>
-                        <tr>
+                        <tr class="<?= (int) ($trx['id_transaksi'] ?? 0) === $id ? 'is-active' : '' ?>">
                             <td>
                                 <div class="tt-num"><?= esc($t['kode_transaksi'] ?? '-') ?></div>
                                 <div class="tt-sub"><?= esc(tgl_id($t['tanggal_transaksi'] ?? null)) ?> · <?= esc($jam) ?></div>
@@ -224,7 +220,12 @@ $metodeIkonMap = [
                             <td class="tt-right tt-money"><?= esc(rupiah($t['total'] ?? 0)) ?></td>
                             <td class="tt-center"><?= status_pill($t['status'] ?? '') ?></td>
                             <td class="tt-right">
-                                <a class="link-action" href="<?= esc($rowUrl) ?>">
+                                <a
+                                    class="link-action"
+                                    href="<?= esc($rowUrl) ?>"
+                                    id="riwayat-detail-trigger-<?= $id ?>"
+                                    data-riwayat-detail-trigger
+                                >
                                     Lihat Detail
                                     <?= icon('chevron-right', 15) ?>
                                 </a>
@@ -255,5 +256,74 @@ $metodeIkonMap = [
             </div>
         </div>
     </section>
+
+    <?php if ($trx !== null): ?>
+        <?= $this->include('kasir/_riwayat_drawer') ?>
+    <?php endif; ?>
 </div>
+
+<script>
+    (function () {
+        var storageKey = 'riwayat-detail-trigger';
+        var dialog = document.getElementById('riwayat-detail-dialog');
+
+        document.querySelectorAll('[data-riwayat-detail-trigger]').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                sessionStorage.setItem(storageKey, trigger.id);
+            });
+        });
+
+        if (!dialog) {
+            var triggerId = sessionStorage.getItem(storageKey);
+
+            if (triggerId) {
+                var trigger = document.getElementById(triggerId);
+
+                if (trigger) {
+                    trigger.focus();
+                }
+
+                sessionStorage.removeItem(storageKey);
+            }
+
+            return;
+        }
+
+        var closeLink = dialog.querySelector('.drawer-head [data-riwayat-detail-close]');
+
+        if (closeLink) {
+            closeLink.focus();
+        }
+
+        var focusableElements = dialog.querySelectorAll(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && closeLink) {
+                event.preventDefault();
+                window.location.href = closeLink.href;
+                return;
+            }
+
+            if (event.key !== 'Tab' || focusableElements.length === 0) {
+                return;
+            }
+
+            var firstElement = focusableElements[0];
+            var lastElement = focusableElements[focusableElements.length - 1];
+
+            if (!dialog.contains(document.activeElement)) {
+                event.preventDefault();
+                firstElement.focus();
+            } else if (event.shiftKey && document.activeElement === firstElement) {
+                event.preventDefault();
+                lastElement.focus();
+            } else if (!event.shiftKey && document.activeElement === lastElement) {
+                event.preventDefault();
+                firstElement.focus();
+            }
+        });
+    })();
+</script>
 <?= $this->endSection() ?>

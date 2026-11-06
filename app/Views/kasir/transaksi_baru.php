@@ -19,7 +19,6 @@ $adaItem = $ringkasan['rows'] !== [];
     <div class="pagehead">
         <div class="pagehead-main transaction-pagehead">
             <div>
-                <div class="overline">TRANSAKSI BARU</div>
                 <h1>Mulai Transaksi</h1>
                 <p>Pilih frame dan lensa untuk pelanggan.</p>
             </div>

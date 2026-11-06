@@ -19,7 +19,6 @@ $showDetail = (int) request()->getGet('pilih') > 0 && ! $drawer && $terpilih !==
     <div class="pagehead">
         <div class="pagehead-main">
             <div>
-                <div class="overline">PENGELOLAAN PELANGGAN</div>
                 <h1>Data Pelanggan</h1>
                 <p>Cari pelanggan berdasarkan nama atau nomor HP, kelola data pelanggan, dan catat riwayat resep.</p>
             </div>
@@ -243,7 +242,6 @@ $showDetail = (int) request()->getGet('pilih') > 0 && ! $drawer && $terpilih !==
             <div class="drawer-head">
                 <div>
                     <h2><?= $ubah ? 'Edit Pelanggan' : 'Tambah Pelanggan' ?></h2>
-                    <div class="section-desc">Data pelanggan tersimpan untuk cabang ini.</div>
                 </div>
                 <a class="icon-pill" aria-label="Tutup" href="<?= site_url('kasir/pelanggan') ?>">
                     <?= icon('x', 18) ?>

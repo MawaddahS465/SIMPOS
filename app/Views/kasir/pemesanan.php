@@ -15,7 +15,6 @@ $filterList = [
     <div class="pagehead">
         <div class="pagehead-main">
             <div>
-                <div class="overline">MANAJEMEN PESANAN</div>
                 <h1>Pemesanan (PO)</h1>
             </div>
             <div class="pagehead-actions">

@@ -41,6 +41,8 @@ $routes->group('kasir', ['filter' => ['auth', 'role:kasir']], static function ($
     $routes->get('pemesanan', 'Kasir\Pemesanan::index');
     $routes->get('notifikasi', 'Kasir\Pemesanan::notifikasi');
     $routes->post('pemesanan', 'Kasir\Pemesanan::simpan');
+    $routes->get('pemesanan/(:num)/pengambilan', 'Kasir\Pemesanan::pengambilan/$1');
+    $routes->post('pemesanan/(:num)/pengambilan', 'Kasir\Pemesanan::selesaikanPengambilan/$1');
     $routes->get('pemesanan/(:num)', 'Kasir\Pemesanan::detail/$1');
 
     $routes->get('riwayat', 'Kasir\Riwayat::index');

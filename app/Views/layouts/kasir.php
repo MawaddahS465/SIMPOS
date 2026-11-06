@@ -20,8 +20,8 @@ $aktif = $aktif ?? '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($judul ?? 'Kasir') ?> - SIMPOS Optik Mekar Jaya</title>
 
-    <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg') ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('favicon-32.png') ?>">
+    <link rel="icon" type="image/svg+xml" href="<?= base_url('favicon.svg?v=20261106') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('favicon-32.png?v=20261106') ?>">
     <meta name="theme-color" content="#5b55fb">
 
     <link href="<?= base_url('assets/css/design/tokens.css') ?>" rel="stylesheet">
@@ -50,19 +50,37 @@ $aktif = $aktif ?? '';
 
             <nav class="sidebar-nav">
                 <?php foreach ($navUtama as $item): ?>
-                    <a class="nav-item <?= $aktif === $item['kunci'] ? 'active' : '' ?>" href="<?= site_url($item['path']) ?>">
+                    <?php $isActive = $aktif === $item['kunci']; ?>
+                    <?php if ($isActive): ?>
+                    <span class="nav-item active" aria-current="page">
+                    <?php else: ?>
+                    <a class="nav-item" href="<?= site_url($item['path']) ?>">
+                    <?php endif; ?>
                         <?= icon($item['ikon'], 19) ?>
                         <?= esc($item['label']) ?>
+                    <?php if ($isActive): ?>
+                    </span>
+                    <?php else: ?>
                     </a>
+                    <?php endif; ?>
                 <?php endforeach; ?>
 
                 <div class="nav-sep"></div>
 
                 <?php foreach ($navLain as $item): ?>
-                    <a class="nav-item <?= $aktif === $item['kunci'] ? 'active' : '' ?>" href="<?= site_url($item['path']) ?>">
+                    <?php $isActive = $aktif === $item['kunci']; ?>
+                    <?php if ($isActive): ?>
+                    <span class="nav-item active" aria-current="page">
+                    <?php else: ?>
+                    <a class="nav-item" href="<?= site_url($item['path']) ?>">
+                    <?php endif; ?>
                         <?= icon($item['ikon'], 19) ?>
                         <?= esc($item['label']) ?>
+                    <?php if ($isActive): ?>
+                    </span>
+                    <?php else: ?>
                     </a>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </nav>
 

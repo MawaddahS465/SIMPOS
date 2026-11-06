@@ -533,6 +533,32 @@
   gap: 6px;
 }
 
+.po-pickup-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 0.85fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.po-pickup-grid > * {
+  min-width: 0;
+}
+
+.pickup-item-quantity {
+  flex: none;
+  min-width: 28px;
+  color: var(--ink-2);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .po-pickup-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .theme-kasir .pc-stock,
 .theme-kasir .pc-in-cart-badge {
   display: inline-flex;
