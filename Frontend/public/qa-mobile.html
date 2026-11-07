@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=390" />
+    <title>QA Harness Mobile — 390×844</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+      }
+      iframe {
+        display: block;
+        width: 390px;
+        height: 844px;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe id="stage"></iframe>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const p = params.get("p") || "/admin/login";
+      document.getElementById("stage").src = p;
+    </script>
+  </body>
+</html>

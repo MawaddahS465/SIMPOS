@@ -1,0 +1,63 @@
+:root {
+  /* Surfaces — putih tegas di atas ladang biru muda */
+  --bg-0: #d7e8f6;
+  --bg-1: #e6f1fb;
+  --shell: #ecf5fd;
+  --panel: #ffffff;
+  --panel-soft: rgba(255, 255, 255, 0.88);
+  --panel-2: #eaf4fd;
+
+  /* Text — kontras AA di atas putih */
+  --ink: #0f2b46;
+  --ink-2: #37566f;
+  --muted: #5f7c96;
+  --muted-2: #8099af;
+
+  /* Lines */
+  --line: #d9e8f5;
+  --line-2: #cfe1f1;
+
+  /* Accent (blue) */
+  --accent: #2f7de1;
+  --accent-strong: #1f6fd0;
+  --accent-soft: #dcebfb;
+  --accent-ink: #1659a8;
+  --violet-head: #2f7de1;
+
+  /* Lavender fills */
+  --lav-1: #d5e8f8;
+  --lav-2: #e6f2fc;
+
+  /* Status */
+  --ok-bg: #e2f7ec;
+  --ok-ink: #1b8f5a;
+  --warn-bg: #fdf0d6;
+  --warn-ink: #a86f0f;
+  --danger-bg: #fde7ea;
+  --danger-ink: #d13f59;
+  --info-bg: #e0efff;
+  --info-ink: #1f6fd0;
+
+  /* Radii — sudut lebih tegas (presisi, bukan bulat lembut) */
+  --r-xl: 26px;
+  --r-lg: 18px;
+  --r-md: 14px;
+  --r-sm: 10px;
+  --r-pill: 999px;
+
+  /* Shadows — tipis, tidak berkabut */
+  --shadow-lg: 0 30px 70px -48px rgba(23, 74, 133, 0.5);
+  --shadow-md: 0 18px 44px -34px rgba(23, 74, 133, 0.42);
+  --shadow-sm: 0 10px 26px -22px rgba(23, 74, 133, 0.45);
+  --ring: 0 0 0 3px rgba(47, 125, 225, 0.3);
+
+  /* Type */
+  --font: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

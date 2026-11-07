@@ -1,0 +1,65 @@
+/* ------------------------------------------------------------------
+   SIMPOS Optik Mekar Jaya - gaya global aplikasi
+   ------------------------------------------------------------------ */
+
+:root {
+    --simpos-primary: #2457a7;
+    --simpos-primary-dark: #194582;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Halaman login / auth: kartu di tengah layar */
+.auth-page {
+    min-height: 100vh;
+    background: #f2f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-wrap {
+    width: 100%;
+    max-width: 430px;
+}
+
+.login-card {
+    border: none;
+    border-radius: 18px;
+}
+
+.brand-icon {
+    width: 58px;
+    height: 58px;
+    background: #e7efff;
+    color: var(--simpos-primary);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 28px;
+}
+
+.btn-login {
+    background: var(--simpos-primary);
+    color: #fff;
+}
+
+.btn-login:hover {
+    background: var(--simpos-primary-dark);
+    color: #fff;
+}
+
+/* Sidebar menu */
+.sidebar-menu {
+    position: sticky;
+    top: 1rem;
+}
+
+.sidebar-menu .list-group-item.active {
+    background: var(--simpos-primary);
+    border-color: var(--simpos-primary);
+}

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 20px;
+    font-family: Inter, system-ui, sans-serif; font-size: 12px; color: #14142b;
+  }
+  h1 { font-size: 14px; margin: 0 0 6px; }
+  p { margin: 0 0 14px; color: #6b6c8f; line-height: 1.6; }
+  code { background: #eceefe; padding: 1px 4px; border-radius: 4px; font-size: 11px; }
+  label.drop {
+    display: block; border: 1.5px dashed #c2c4e8; border-radius: 10px;
+    padding: 26px 14px; text-align: center; color: #5b5bd6; cursor: pointer;
+    background: #f7f7fd; transition: 0.16s;
+  }
+  label.drop:hover { border-color: #5b5bd6; background: #f0f0fc; }
+  label.drop input { display: none; }
+  #list { margin: 12px 0; max-height: 96px; overflow: auto; color: #6b6c8f; font-size: 11px; line-height: 1.7; }
+  button {
+    width: 100%; padding: 11px; border: 0; border-radius: 9px;
+    background: #5b5bd6; color: #fff; font-family: inherit; font-size: 12.5px;
+    font-weight: 600; cursor: pointer;
+  }
+  button:disabled { background: #d6d7ea; cursor: not-allowed; }
+  #status { margin-top: 12px; font-size: 11.5px; color: #6b6c8f; min-height: 16px; }
+</style>
+</head>
+<body>
+  <h1>Import frame SIMPOS</h1>
+  <p>
+    Pilih semua PNG dari folder <code>desktop</code>, atau dari <code>mobile</code>.
+    Satu file jadi satu frame, nama frame ikut nama file, dan tersusun otomatis per role.
+  </p>
+
+  <label class="drop">
+    <input id="file" type="file" multiple accept="image/png,image/jpeg" />
+    <span id="pick">Klik untuk pilih file PNG…</span>
+  </label>
+
+  <div id="list"></div>
+  <button id="go" disabled>Buat frame di Figma</button>
+  <div id="status"></div>
+
+<script>
+  var input = document.getElementById("file");
+  var go = document.getElementById("go");
+  var list = document.getElementById("list");
+  var status = document.getElementById("status");
+  var chosen = [];
+
+  input.addEventListener("change", function () {
+    chosen = Array.prototype.slice.call(input.files || []);
+    list.textContent = chosen.length
+      ? chosen.length + " file dipilih: " + chosen.slice(0, 3).map(function (f) { return f.name; }).join(", ") +
+        (chosen.length > 3 ? ", …" : "")
+      : "";
+    go.disabled = chosen.length === 0;
+    status.textContent = "";
+  });
+
+  function readB64(file) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve(String(r.result).split(",")[1]); };
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  go.addEventListener("click", async function () {
+    go.disabled = true;
+    status.textContent = "Membaca file…";
+
+    var BATCH = 2;
+    for (var i = 0; i < chosen.length; i += BATCH) {
+      var slice = chosen.slice(i, i + BATCH);
+      var files = [];
+      for (var j = 0; j < slice.length; j++) {
+        files.push({ name: slice[j].name, b64: await readB64(slice[j]) });
+      }
+      status.textContent = "Mengirim " + Math.min(i + BATCH, chosen.length) + " / " + chosen.length + "…";
+      parent.postMessage({ pluginMessage: { type: "batch", files: files } }, "*");
+    }
+
+    parent.postMessage({ pluginMessage: { type: "done" } }, "*");
+  });
+
+  onmessage = function (e) {
+    var msg = e.data.pluginMessage;
+    if (!msg) return;
+    if (msg.type === "progress") status.textContent = msg.done + " frame dibuat…";
+    if (msg.type === "finished") {
+      status.textContent = "Selesai — " + msg.total + " frame dibuat dan disusun per role.";
+      go.disabled = false;
+    }
+  };
+</script>
+</body>
+</html>

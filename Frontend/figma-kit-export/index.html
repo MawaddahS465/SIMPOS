@@ -1,0 +1,552 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SIMPOS Optik Mekar Jaya — Paket Desain Figma</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<style>
+  :root {
+    --bg: #f4f5fb;
+    --card: #fff;
+    --ink: #14142b;
+    --muted: #6b6c8f;
+    --line: #e6e7f2;
+    --brand: #5b5bd6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 40px 32px 80px;
+    font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  header { max-width: 1280px; margin: 0 auto 28px; }
+  h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 0; }
+  .meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .pill {
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 7px 14px; font-size: 12.5px; color: var(--muted);
+  }
+  .pill b { color: var(--ink); }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px auto 26px; max-width: 1280px; }
+  .bar button {
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    padding: 8px 16px; border-radius: 999px; font-size: 13px; cursor: pointer;
+    font-family: inherit; transition: 0.16s;
+  }
+  .bar button:hover { color: var(--ink); border-color: #c9caf0; }
+  .bar button.on { background: var(--brand); border-color: var(--brand); color: #fff; }
+  h2.role {
+    max-width: 1280px; margin: 38px auto 14px; font-size: 15px;
+    text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted);
+  }
+  .grid {
+    max-width: 1280px; margin: 0 auto;
+    display: grid; gap: 22px;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    overflow: hidden; display: block; color: inherit; text-decoration: none;
+    transition: 0.18s; box-shadow: 0 1px 2px rgba(20, 20, 43, 0.04);
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(20, 20, 43, 0.09); }
+  .thumb { background: #eceefe; aspect-ratio: 16 / 10; overflow: hidden; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
+  .card.mob .thumb { aspect-ratio: 390 / 844; }
+  .cap { padding: 12px 14px; border-top: 1px solid var(--line); }
+  .cap b { display: block; font-size: 13.5px; font-weight: 600; }
+  .cap span { font-size: 11.5px; color: var(--muted); font-family: ui-monospace, Consolas, monospace; }
+  .hide { display: none !important; }
+  .note {
+    max-width: 1280px; margin: 46px auto 0; background: #fff8e8; border: 1px solid #f2e2b8;
+    border-radius: 14px; padding: 16px 18px; font-size: 13px; color: #7a6420; line-height: 1.65;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>SIMPOS Optik Mekar Jaya</h1>
+  <p class="sub">
+    Paket desain untuk Figma — 38 frame desktop (1440×900) dan 11 frame mobile (390×844),
+    diambil langsung dari aplikasi yang berjalan. Rasio piksel 2× agar tajam saat dizoom.
+  </p>
+  <div class="meta">
+    <span class="pill"><b>49</b> frame</span>
+    <span class="pill">3 role: Kasir · Admin Cabang · Pemilik</span>
+    <span class="pill">dicapture 24 Okt 2026</span>
+    <span class="pill">viewport 1440×900 / 390×844</span>
+  </div>
+</header>
+
+<div class="bar" id="bar">
+  <button class="on" data-f="all">Semua</button>
+  <button data-f="desktop">Desktop</button>
+  <button data-f="mobile">Mobile</button>
+  <button data-f="kasir">Kasir</button>
+  <button data-f="admin">Admin</button>
+  <button data-f="pemilik">Pemilik</button>
+</div>
+
+<div id="out"></div>
+
+<div class="note">
+  <b>Catatan penting.</b> Frame ini gambar raster — cocok untuk dokumentasi, handoff, dan acuan visual.
+  Untuk komponen yang bisa diedit (auto-layout, variant, token warna), tetap perlu dibangun ulang di Figma,
+  atau pakai plugin <i>html.to.design</i> yang membaca langsung URL aplikasi. Lihat <code>CARA-IMPORT-KE-FIGMA.md</code>.
+</div>
+
+<script>
+const MANIFEST = [
+  {
+    "file": "01 Kasir - Login.png",
+    "role": "kasir",
+    "judul": "Login Kasir",
+    "path": "/login",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "02 Kasir - Dashboard.png",
+    "role": "kasir",
+    "judul": "Dashboard Kasir",
+    "path": "/dashboard",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "03 Kasir - Transaksi Baru.png",
+    "role": "kasir",
+    "judul": "Transaksi Baru",
+    "path": "/transaksi-baru",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "04 Kasir - Checkout.png",
+    "role": "kasir",
+    "judul": "Checkout",
+    "path": "/checkout",
+    "catatan": "dengan 1 item keranjang",
+    "folder": "desktop"
+  },
+  {
+    "file": "05 Kasir - Transaksi Berhasil.png",
+    "role": "kasir",
+    "judul": "Transaksi Berhasil",
+    "path": "/transaksi-berhasil",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "06 Kasir - Pemesanan.png",
+    "role": "kasir",
+    "judul": "Pemesanan (PO)",
+    "path": "/pemesanan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "07 Kasir - Detail PO.png",
+    "role": "kasir",
+    "judul": "Detail PO",
+    "path": "/pemesanan/PO-2026-0108",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "08 Kasir - Riwayat Transaksi.png",
+    "role": "kasir",
+    "judul": "Riwayat Transaksi",
+    "path": "/riwayat-transaksi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "09 Kasir - Pelanggan.png",
+    "role": "kasir",
+    "judul": "Pelanggan",
+    "path": "/pelanggan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "10 Kasir - Resep Mata.png",
+    "role": "kasir",
+    "judul": "Resep Mata",
+    "path": "/resep-mata",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "11 Kasir - Pembayaran.png",
+    "role": "kasir",
+    "judul": "Pembayaran",
+    "path": "/pembayaran",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "12 Admin - Login.png",
+    "role": "admin",
+    "judul": "Login Admin",
+    "path": "/admin/login",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "13 Admin - Dashboard.png",
+    "role": "admin",
+    "judul": "Dashboard Admin",
+    "path": "/admin/dashboard",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "14 Admin - Produk Frame.png",
+    "role": "admin",
+    "judul": "Produk Frame",
+    "path": "/admin/produk/frame",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "15 Admin - Produk Lensa.png",
+    "role": "admin",
+    "judul": "Produk Lensa",
+    "path": "/admin/produk/lensa",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "16 Admin - Stok.png",
+    "role": "admin",
+    "judul": "Stok",
+    "path": "/admin/stok",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "17 Admin - Penerimaan.png",
+    "role": "admin",
+    "judul": "Penerimaan Barang",
+    "path": "/admin/penerimaan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "18 Admin - Distribusi.png",
+    "role": "admin",
+    "judul": "Distribusi",
+    "path": "/admin/distribusi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "19 Admin - Pengajuan.png",
+    "role": "admin",
+    "judul": "Pengajuan Stok",
+    "path": "/admin/pengajuan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "20 Admin - Pemesanan.png",
+    "role": "admin",
+    "judul": "Pemesanan (PO)",
+    "path": "/admin/pemesanan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "21 Admin - Detail PO.png",
+    "role": "admin",
+    "judul": "Detail PO",
+    "path": "/admin/pemesanan/PO-2026-0108",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "22 Admin - Mutasi.png",
+    "role": "admin",
+    "judul": "Mutasi Stok",
+    "path": "/admin/mutasi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "23 Pemilik - Login.png",
+    "role": "pemilik",
+    "judul": "Login Pemilik",
+    "path": "/owner/login",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "24 Pemilik - Dashboard.png",
+    "role": "pemilik",
+    "judul": "Dashboard Pemilik",
+    "path": "/owner/dashboard",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "25 Pemilik - Cabang.png",
+    "role": "pemilik",
+    "judul": "Cabang",
+    "path": "/owner/cabang",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "26 Pemilik - Detail Cabang.png",
+    "role": "pemilik",
+    "judul": "Detail Cabang",
+    "path": "/owner/cabang/cabang-padang",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "27 Pemilik - Stok.png",
+    "role": "pemilik",
+    "judul": "Stok",
+    "path": "/owner/stok",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "28 Pemilik - Pengajuan.png",
+    "role": "pemilik",
+    "judul": "Pengajuan Barang",
+    "path": "/owner/pengajuan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "29 Pemilik - Alokasi.png",
+    "role": "pemilik",
+    "judul": "Alokasi Distribusi",
+    "path": "/owner/alokasi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "30 Pemilik - Mutasi.png",
+    "role": "pemilik",
+    "judul": "Mutasi Stok",
+    "path": "/owner/mutasi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "31 Pemilik - Transaksi.png",
+    "role": "pemilik",
+    "judul": "Transaksi",
+    "path": "/owner/transaksi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "32 Pemilik - Pemesanan.png",
+    "role": "pemilik",
+    "judul": "Pemesanan (PO)",
+    "path": "/owner/pemesanan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "33 Pemilik - Laporan.png",
+    "role": "pemilik",
+    "judul": "Laporan",
+    "path": "/owner/laporan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "34 Pemilik - Pengaturan.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Pengguna",
+    "path": "/owner/pengaturan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "35 Pemilik - Pengaturan Hak Akses.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Akses",
+    "path": "/owner/pengaturan",
+    "catatan": "tab akses",
+    "folder": "desktop"
+  },
+  {
+    "file": "36 Pemilik - Pengaturan Toko.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Toko",
+    "path": "/owner/pengaturan",
+    "catatan": "tab toko",
+    "folder": "desktop"
+  },
+  {
+    "file": "37 Pemilik - Pengaturan Preferensi.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Preferensi",
+    "path": "/owner/pengaturan",
+    "catatan": "tab preferensi",
+    "folder": "desktop"
+  },
+  {
+    "file": "38 Pemilik - Pengaturan Drawer Pengguna.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Drawer Tambah Pengguna",
+    "path": "/owner/pengaturan",
+    "catatan": "modal",
+    "folder": "desktop"
+  },
+  {
+    "file": "01 Login.png",
+    "role": "kasir",
+    "judul": "Login Kasir",
+    "path": "/login",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "02 Dashboard.png",
+    "role": "kasir",
+    "judul": "Dashboard Kasir",
+    "path": "/dashboard",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "03 Transaksi Baru.png",
+    "role": "kasir",
+    "judul": "Transaksi Baru",
+    "path": "/transaksi-baru",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "04 Checkout.png",
+    "role": "kasir",
+    "judul": "Checkout",
+    "path": "/checkout",
+    "catatan": "dengan 1 item keranjang",
+    "folder": "mobile"
+  },
+  {
+    "file": "05 Transaksi Berhasil.png",
+    "role": "kasir",
+    "judul": "Transaksi Berhasil",
+    "path": "/transaksi-berhasil",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "06 Pemesanan.png",
+    "role": "kasir",
+    "judul": "Pemesanan (PO)",
+    "path": "/pemesanan",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "07 Detail PO.png",
+    "role": "kasir",
+    "judul": "Detail PO",
+    "path": "/pemesanan/PO-2026-0108",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "08 Riwayat Transaksi.png",
+    "role": "kasir",
+    "judul": "Riwayat Transaksi",
+    "path": "/riwayat-transaksi",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "09 Pelanggan.png",
+    "role": "kasir",
+    "judul": "Pelanggan",
+    "path": "/pelanggan",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "10 Resep Mata.png",
+    "role": "kasir",
+    "judul": "Resep Mata",
+    "path": "/resep-mata",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "11 Pembayaran.png",
+    "role": "kasir",
+    "judul": "Pembayaran",
+    "path": "/pembayaran",
+    "catatan": "",
+    "folder": "mobile"
+  }
+];
+const out = document.getElementById("out");
+const ROLE_LABEL = { kasir: "Kasir", admin: "Admin Cabang", pemilik: "Pemilik" };
+
+const groups = [
+  ["desktop", "Desktop — Kasir", "kasir"],
+  ["desktop", "Desktop — Admin Cabang", "admin"],
+  ["desktop", "Desktop — Pemilik", "pemilik"],
+  ["mobile", "Mobile — Kasir", "kasir"],
+];
+
+for (const [folder, title, role] of groups) {
+  const h = document.createElement("h2");
+  h.className = "role";
+  h.textContent = title;
+  out.appendChild(h);
+
+  const grid = document.createElement("div");
+  grid.className = "grid";
+  grid.dataset.folder = folder;
+  grid.dataset.role = role;
+
+  MANIFEST.filter((m) => m.folder === folder && m.role === role).forEach((m) => {
+    const a = document.createElement("a");
+    a.className = "card" + (folder === "mobile" ? " mob" : "");
+    a.href = folder + "/" + encodeURIComponent(m.file);
+    a.target = "_blank";
+    a.dataset.folder = folder;
+    a.dataset.role = role;
+    a.innerHTML =
+      '<div class="thumb"><img loading="lazy" src="' + folder + "/" + encodeURIComponent(m.file) +
+      '" alt="' + m.judul + '"></div>' +
+      '<div class="cap"><b>' + m.judul + "</b><span>" + m.path + "</span></div>";
+    grid.appendChild(a);
+  });
+  out.appendChild(grid);
+}
+
+document.getElementById("bar").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  const f = btn.dataset.f;
+  document.querySelectorAll("#bar button").forEach((b) => b.classList.toggle("on", b === btn));
+  document.querySelectorAll(".card").forEach((c) => {
+    const show = f === "all" || c.dataset.folder === f || c.dataset.role === f;
+    c.classList.toggle("hide", !show);
+  });
+  document.querySelectorAll("h2.role").forEach((h, i) => {
+    const [folder, , role] = groups[i];
+    const show = f === "all" || folder === f || role === f;
+    h.classList.toggle("hide", !show);
+  });
+});
+</script>
+</body>
+</html>
+

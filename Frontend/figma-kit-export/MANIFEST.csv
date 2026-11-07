@@ -1,0 +1,50 @@
+﻿folder;file;role;judul;route;catatan
+desktop;01 Kasir - Login.png;kasir;Login Kasir;/login;
+desktop;02 Kasir - Dashboard.png;kasir;Dashboard Kasir;/dashboard;
+desktop;03 Kasir - Transaksi Baru.png;kasir;Transaksi Baru;/transaksi-baru;
+desktop;04 Kasir - Checkout.png;kasir;Checkout;/checkout;dengan 1 item keranjang
+desktop;05 Kasir - Transaksi Berhasil.png;kasir;Transaksi Berhasil;/transaksi-berhasil;
+desktop;06 Kasir - Pemesanan.png;kasir;Pemesanan (PO);/pemesanan;
+desktop;07 Kasir - Detail PO.png;kasir;Detail PO;/pemesanan/PO-2026-0108;
+desktop;08 Kasir - Riwayat Transaksi.png;kasir;Riwayat Transaksi;/riwayat-transaksi;
+desktop;09 Kasir - Pelanggan.png;kasir;Pelanggan;/pelanggan;
+desktop;10 Kasir - Resep Mata.png;kasir;Resep Mata;/resep-mata;
+desktop;11 Kasir - Pembayaran.png;kasir;Pembayaran;/pembayaran;
+desktop;12 Admin - Login.png;admin;Login Admin;/admin/login;
+desktop;13 Admin - Dashboard.png;admin;Dashboard Admin;/admin/dashboard;
+desktop;14 Admin - Produk Frame.png;admin;Produk Frame;/admin/produk/frame;
+desktop;15 Admin - Produk Lensa.png;admin;Produk Lensa;/admin/produk/lensa;
+desktop;16 Admin - Stok.png;admin;Stok;/admin/stok;
+desktop;17 Admin - Penerimaan.png;admin;Penerimaan Barang;/admin/penerimaan;
+desktop;18 Admin - Distribusi.png;admin;Distribusi;/admin/distribusi;
+desktop;19 Admin - Pengajuan.png;admin;Pengajuan Stok;/admin/pengajuan;
+desktop;20 Admin - Pemesanan.png;admin;Pemesanan (PO);/admin/pemesanan;
+desktop;21 Admin - Detail PO.png;admin;Detail PO;/admin/pemesanan/PO-2026-0108;
+desktop;22 Admin - Mutasi.png;admin;Mutasi Stok;/admin/mutasi;
+desktop;23 Pemilik - Login.png;pemilik;Login Pemilik;/owner/login;
+desktop;24 Pemilik - Dashboard.png;pemilik;Dashboard Pemilik;/owner/dashboard;
+desktop;25 Pemilik - Cabang.png;pemilik;Cabang;/owner/cabang;
+desktop;26 Pemilik - Detail Cabang.png;pemilik;Detail Cabang;/owner/cabang/cabang-padang;
+desktop;27 Pemilik - Stok.png;pemilik;Stok;/owner/stok;
+desktop;28 Pemilik - Pengajuan.png;pemilik;Pengajuan Barang;/owner/pengajuan;
+desktop;29 Pemilik - Alokasi.png;pemilik;Alokasi Distribusi;/owner/alokasi;
+desktop;30 Pemilik - Mutasi.png;pemilik;Mutasi Stok;/owner/mutasi;
+desktop;31 Pemilik - Transaksi.png;pemilik;Transaksi;/owner/transaksi;
+desktop;32 Pemilik - Pemesanan.png;pemilik;Pemesanan (PO);/owner/pemesanan;
+desktop;33 Pemilik - Laporan.png;pemilik;Laporan;/owner/laporan;
+desktop;34 Pemilik - Pengaturan.png;pemilik;Pengaturan — Pengguna;/owner/pengaturan;
+desktop;35 Pemilik - Pengaturan Hak Akses.png;pemilik;Pengaturan — Akses;/owner/pengaturan;tab akses
+desktop;36 Pemilik - Pengaturan Toko.png;pemilik;Pengaturan — Toko;/owner/pengaturan;tab toko
+desktop;37 Pemilik - Pengaturan Preferensi.png;pemilik;Pengaturan — Preferensi;/owner/pengaturan;tab preferensi
+desktop;38 Pemilik - Pengaturan Drawer Pengguna.png;pemilik;Pengaturan — Drawer Tambah Pengguna;/owner/pengaturan;modal
+mobile;01 Login.png;kasir;Login Kasir;/login;
+mobile;02 Dashboard.png;kasir;Dashboard Kasir;/dashboard;
+mobile;03 Transaksi Baru.png;kasir;Transaksi Baru;/transaksi-baru;
+mobile;04 Checkout.png;kasir;Checkout;/checkout;dengan 1 item keranjang
+mobile;05 Transaksi Berhasil.png;kasir;Transaksi Berhasil;/transaksi-berhasil;
+mobile;06 Pemesanan.png;kasir;Pemesanan (PO);/pemesanan;
+mobile;07 Detail PO.png;kasir;Detail PO;/pemesanan/PO-2026-0108;
+mobile;08 Riwayat Transaksi.png;kasir;Riwayat Transaksi;/riwayat-transaksi;
+mobile;09 Pelanggan.png;kasir;Pelanggan;/pelanggan;
+mobile;10 Resep Mata.png;kasir;Resep Mata;/resep-mata;
+mobile;11 Pembayaran.png;kasir;Pembayaran;/pembayaran;

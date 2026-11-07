@@ -1,0 +1,63 @@
+:root {
+  /* Surfaces */
+  --bg-0: #dceaf6;
+  --bg-1: #e8f4fe;
+  --shell: #eef7fe;
+  --panel: #ffffff;
+  --panel-soft: rgba(255, 255, 255, 0.68);
+  --panel-2: #e8f4fe;
+
+  /* Text */
+  --ink: #122a45;
+  --ink-2: #3c5a78;
+  --muted: #7b94ad;
+  --muted-2: #9db3c8;
+
+  /* Lines */
+  --line: #dcebf7;
+  --line-2: #d7e7f4;
+
+  /* Accent (blue) */
+  --accent: #2f7de1;
+  --accent-strong: #1f6fd0;
+  --accent-soft: #dbeafe;
+  --accent-ink: #1659a8;
+  --violet-head: #2f7de1;
+
+  /* Lavender fills */
+  --lav-1: #d5e8f8;
+  --lav-2: #e6f2fc;
+
+  /* Status */
+  --ok-bg: #e2f7ec;
+  --ok-ink: #1f9d63;
+  --warn-bg: #fdf0d6;
+  --warn-ink: #b57a12;
+  --danger-bg: #fde7ea;
+  --danger-ink: #d8455f;
+  --info-bg: #e0efff;
+  --info-ink: #1f6fd0;
+
+  /* Radii */
+  --r-xl: 30px;
+  --r-lg: 22px;
+  --r-md: 15px;
+  --r-sm: 11px;
+  --r-pill: 999px;
+
+  /* Shadows */
+  --shadow-lg: 0 40px 90px -46px rgba(30, 90, 150, 0.5);
+  --shadow-md: 0 22px 55px -34px rgba(30, 90, 150, 0.42);
+  --shadow-sm: 0 12px 32px -22px rgba(30, 90, 150, 0.5);
+  --ring: 0 0 0 3px rgba(47, 125, 225, 0.28);
+
+  /* Type */
+  --font: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

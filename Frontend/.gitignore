@@ -1,0 +1,26 @@
+# dependency & build
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# rahasia
+.env
+.env.*
+!.env.example
+
+# artefak berat — bisa dibuat ulang lewat script, tidak perlu masuk repo
+qa/**/screenshots/
+figma-kit/
+
+# log
+*.log
+npm-debug.log*

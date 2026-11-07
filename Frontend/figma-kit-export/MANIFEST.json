@@ -1,0 +1,394 @@
+[
+  {
+    "file": "01 Kasir - Login.png",
+    "role": "kasir",
+    "judul": "Login Kasir",
+    "path": "/login",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "02 Kasir - Dashboard.png",
+    "role": "kasir",
+    "judul": "Dashboard Kasir",
+    "path": "/dashboard",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "03 Kasir - Transaksi Baru.png",
+    "role": "kasir",
+    "judul": "Transaksi Baru",
+    "path": "/transaksi-baru",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "04 Kasir - Checkout.png",
+    "role": "kasir",
+    "judul": "Checkout",
+    "path": "/checkout",
+    "catatan": "dengan 1 item keranjang",
+    "folder": "desktop"
+  },
+  {
+    "file": "05 Kasir - Transaksi Berhasil.png",
+    "role": "kasir",
+    "judul": "Transaksi Berhasil",
+    "path": "/transaksi-berhasil",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "06 Kasir - Pemesanan.png",
+    "role": "kasir",
+    "judul": "Pemesanan (PO)",
+    "path": "/pemesanan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "07 Kasir - Detail PO.png",
+    "role": "kasir",
+    "judul": "Detail PO",
+    "path": "/pemesanan/PO-2026-0108",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "08 Kasir - Riwayat Transaksi.png",
+    "role": "kasir",
+    "judul": "Riwayat Transaksi",
+    "path": "/riwayat-transaksi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "09 Kasir - Pelanggan.png",
+    "role": "kasir",
+    "judul": "Pelanggan",
+    "path": "/pelanggan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "10 Kasir - Resep Mata.png",
+    "role": "kasir",
+    "judul": "Resep Mata",
+    "path": "/resep-mata",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "11 Kasir - Pembayaran.png",
+    "role": "kasir",
+    "judul": "Pembayaran",
+    "path": "/pembayaran",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "12 Admin - Login.png",
+    "role": "admin",
+    "judul": "Login Admin",
+    "path": "/admin/login",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "13 Admin - Dashboard.png",
+    "role": "admin",
+    "judul": "Dashboard Admin",
+    "path": "/admin/dashboard",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "14 Admin - Produk Frame.png",
+    "role": "admin",
+    "judul": "Produk Frame",
+    "path": "/admin/produk/frame",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "15 Admin - Produk Lensa.png",
+    "role": "admin",
+    "judul": "Produk Lensa",
+    "path": "/admin/produk/lensa",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "16 Admin - Stok.png",
+    "role": "admin",
+    "judul": "Stok",
+    "path": "/admin/stok",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "17 Admin - Penerimaan.png",
+    "role": "admin",
+    "judul": "Penerimaan Barang",
+    "path": "/admin/penerimaan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "18 Admin - Distribusi.png",
+    "role": "admin",
+    "judul": "Distribusi",
+    "path": "/admin/distribusi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "19 Admin - Pengajuan.png",
+    "role": "admin",
+    "judul": "Pengajuan Stok",
+    "path": "/admin/pengajuan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "20 Admin - Pemesanan.png",
+    "role": "admin",
+    "judul": "Pemesanan (PO)",
+    "path": "/admin/pemesanan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "21 Admin - Detail PO.png",
+    "role": "admin",
+    "judul": "Detail PO",
+    "path": "/admin/pemesanan/PO-2026-0108",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "22 Admin - Mutasi.png",
+    "role": "admin",
+    "judul": "Mutasi Stok",
+    "path": "/admin/mutasi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "23 Pemilik - Login.png",
+    "role": "pemilik",
+    "judul": "Login Pemilik",
+    "path": "/owner/login",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "24 Pemilik - Dashboard.png",
+    "role": "pemilik",
+    "judul": "Dashboard Pemilik",
+    "path": "/owner/dashboard",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "25 Pemilik - Cabang.png",
+    "role": "pemilik",
+    "judul": "Cabang",
+    "path": "/owner/cabang",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "26 Pemilik - Detail Cabang.png",
+    "role": "pemilik",
+    "judul": "Detail Cabang",
+    "path": "/owner/cabang/cabang-padang",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "27 Pemilik - Stok.png",
+    "role": "pemilik",
+    "judul": "Stok",
+    "path": "/owner/stok",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "28 Pemilik - Pengajuan.png",
+    "role": "pemilik",
+    "judul": "Pengajuan Barang",
+    "path": "/owner/pengajuan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "29 Pemilik - Alokasi.png",
+    "role": "pemilik",
+    "judul": "Alokasi Distribusi",
+    "path": "/owner/alokasi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "30 Pemilik - Mutasi.png",
+    "role": "pemilik",
+    "judul": "Mutasi Stok",
+    "path": "/owner/mutasi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "31 Pemilik - Transaksi.png",
+    "role": "pemilik",
+    "judul": "Transaksi",
+    "path": "/owner/transaksi",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "32 Pemilik - Pemesanan.png",
+    "role": "pemilik",
+    "judul": "Pemesanan (PO)",
+    "path": "/owner/pemesanan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "33 Pemilik - Laporan.png",
+    "role": "pemilik",
+    "judul": "Laporan",
+    "path": "/owner/laporan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "34 Pemilik - Pengaturan.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Pengguna",
+    "path": "/owner/pengaturan",
+    "catatan": "",
+    "folder": "desktop"
+  },
+  {
+    "file": "35 Pemilik - Pengaturan Hak Akses.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Akses",
+    "path": "/owner/pengaturan",
+    "catatan": "tab akses",
+    "folder": "desktop"
+  },
+  {
+    "file": "36 Pemilik - Pengaturan Toko.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Toko",
+    "path": "/owner/pengaturan",
+    "catatan": "tab toko",
+    "folder": "desktop"
+  },
+  {
+    "file": "37 Pemilik - Pengaturan Preferensi.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Preferensi",
+    "path": "/owner/pengaturan",
+    "catatan": "tab preferensi",
+    "folder": "desktop"
+  },
+  {
+    "file": "38 Pemilik - Pengaturan Drawer Pengguna.png",
+    "role": "pemilik",
+    "judul": "Pengaturan — Drawer Tambah Pengguna",
+    "path": "/owner/pengaturan",
+    "catatan": "modal",
+    "folder": "desktop"
+  },
+  {
+    "file": "01 Login.png",
+    "role": "kasir",
+    "judul": "Login Kasir",
+    "path": "/login",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "02 Dashboard.png",
+    "role": "kasir",
+    "judul": "Dashboard Kasir",
+    "path": "/dashboard",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "03 Transaksi Baru.png",
+    "role": "kasir",
+    "judul": "Transaksi Baru",
+    "path": "/transaksi-baru",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "04 Checkout.png",
+    "role": "kasir",
+    "judul": "Checkout",
+    "path": "/checkout",
+    "catatan": "dengan 1 item keranjang",
+    "folder": "mobile"
+  },
+  {
+    "file": "05 Transaksi Berhasil.png",
+    "role": "kasir",
+    "judul": "Transaksi Berhasil",
+    "path": "/transaksi-berhasil",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "06 Pemesanan.png",
+    "role": "kasir",
+    "judul": "Pemesanan (PO)",
+    "path": "/pemesanan",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "07 Detail PO.png",
+    "role": "kasir",
+    "judul": "Detail PO",
+    "path": "/pemesanan/PO-2026-0108",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "08 Riwayat Transaksi.png",
+    "role": "kasir",
+    "judul": "Riwayat Transaksi",
+    "path": "/riwayat-transaksi",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "09 Pelanggan.png",
+    "role": "kasir",
+    "judul": "Pelanggan",
+    "path": "/pelanggan",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "10 Resep Mata.png",
+    "role": "kasir",
+    "judul": "Resep Mata",
+    "path": "/resep-mata",
+    "catatan": "",
+    "folder": "mobile"
+  },
+  {
+    "file": "11 Pembayaran.png",
+    "role": "kasir",
+    "judul": "Pembayaran",
+    "path": "/pembayaran",
+    "catatan": "",
+    "folder": "mobile"
+  }
+]

@@ -1,0 +1,1 @@
+Place user-approved Admin screenshots here after UI validation; filenames recommended: 01-admin-login-final.png, 02-admin-dashboard-final.png, 03-admin-products-final.png, 04-admin-stock-final.png. Until approval, there is no pixel-perfect baseline for specific Admin page layout.

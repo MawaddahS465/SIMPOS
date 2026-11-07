@@ -1,0 +1,11 @@
+{
+  "name": "SIMPOS Optik Mekar Jaya — Import Frame",
+  "id": "simpos-optik-frame-import",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

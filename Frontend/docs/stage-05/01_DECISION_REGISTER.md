@@ -1,0 +1,24 @@
+# 01 — Decision Register (14 baris persis, redaksi asli, status default PENDING)
+
+Legenda status: EXPLICIT_PRD = diatur jelas; CONFLICTING_PRD = sumber bertentangan;
+NO_PRD_POLICY = tak ada aturan; TECHNICAL_GAP = butuh backend/teknis.
+Keputusan: PENDING_STAKEHOLDER (semua; tanpa bukti tertulis tidak ada APPROVED).
+
+| # | Topik asli (verbatim) | PRD | Status | Rekomendasi analis (PROPOSED) | Dampak implementasi | PJ / Prioritas |
+|---|---|---|---|---|---|---|
+| 1 | PO `Selesai`: siapa menandai (Admin/Kasir) | CONFLICTING_PRD — Admin: kebutuhan fungsional vs alur To-Be (Kasir lunasi/ambil); Pemilik: "masih ambigu" | CONFLICTING_PRD | Opsi A prompt (Kasir finalkan pasca serah-terima+bayar; Admin berhenti Sudah Datang) | `transitionPO` + tombol Kasir + guard; migrasi: tambah aktor Selesai di timeline | Pemilik usaha / P0 |
+| 2 | Debit stok pusat: tidak dikurangi di tahap mana pun (alokasi = reservasi) | NO_PRD_POLICY — "perlu ditetapkan apakah berkurang saat alokasi/pengiriman/penerimaan" | NO_PRD_POLICY | Opsi B: reservasi saat alokasi, debit fisik saat dispatch terkonfirmasi | `centralStock` − event DISPATCH + mutasi pusat; laporan bedakan on-hand/reserved/in-transit | Pemilik usaha / P0 |
+| 3 | Dispatch/in-transit: tanpa tahap kirim; status hanya Menunggu/Diterima (Sebagian) | NO_PRD_POLICY — "barang dalam perjalanan/selisih" belum diatur | NO_PRD_POLICY | Tahap DISPATCH oleh peran yang disahkan + status In-Transit | status distribusi + event + filter; tanpa hapus histori | Pemilik usaha / P0 |
+| 4 | Selisih/parsial/rusak/hilang/retur: terekam, tanpa aturan penyelesaian | CONFLICTING? NO_PRD_POLICY — koreksi/rusak/hilang/retur "belum didefinisikan" (OWN-07) | NO_PRD_POLICY | Opsi C: qty aktual + status discrepancy + review + koreksi/retur via event terpisah + audit | event DISCREPANCY/RETUR + UI review; mutasi korektif (bukan edit) | Pemilik usaha / P1 |
+| 5 | Penolakan/pembatalan pengajuan & alokasi: tanpa tombol; 1 baris = 1 bukti | NO_PRD_POLICY — pembatalan tak diatur | NO_PRD_POLICY | Opsi D: batal pre-dispatch = lepas reservasi; post-dispatch = retur; ledger abadi | status Batal + lepas reservasi; kunci idempotency tetap | Pemilik usaha / P1 |
+| 6 | Approval workflow pengajuan: hanya status Diajukan + mock notifikasi | NO_PRD_POLICY — "status penolakan/persetujuan dan komentar belum dijelaskan" (OWN-05) | NO_PRD_POLICY | Opsi E: Owner tetapkan jumlah (parsial OK) + catatan; reject = aturan resmi terpisah | status Approved/Rejected + komentar + notifikasi nyata (backend) | Pemilik usaha / P1 |
+| 7 | Master global vs per-cabang | NO_PRD_POLICY — "perlu validasi: master/harga global atau per cabang"; edit master oleh Owner "tidak diasumsikan" | NO_PRD_POLICY | Opsi F: SKU bersama, saldo/min per cabang; harga + nonaktif perlu keputusan | kolom `scope` produk/harga; RBAC edit master | Pemilik usaha / P1 |
+| 8 | Stok pesanan PO khusus vs reguler | NO_PRD_POLICY — ADM-11: "belum ditegaskan" | NO_PRD_POLICY | PO tak reservasi stok sampai aturan pelunasan diputuskan; lalu pilih: potong saat bayar/serah | flag `reserve_on_payment` + decrement di pelunasan | Pemilik usaha / P1 |
+| 9 | Cabang kedua (Bukittinggi): belum ada data | NO_PRD_POLICY — tanpa acuan PRD | NO_PRD_POLICY | Tambah cabang = keputusan resmi + seed terpisah; tanpa cabang fiktif permanen | `BRANCHES` + seed + filter; tanpa campur data demo | Pemilik usaha / P2 |
+| 10 | Template laporan + ekspor-semua-baris | EXPLICIT_PRD (OWN-11/12 wajib ekspor) + NO_PRD_POLICY template — "perlu disahkan" | EXPLICIT_PRD + NO_PRD_POLICY | Opsi H: sahkan template QA + definisi omzet; kunci ekspor = seluruh baris filter | header PDF/XLSX final; tanpa ubah query | Pemilik usaha / P1 |
+| 11 | Refund/DP/parsial/fee gateway/settlement | NO_PRD_POLICY — "belum terinci" (PRD Kasir/Admin/Pemilik) | NO_PRD_POLICY | Opsi I: tanpa alur kas/refund sampai kebijakan + biaya sah | lifecycle payment + event REFUND (backend) | Pemilik usaha + keuangan / P2 |
+| 12 | HPP/margin/laba | NO_PRD_POLICY — "bukan kebutuhan sumber" | NO_PRD_POLICY | Opsi I: tanpa klaim laba; butuh data biaya + rumus disahkan | modul biaya terpisah; laporan laba TERKUNCI sampai ada data | Pemilik usaha / P2 |
+| 13 | Manajemen akun/cabang/role oleh Owner | NO_PRD_POLICY — "perlu dirumuskan"; "belum dijelaskan eksplisit" | NO_PRD_POLICY | Opsi G: least privilege; Owner ≠ superuser transaksi; CRUD akun = otorisasi sah | modul akun + RBAC server; audit admin | Pemilik usaha / P1 |
+| 14 | Stack backend, HTTPS, backup/RPO, SLA | TECHNICAL_GAP — Charter CI4/MySQL vs Bab II React/Supabase; "PRD tidak memutuskan" | TECHNICAL_GAP | Opsi J: ADR + proposal tanpa migrasi; RPO/RTO disetujui | backend + TLS + backup + monitoring (deployment) | Pemilik usaha + tim IT / P0 |
+
+Bukti approval: (kosong — menunggu `04_APPROVAL_SHEET.md` ditandatangani).

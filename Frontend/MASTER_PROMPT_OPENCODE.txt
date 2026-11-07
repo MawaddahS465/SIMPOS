@@ -1,0 +1,112 @@
+# MASTER IMPLEMENTATION PROMPT — SIMPOS OPTIK MEKAR JAYA / KASIR
+
+PERAN ANDA
+Anda adalah Senior Frontend Engineer + UI Engineer + Visual QA Engineer. Tugas Anda BUKAN membuat interpretasi baru dari referensi, melainkan REKONSTRUKSI desain web interaktif dengan kesetiaan visual setinggi mungkin terhadap file gambar yang saya sediakan. Kerjakan kode, jalankan proyek, ambil screenshot dari browser, bandingkan dengan gambar referensi, lakukan revisi iteratif sampai selisih visualnya minimal. Jangan berhenti di tahap rencana/pseudocode.
+
+KONTEKS PROYEK
+- Produk: SIMPOS (Sistem Informasi Manajemen Point of Sale) Optik Mekar Jaya.
+- Role yang dikerjakan SAAT INI: KASIR SAJA. Role Admin Cabang dan Pemilik jangan diimplementasikan di sidebar Kasir.
+- Sumber kebutuhan: `PRD_SIMPOS_Optik_Mekar_Jaya_Kasir.pdf` dalam paket ini. Baca dan ekstrak isi dokumen SEBELUM coding; jika ekstraksi PDF gagal, tanyakan bagian mana yang kurang, jangan mengarang.
+- Bahasa seluruh antarmuka: Indonesia. Currency IDR `Rp 450.000`. Contoh nama, harga, foto, cabang, dan tanggal hanyalah DATA DEMO, bukan data bisnis yang terverifikasi.
+- Visual target: referensi di folder `references/`, terutama `01-login-FINAL.png` dan `02-dashboard-FINAL.png`. Kedua gambar ini adalah DESIGN LOCKED, tidak boleh didesain ulang.
+
+PRIORITAS KONFLIK
+1. Hak akses, alur proses, aturan bisnis, dan fungsionalitas: PRD Kasir paling tinggi.
+2. Look-and-feel, hierarki, penempatan, warna, ukuran, komposisi: screenshot `references/` paling tinggi.
+3. Desain konsisten lintas halaman: turunkan komponen dari referensi Login + Dashboard.
+4. Kode web lama (jika ada): boleh jadi referensi LOGIKA, tapi JANGAN jadi dasar styling kalau bertentangan dengan gambar.
+5. Bila data pada screenshot bertentangan dengan aturan bisnis (misalnya pajak, nominal, status PO), pertahankan STRUKTUR visual tetapi gunakan perhitungan dan perilaku yang benar, tandai di laporan. Jangan mengarang PPN wajib 11%, izin kasir mengubah stok, atau otoritas kasir mengubah PO ke Diproses/Sudah Datang.
+
+FILE REFERENSI — BACA SEMUANYA
+- `references/01-login-FINAL.png` = referensi wajib /login (1536x1024). Sisi kiri visual kacamata + copy, sisi kanan kartu login. TANPA tiga kartu benefit di bagian bawah kiri. Jangan kembalikan 3 kartu yang sebelumnya dihapus.
+- `references/02-dashboard-FINAL.png` = referensi wajib /dashboard (1536x1024). Dashboard sangat minimal: top search, hero, 4 action cards, strip Riwayat Transaksi; BUKAN tabel KPI padat atau katalog.
+- `references/03-transaksi-baru.png` = inspirasi layout /transaksi-baru: katalog frame/lensa + keranjang, tombol Lanjut ke Checkout. Sesuaikan visual token dengan screenshot final.
+- `references/04-checkout.png` = acuan /checkout: data pelanggan, resep yang disimpan, produk dipilih, ringkasan, metode pembayaran. Tidak ada katalog besar.
+- `references/05-transaksi-berhasil.png` = acuan /transaksi-berhasil: info transaksi + produk + ringkasan + cetak struk/transaksi baru.
+- `references/06-daftar-PO.png` = acuan /pemesanan: daftar PO, cari/filter status, tombol buat PO.
+- `references/07-detail-PO.png` = acuan /pemesanan/:id: detail pelanggan, produk, snapshot resep, timeline PO; Kasir hanya memantau status proses.
+- `references/08-riwayat-transaksi.png` = acuan /riwayat-transaksi: tabel/filter/pencarian, lihat detail, cetak struk.
+- `references/09-pelanggan.png` = acuan /pelanggan: cari pelanggan nama/HP, tambah/edit dan riwayat resep terkait.
+- `assets/hero-approved-right.jpg`, `assets/login-approved-visual.jpg` = ASSET CROP DARI REFERENSI; boleh dipakai untuk FOTO/ILUSTRASI kacamata sesuai kebutuhan, tapi tidak untuk menyamarkan screenshot halaman utuh sebagai UI.
+
+PENTING: JANGAN membuat halaman memakai screenshot penuh sebagai background atau satu <img> yang menutupi layout. Semua teks, menu, tabel, formulir, tombol, filter, status, dan navigasi HARUS HTML/CSS/komponen hidup dan dapat diakses. Boleh memakai foto kacamata asli/crop di area hero sebagai aset visual saja. Jangan membuat ulang foto yang berbeda bila foto acuan sudah tersedia. Jangan mengubah tema menjadi oranye, neon, gelap, brutalist, atau generic dashboard template. Jangan mengubah copy/brand/ikon secara sewenang-wenang.
+
+TARGET VISUAL TEPAT — FIRST PRIORITY
+A. /login, desktop viewport 1536 x 1024:
+- Background gradient sangat lembut lavender/putih seperti sumber, tanpa distraksi.
+- Split layout: panel visual kiri kira-kira x=45..971, y=55..969; panel form kanan x=989..1499, y=55..969. Radius besar, border tipis, bayangan/translucency subtle.
+- Panel kiri: eyeglasses photo sesuai screenshot, copy `OPTIK MEKAR JAYA`, headline `Solusi Penglihatan untuk Hidup yang Lebih Baik`, paragraf, dan CTA `Lihat Koleksi`; tanpa tiga mini-card benefit. Pastikan foto dan teks TIDAK saling menutupi saat responsif.
+- Panel kanan: ikon kacamata dan nama brand di tengah, `Selamat Datang`, subheading, field Email, Password (toggle visibility), Pilih Cabang, checkbox Ingat saya, Lupa password, tombol gradient `Masuk`, dan helper bantuan di bawah.
+- Login harus bisa dinavigasi keyboard; tampilkan loading/invalid credential state. Bila belum ada backend, gunakan akun DEMO berlabel jelas, bukan login aman palsu.
+B. /dashboard, desktop viewport 1536 x 1024:
+- Outer shell margin sekitar 35 px dari kiri, 55 px dari atas, kanan 34 px; sidebar sekitar 255 px lebar, main panel mulai x~307; kedua panel rounded soft white/lavender.
+- Sidebar: logo `Optik Mekar Jaya`, tagline `Sistem Informasi Optik`, menu Dashboard (aktif), Transaksi Baru, Pemesanan (PO), Riwayat Transaksi, Pembayaran, separator `LAINNYA`, Pelanggan, Resep Mata; footer Cabang Padang + Kasir. JANGAN tambahkan menu Produk CRUD, Stok, Laporan Pemilik, Analitik, Settings yang tidak relevan.
+- Topbar main: satu search field panjang yang menyatu di kiri atas, notification pill, profile `Korena Saif` Kasir di kanan. Tata letak jangan dipadatkan.
+- Hero card: kurang lebih x=328 y=149 w=1153 h=346; gradient lavender soft + FOTO kacamata dominan sisi kanan dengan cropping sesuai sumber. Di kiri: overline `SELAMAT DATANG`, heading besar `Korena Saif` beraksen ungu, subtitle `Siap melayani pelanggan hari ini?`, tombol `Mulai Transaksi` ungu.
+- Di bawah hero: heading `Menu Utama`, caption `Pilih menu untuk memulai aktivitas`.
+- Tepat EMPAT card sejajar desktop: `Transaksi Baru`, `Pemesanan (PO)`, `Pelanggan`, `Resep Mata`; kira-kira y=590..840; ikon bulat lavender, judul tegas, deskripsi singkat, arrow circle kanan bawah. Card pertama outline/active lavender halus. Jangan tambah KPI, chart, tabel, produk grid, grafik, atau 8 kartu aksi.
+- Di bawah card: SATU strip `Riwayat Transaksi` lebar penuh dengan tombol `Buka` kanan.
+- Font modern mirip referensi, warna teks navy hampir hitam, accent violet/indigo (contoh token awal #4F46E5, #5D50F4); sifatnya HANYA SEED, sampling dari screenshot harus lebih menentukan. Card, button, input dan shell harus matching dalam radius, padding, shadows, glass layers.
+- Target adalah kesetiaan VISUAL terhadap referensi asli, bukan sekadar menggunakan warna lavender dan rounded cards.
+
+RUTE & PEMBAGIAN HALAMAN — JANGAN CAMPUR
+`/login` -> `/dashboard` -> `/transaksi-baru` -> `/checkout` -> `/transaksi-berhasil`.
+Modul terpisah:
+- `/pemesanan` = daftar PO, status Dipesan / Diproses / Sudah Datang / Selesai; kasir bisa buat PO dan memantau. Klik PO ke detail.
+- `/pemesanan/baru` = FORM BUAT PO: pilih/tambah pelanggan, pilih frame/lensa, pilih resep tersimpan untuk lensa, simpan snapshot parameter resep per PO, simpan status awal Dipesan. TOMBOL `Simpan PO`, BUKAN `Proses Pembayaran`.
+- `/pemesanan/:id` = detail PO, timeline dan data terkait. Kasir tidak boleh mengubah status proses Admin (Diproses / Sudah Datang).
+- `/riwayat-transaksi` = riwayat transaksi terfilter, search, view nota.
+- `/pembayaran` = daftar/status pembayaran & akses bukti, BUKAN halaman tambah produk atau stok.
+- `/pelanggan` = MASTER pelanggan: list, search berdasarkan nama/no HP, add/edit, detail pelanggan & riwayat resep; jangan menggabungkan semua form checkout ke sini.
+- `/resep-mata` = arsip resep pelanggan; add/edit sesuai izin, ukuran kanan/kiri dan tanggal resep; pemeriksaan mata dilakukan DI LUAR aplikasi.
+- `/checkout` = pelanggan, pilih resep (jika relevan), produk terpilih, total, metode pembayaran; jangan tampilkan katalog frame besar lagi.
+- `/transaksi-berhasil` = nomor transaksi, total, produk, metode, status lunas, cetak struk, transaksi baru, lihat riwayat.
+Untuk data yang belum ada di referensi visual spesifik (misalnya `/pemesanan/baru` dan `/resep-mata`), buat layout baru DENGAN COMPONENTS YANG SAMA, bukan mengulangi screenshot halaman Transaksi Baru.
+
+ALUR DAN PERILAKU KASIR SESUAI PRD
+- Role access: hanya Kasir. Transaksi dan data sesuai cabang yang dipilih/ditugaskan. Jika hanya demo lokal, jangan klaim RBAC aman sisi server.
+- Produk frame dan lensa dipisah kategori; Kasir BOLEH MELIHAT dan memilih produk, tetapi TIDAK CRUD produk, edit harga, set stok minimum, distribusi barang, atau akses data cabang lain.
+- Pelanggan: nama dan nomor HP minimal, validasi, pencarian. Resep: tanggal, mata kanan OD dan kiri OS, simpan/lihat sejarah, pilih resep ketika buat pesanan lensa.
+- Pembelian langsung: pilih barang -> keranjang -> checkout -> pilih pelanggan -> pilih resep (bila perlu) -> bayar via tunai atau simulasi metode digital -> sukses -> struk. Kurangi stok DEMO tepat satu kali pada transaksi sukses, jangan saat menambahkan ke keranjang atau payment pending. Jangan stok minus.
+- PO dibuat Kasir jika barang perlu dipesan; status awal Dipesan. Admin Cabang yang memproses Diproses dan Sudah Datang. Kasir melihat status, menghubungi pelanggan dan menangani pembayaran/penyelesaian sesuai aturan final PRD; jika otoritas transisi ke Selesai belum dipastikan, jangan diam-diam memberikan akses edit status.
+- Metode pembayaran tunai, transfer, QRIS, e-wallet berdasarkan PRD; gateway nyata tidak perlu untuk mockup frontend, beri label simulasi pada metode digital, tampilkan state loading, success/failure dengan benar dan hindari transaksi ganda.
+- Semua tabel/form punya empty, error, loading, disabled, success states yang proporsional, tanpa mengubah desain.
+- Tidak boleh ada dekorasi emoji di dalam UI (kecuali kalau benar-benar dituntut gambar referensi; lebih baik icon SVG). Foto eyewear tetap konsisten.
+
+RESPONSIVE TANPA MERUSAK DESKTOP
+- Desktop 1536x1024 adalah target visual utama. Uji juga 1440x900 dan 1280x800.
+- Tablet 768x1024: sidebar dapat collapse, kartu 2 kolom, header/hero tetap proporsional.
+- Mobile 390x844 dan 375x812: drawer/menu mobile, satu atau dua kolom menurut konten, card dan form dapat dibaca, tidak ada horizontal overflow, tombol min-height 44 px, tabel dengan horizontal scroll lokal bila perlu. JANGAN memaksakan layout desktop dikecilkan menjadi screenshot.
+- Respect reduced motion, accessible contrast & focus ring, label input jelas, tab navigation normal.
+
+ATURAN IMPLEMENTASI
+- Teliti repository yang diberikan. Jika sudah ada source, identifikasi mana logic yang dapat digunakan; hapus CSS/komponen lama yang menyebabkan UI melenceng. Jangan lakukan patch CSS bertingkat tak berujung.
+- Bila membuat proyek baru, gunakan React + TypeScript + Vite atau stack frontend yang sudah mapan di proyek, struktur modular `src/components`, `src/pages`, `src/styles`, `src/data`, `src/lib`; gunakan CSS variables / design tokens dan reusable components. Jangan mengubah stack proyek tanpa alasan.
+- Gunakan ikon Lucide yang konsisten (bukan campur-campur emoji/font icons), UI font setara Inter/Plus Jakarta Sans. Jika font eksternal tidak tersedia, pakai font fallback yang dekat.
+- Data demo seeded terpusat; backend tidak wajib untuk prototipe. Penyimpanan lokal boleh untuk demo, tetapi jangan mengklaim data aman/tersinkron antarcabang. Jangan tempel data resep pelanggan sungguhan.
+- Hindari `transform: scale()` untuk mengecilkan seluruh desktop, hardcoded positioning yang pecah mobile, screenshot UI sebagai background, placeholder tanpa fungsi, `href="#"` yang tidak melakukan apapun, modal palsu, atau layout yang berubah warna/struktur antar-route.
+
+WORKFLOW WAJIB (JANGAN SKIP VISUAL QA)
+PHASE 0 — AUDIT & RENCANA: Baca PRD; inspect SELURUH screenshots, catat ukuran gambar; audit proyek lama dan laporkan komponen yang harus dipertahankan/diganti. Buat `docs/SCREEN_MAP.md`, `docs/DESIGN_TOKENS.md`, `docs/IMPLEMENTATION_PLAN.md`, `docs/PRD_TRACEABILITY.md` (fitur->route->status). Tulis rencana singkat, lanjut coding tanpa perlu menunggu saya, kecuali file kritis tidak ada.
+PHASE 1 — LOCK LOGIN & DASHBOARD: Implement `/login` dan `/dashboard` dahulu. Jalankan proyek. Ambil Playwright screenshot pada EXACT viewport 1536x1024. Simpan `qa/login-1536.png`, `qa/dashboard-1536.png`. Buat side-by-side terhadap `references/01-...` dan `references/02-...` dengan perintah script (Pillow/image magick boleh). Buat heatmap/diff atau score piksel sebagai metrik bantu, tetapi cek juga manual alignment, crop gambar, font, warna, spacing.
+PHASE 2 — ITERATE: Revisi hingga struktur dan proporsi match. Audit SEMUA: x/y/w/h sidebar, shell, topbar, hero, text line breaks, navbar, jumlah kartu, warna dan bayangan, foto dan cropping, panel forms. Pada desktop target layout utama sedekat mungkin (usahakan deviasi geometri <= 8 px untuk blok besar dan <= 4 px untuk kontrol/spacing jika realistis). Jangan berbohong soal pixel-perfect jika belum tercapai.
+PHASE 3 — LAINNYA: Implement halaman PRD per route; gunakan screenshot target masing-masing, turunkan design system yang terkunci, jangan menyalin pola checkout ke halaman PO. Setiap route harus punya state dan action nyata.
+PHASE 4 — QA: Screenshot desktop+mobile minimal login, dashboard, transaksi, checkout, hasil, daftar/detail/buat PO, riwayat, pelanggan, resep, pembayaran; coba login, tambah keranjang, checkout, status sukses, buat PO, pencarian, edit pelanggan, simpan resep, print/receipt, reset state. Verifikasi mobile tanpa scroll horizontal pada 390px. Jalankan lint/test/build jika tersedia.
+PHASE 5 — DELIVERABLE: Kode sumber web, README (install, run, demo login), `docs/SCREEN_MAP.md`, `docs/PRD_TRACEABILITY.md`, `qa/` screenshot per halaman, `qa/VISUAL_AUDIT.md` berisi tabel: layar / referensi / screenshot aktual / beda yang masih ada / status. Simpan ZIP final jika lingkungan memungkinkan.
+
+VISUAL QA GATE — JANGAN NYATAKAN SELESAI JIKA GAGAL
+- Header dan sidebar final konsisten pada semua halaman.
+- Pada Dashboard sesuai screenshot: 1 hero + 4 kartu menu + 1 strip riwayat. Tidak ada KPI/charts/katalog/pembayaran.
+- Pada Login: dua panel, TANPA 3 kartu promosi bawah.
+- Desain final 1536x1024 tidak beda drastis dari screenshot; screenshot pengujian aktual disediakan dan jujur dilabeli.
+- Tidak ada teks/elemen tumpang tindih, gambar buram/terdistorsi, overflow tanpa alasan, atau kontrol mati.
+- Role Kasir tidak punya CRUD produk, manajemen stok, laporan owner, pengaturan distribusi.
+- Checkout dan Buat PO adalah dua flow BERBEDA.
+- Jika browser screenshot/testing tidak bisa dijalankan di lingkungan: dokumentasikan BLOCKER dan file yang belum diverifikasi, jangan klaim sudah lolos.
+
+INSTRUKSI FINAL
+1) Mulai dengan membaca file lokal `references/01-login-FINAL.png`, `references/02-dashboard-FINAL.png`, dan `PRD_SIMPOS_Optik_Mekar_Jaya_Kasir.pdf`.
+2) Ringkas struktur visual dalam ukuran konkret, barulah implementasi.
+3) Jangan ganti design system, jangan redesign, jangan bergantung pada deskripsi teks saja: gambar referensi adalah ground truth VISUAL.
+4) Jalankan dan evaluasi hasil berkali-kali secara mandiri; tunjukkan screenshot hasil, bukan cuma mengatakan sudah mirip.
+5) Fokus mutu: sangat setia ke gambar, tetap interaktif, responsif, dan sesuai PRD.

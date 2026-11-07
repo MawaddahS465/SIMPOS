@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>QA Harness — 1536×1024</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+      }
+      iframe {
+        display: block;
+        width: 1536px;
+        height: 1024px;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe id="stage"></iframe>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const p = params.get("p") || "/login";
+      document.getElementById("stage").src = p;
+    </script>
+  </body>
+</html>

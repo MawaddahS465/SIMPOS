@@ -1,0 +1,19 @@
+# Backend
+Backend/.env
+Backend/vendor/
+Backend/writable/cache/*
+Backend/writable/logs/*
+Backend/composer.phar
+
+# Frontend
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
