@@ -2,14 +2,14 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "SIMPOS: Jalankan server (port 8082)",
+            "label": "SIMPOS: Jalankan server (port 8080)",
             "type": "shell",
             "command": "C:\\xampp\\php\\php.exe",
             "args": [
                 "spark",
                 "serve",
                 "--port",
-                "8082"
+                "8080"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
