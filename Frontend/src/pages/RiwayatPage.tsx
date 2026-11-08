@@ -64,6 +64,7 @@ const METHOD_FILTERS: Array<"Semua" | PaymentMethod> = [
   "Transfer Bank",
   "Kartu Debit/Kredit",
   "QRIS",
+  "E-Wallet",
 ];
 
 const METHOD_ICON: Record<PaymentMethod, typeof Banknote> = {
@@ -71,6 +72,7 @@ const METHOD_ICON: Record<PaymentMethod, typeof Banknote> = {
   "Transfer Bank": Wallet,
   "Kartu Debit/Kredit": CreditCard,
   QRIS: QrCode,
+  "E-Wallet": Wallet,
 };
 
 const methodShort = (method: PaymentMethod) =>

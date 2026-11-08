@@ -12,6 +12,7 @@ const METHOD_ICON: Record<PaymentMethod, typeof Banknote> = {
   "Transfer Bank": Wallet,
   "Kartu Debit/Kredit": CreditCard,
   QRIS: QrCode,
+  "E-Wallet": Wallet,
 };
 
 export default function PembayaranPage() {

@@ -39,116 +39,109 @@ export default function TransaksiBerhasilPage() {
   const linkedPo = r.poId ? shared.pos.find((p) => p.id === r.poId) : undefined;
 
   return (
-    <div className="success page">
+    <div className="success page co-success">
       <div className="success-hero">
         <span className="success-badge">
-          <Check size={38} strokeWidth={3} />
+          <Check size={30} strokeWidth={3} />
         </span>
         <h1>Transaksi Berhasil</h1>
         <p>Pembayaran telah diproses dan pesanan berhasil disimpan.</p>
       </div>
 
-      <div className="two-col">
-        <section className="co-card">
-          <div className="section-head">
-            <h2>Informasi Transaksi</h2>
-          </div>
-          <div>
-            <div className="info-row">
-              <span>No. Transaksi</span>
-              <b>{trxNo}</b>
-            </div>
-            <div className="info-row">
-              <span>Tanggal &amp; Jam</span>
-              <b>
-                {trxDate}, {trxTime} WIB
-              </b>
-            </div>
-            <div className="info-row">
-              <span>Kasir</span>
-              <b>{session?.name ?? "Kasir"}</b>
-            </div>
-            <div className="info-row">
-              <span>Nama Pelanggan</span>
-              <b>{customerName}</b>
-            </div>
-            {linkedPo ? (
-              <div className="info-row">
-                <span>Pengambilan PO</span>
-                <b>{linkedPo.number}</b>
-              </div>
-            ) : null}
-            <div className="info-row">
-              <span>Metode Pembayaran</span>
-              <b>{method}</b>
-            </div>
-            <div className="info-row">
-              <span>Status</span>
-              <span className="status-pill" style={{ background: "#e2f7ec", color: "#1f9d63" }}>
-                <i style={{ background: "#1f9d63" }} />
-                Lunas
-              </span>
-            </div>
-          </div>
-        </section>
+      <section className="co-card co-success-card">
+        <div className="section-head">
+          <h2>Informasi Transaksi</h2>
+        </div>
 
-        <section className="co-card">
-          <div className="section-head">
-            <h2>Produk yang Dibeli</h2>
+        <div className="co-info-grid">
+          <div className="info-row">
+            <span>No. Transaksi</span>
+            <b>{trxNo}</b>
           </div>
-          <div>
-            {items.map((i) => (
-              <div key={i.id} className="receipt-line">
-                <span className="rl-ico">
-                  <ProductIcon category={i.category} />
-                </span>
-                <span className="rl-body">
-                  <b>{i.name}</b>
-                  <span>
-                    {i.brand} · {i.category} · Qty: {i.qty}
-                  </span>
-                </span>
-                <span className="tt-money">{formatIDR(i.price * i.qty)}</span>
-              </div>
-            ))}
+          <div className="info-row">
+            <span>Tanggal &amp; Jam</span>
+            <b>
+              {trxDate}, {trxTime} WIB
+            </b>
           </div>
+          <div className="info-row">
+            <span>Kasir</span>
+            <b>{session?.name ?? "Kasir"}</b>
+          </div>
+          <div className="info-row">
+            <span>Nama Pelanggan</span>
+            <b>{customerName}</b>
+          </div>
+          <div className="info-row">
+            <span>Metode Pembayaran</span>
+            <b>{method}</b>
+          </div>
+          <div className="info-row">
+            <span>Status</span>
+            <span className="status-pill" style={{ background: "#e2f7ec", color: "#1f9d63" }}>
+              <i style={{ background: "#1f9d63" }} />
+              Lunas
+            </span>
+          </div>
+          <div className="info-row">
+            <span>Jumlah Dibayar</span>
+            <b>{formatIDR(paid)}</b>
+          </div>
+          <div className="info-row">
+            <span>{method === "Tunai" ? "Kembalian" : "Sisa Pembayaran"}</span>
+            <b>{formatIDR(method === "Tunai" ? change : 0)}</b>
+          </div>
+          {linkedPo ? (
+            <div className="info-row">
+              <span>Pengambilan PO</span>
+              <b>{linkedPo.number}</b>
+            </div>
+          ) : null}
+        </div>
 
-          <div className="section-head" style={{ marginTop: 6 }}>
-            <h2>Ringkasan Pembayaran</h2>
-          </div>
-          <div>
-            <div className="info-row">
-              <span>Subtotal</span>
-              <b>{formatIDR(subtotal)}</b>
-            </div>
-            <div className="info-row">
-              <span>
-                Diskon
-                {r?.discountPercent ? ` (${r.discountPercent}%)` : ""}
+        <div className="section-head" style={{ marginTop: 4 }}>
+          <h2>Produk yang Dibeli</h2>
+        </div>
+        <div>
+          {items.map((i) => (
+            <div key={i.id} className="receipt-line">
+              <span className="rl-ico">
+                <ProductIcon category={i.category} />
               </span>
-              <b>{formatIDR(discount)}</b>
-            </div>
-            <div className="info-row">
-              <span>
-                <b style={{ color: "var(--ink)" }}>Total Pembayaran</b>
+              <span className="rl-body">
+                <b>{i.name}</b>
+                <span>
+                  {i.brand} · {i.category} · Qty: {i.qty}
+                </span>
               </span>
-              <b>{formatIDR(total)}</b>
+              <span className="tt-money">{formatIDR(i.price * i.qty)}</span>
             </div>
-            {method === "Tunai" ? (
-              <>
-                <div className="info-row">
-                  <span>Jumlah Dibayar</span>
-                  <b>{formatIDR(paid)}</b>
-                </div>
-                <div className="info-row">
-                  <span>Kembalian</span>
-                  <b style={{ color: "var(--ok-ink)" }}>{formatIDR(change)}</b>
-                </div>
-              </>
-            ) : null}
+          ))}
+        </div>
+
+        <div className="section-head" style={{ marginTop: 4 }}>
+          <h2>Ringkasan Pembayaran</h2>
+        </div>
+        <div className="co-success-summary">
+          <div className="info-row">
+            <span>Subtotal</span>
+            <b>{formatIDR(subtotal)}</b>
           </div>
-        </section>
-      </div>
+          <div className="info-row">
+            <span>
+              Diskon
+              {r?.discountPercent ? ` (${r.discountPercent}%)` : ""}
+            </span>
+            <b>{formatIDR(discount)}</b>
+          </div>
+          <div className="info-row">
+            <span>
+              <b style={{ color: "var(--ink)" }}>Total Pembayaran</b>
+            </span>
+            <b>{formatIDR(total)}</b>
+          </div>
+        </div>
+      </section>
 
       <div className="action-row success-actions">
         <div className="btn-group">
@@ -156,13 +149,13 @@ export default function TransaksiBerhasilPage() {
             <Printer size={16} />
             Cetak Struk
           </button>
+          <button className="btn btn-primary" onClick={() => navigate("/transaksi-baru")}>
+            Transaksi Baru
+          </button>
           <Link className="btn btn-ghost" to="/riwayat-transaksi">
             <History size={16} />
             Lihat Riwayat
           </Link>
-          <button className="btn btn-primary" onClick={() => navigate("/transaksi-baru")}>
-            Transaksi Baru
-          </button>
         </div>
       </div>
 

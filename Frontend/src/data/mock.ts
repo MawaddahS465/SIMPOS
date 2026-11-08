@@ -224,7 +224,7 @@ export const TRANSACTIONS: Transaction[] = [
   },
 ];
 
-export type PaymentMethod = "Tunai" | "Transfer Bank" | "Kartu Debit/Kredit" | "QRIS";
+export type PaymentMethod = "Tunai" | "Transfer Bank" | "Kartu Debit/Kredit" | "QRIS" | "E-Wallet";
 
 /** Pembayaran DEMO. */
 export const PAYMENTS: Array<{
