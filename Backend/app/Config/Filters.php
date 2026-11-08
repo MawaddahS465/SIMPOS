@@ -37,6 +37,7 @@ class Filters extends BaseFilters
         'auth'          => \App\Filters\AuthFilter::class,
         'role'          => \App\Filters\RoleFilter::class,
         'api-csrf'      => \App\Filters\ApiCsrfFilter::class,
+        'api-role'      => \App\Filters\ApiRoleFilter::class,
     ];
 
     /**

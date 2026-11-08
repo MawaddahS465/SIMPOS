@@ -2,7 +2,7 @@
 
 namespace App\Filters;
 
-use App\Enums\Role;
+use App\Libraries\SessionAuthenticator;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -13,18 +13,9 @@ class AuthFilter implements FilterInterface
         RequestInterface $request,
         $arguments = null
     ) {
-        if (!session()->get('isLoggedIn')) {
+        if ((new SessionAuthenticator())->current() === null) {
             return redirect()->to('/login')
-                ->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        $role = Role::tryFrom((string) session()->get('role'));
-
-        if ($role === null) {
-            session()->destroy();
-
-            return redirect()->to('/login')
-                ->with('error', 'Akses ditolak.');
+                ->with('error', 'Silakan login kembali.');
         }
     }
 
