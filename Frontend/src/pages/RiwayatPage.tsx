@@ -13,7 +13,7 @@ import {
 import { type PaymentMethod, type Transaction, type TrxStatus } from "../data/mock";
 import { useSharedStore, BRANCH_ID } from "../store/sharedStore";
 import { useAuth } from "../store/auth";
-import { exportXlsx, inPeriod, periodRange, stamp } from "../store/reports";
+import { exportCsv, inPeriod, periodRange, stamp } from "../store/reports";
 import { Avatar, Chip, PageHeader, SearchBox, StatCard, StatusPill, formatIDR } from "../components/ui";
 import MRLogo from "../components/MRLogo";
 import "../styles/pages.css";
@@ -22,7 +22,7 @@ import "../styles/admin.css";
 type RiwayatPeriod = "semua" | "hari" | "mingguan" | "bulanan" | "okt-2026" | "sep-2026" | "agu-2026" | "custom";
 
 const PERIOD_OPTIONS: Array<{ value: RiwayatPeriod; label: string }> = [
-  { value: "semua", label: "Semua Periode (01 Agu – 31 Okt 2026)" },
+  { value: "semua", label: "Semua Periode" },
   { value: "hari", label: "Hari Ini" },
   { value: "mingguan", label: "Minggu Ini" },
   { value: "bulanan", label: "Bulan Ini" },
@@ -271,8 +271,9 @@ export default function RiwayatPage() {
       setNotice(true);
       return;
     }
-    exportXlsx(
-      "Laporan Riwayat Transaksi & Pembayaran — Cabang Padang",
+    const branchName = session?.branch ?? "Cabang";
+    exportCsv(
+      `Laporan Riwayat Transaksi & Pembayaran - ${branchName}`,
       [
         ["Periode", range.label],
         ["Status", filter],
@@ -298,7 +299,7 @@ export default function RiwayatPage() {
         return [t.no, t.date, t.time, t.customer, t.type, method, t.total, paid, change, t.status];
       }),
       ["TOTAL", "", "", "", "", "", rows.reduce((s, t) => s + t.total, 0), "", "", ""],
-      `Riwayat-Pembayaran-Cabang-Padang-${stamp()}.xlsx`,
+      `Riwayat-Pembayaran-${branchName.replace(/[^A-Za-z0-9]+/g, "-")}-${stamp()}.csv`,
     );
     setNotice(true);
   };
@@ -318,9 +319,7 @@ export default function RiwayatPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="TRANSAKSI & PEMBAYARAN CABANG"
         title="Riwayat Transaksi"
-        desc="Lihat riwayat transaksi yang telah lunas, metode pembayaran, cetak struk, dan ekspor laporan cabang"
         actions={
           <>
             <label className="period-pill-select" title="Pilih periode tanggal transaksi">
@@ -342,7 +341,7 @@ export default function RiwayatPage() {
             </label>
             <button className="btn btn-primary" onClick={doExport}>
               <Download size={16} />
-              Ekspor XLSX
+              Ekspor CSV
             </button>
           </>
         }
@@ -425,7 +424,7 @@ export default function RiwayatPage() {
           <Download size={16} />
           {rows.length === 0
             ? "Tidak ada baris untuk diekspor pada filter ini."
-            : `Ekspor XLSX berhasil diunduh (${rows.length} transaksi & pembayaran sesuai filter).`}
+            : `Ekspor CSV berhasil diunduh (${rows.length} transaksi & pembayaran sesuai filter).`}
         </div>
       ) : null}
 

@@ -67,7 +67,6 @@ export default function PelangganPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="PENGELOLAAN PELANGGAN"
         title="Data Pelanggan"
         desc="Cari pelanggan berdasarkan nama atau nomor HP, kelola data pelanggan, dan catat riwayat resep."
         actions={

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertTriangle, CheckCircle2, Clock, FilePlus2, FileText, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronDown, Clock, FilePlus2, FileText, Search, X } from "lucide-react";
 import { DEMO_ADMIN } from "../../data/admin";
 import { useSharedStore } from "../../store/sharedStore";
 import { requestState, requestStateLabel, type RequestState } from "../../store/requestStatus";
@@ -30,6 +30,9 @@ export default function AdminPengajuanPage() {
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [savedNotice, setSavedNotice] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [productQuery, setProductQuery] = useState("");
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   // Deep link: ?product=FR-003 (dari Stok Cabang) atau ?new=1 (dari Dashboard) → form langsung terbuka.
   useEffect(() => {
@@ -57,6 +60,41 @@ export default function AdminPengajuanPage() {
         .map((p) => ({ p, s: store.stockOf(p.id) })),
     [store],
   );
+
+  const selectedOption = options.find((o) => o.p.id === productId);
+  const filteredOptions = useMemo(() => {
+    const needle = productQuery.trim().toLowerCase();
+    if (!needle) return options;
+    return options.filter(({ p }) =>
+      `${p.code} ${p.name} ${p.type}`.toLowerCase().includes(needle),
+    );
+  }, [options, productQuery]);
+
+  useEffect(() => {
+    if (!open) {
+      setPickerOpen(false);
+      setProductQuery("");
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setPickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [pickerOpen]);
+
+  const chooseProduct = (id: string) => {
+    setProductId(id);
+    setPickerOpen(false);
+    setProductQuery("");
+    setError("");
+  };
+
 
   const lowStockCount = useMemo(
     () => options.filter(({ s }) => s && s.saldo <= s.minimum).length,
@@ -95,6 +133,8 @@ export default function AdminPengajuanPage() {
     setNote("");
     setError("");
     setSavedNotice("");
+    setPickerOpen(false);
+    setProductQuery("");
     setOpen(true);
   };
 
@@ -267,17 +307,106 @@ export default function AdminPengajuanPage() {
                   {error}
                 </div>
               ) : null}
-              <label className="afield">
+              <div className="afield" ref={pickerRef}>
                 <span>Produk (Frame / Lensa) *</span>
-                <select value={productId} onChange={(e) => setProductId(e.target.value)}>
-                  {options.map(({ p, s }) => (
-                    <option key={p.id} value={p.id}>
-                      {p.code} — {p.name} (stok: {s?.saldo ?? 0}
-                      {s && s.saldo <= s.minimum ? `, menipis · min ${s.minimum}` : ""})
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <div className="product-picker">
+                  <button
+                    type="button"
+                    className={`product-picker-trigger ${pickerOpen ? "is-open" : ""}`}
+                    onClick={() => setPickerOpen((value) => !value)}
+                    aria-haspopup="listbox"
+                    aria-expanded={pickerOpen}
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        setPickerOpen(false);
+                        setProductQuery("");
+                      }
+                    }}
+                  >
+                    <span className="ppt-body">
+                      {selectedOption ? (
+                        <>
+                          <b>
+                            {selectedOption.p.code} — {selectedOption.p.name}
+                          </b>
+                          <span
+                            className={
+                              selectedOption.s && selectedOption.s.saldo <= selectedOption.s.minimum
+                                ? "is-low"
+                                : ""
+                            }
+                          >
+                            Stok cabang: {selectedOption.s?.saldo ?? 0} unit
+                            {selectedOption.s && selectedOption.s.saldo <= selectedOption.s.minimum
+                              ? ` · menipis · min ${selectedOption.s.minimum}`
+                              : ""}
+                          </span>
+                        </>
+                      ) : (
+                        <b>Pilih produk...</b>
+                      )}
+                    </span>
+                    <ChevronDown size={18} className="ppt-chevron" />
+                  </button>
+
+                  {pickerOpen ? (
+                    <div className="product-picker-panel">
+                      <label className="product-picker-search">
+                        <Search size={15} />
+                        <input
+                          autoFocus
+                          type="search"
+                          value={productQuery}
+                          onChange={(e) => setProductQuery(e.target.value)}
+                          placeholder="Cari kode atau nama produk..."
+                          aria-label="Cari produk"
+                          onKeyDown={(e) => {
+                            if (e.key === "Escape") {
+                              setPickerOpen(false);
+                              setProductQuery("");
+                            }
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const first = filteredOptions[0];
+                              if (first) chooseProduct(first.p.id);
+                            }
+                          }}
+                        />
+                      </label>
+
+                      <div className="product-picker-list" role="listbox" aria-label="Daftar produk">
+                        {filteredOptions.map(({ p, s }) => {
+                          const low = Boolean(s && s.saldo <= s.minimum);
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              role="option"
+                              aria-selected={p.id === productId}
+                              className={`product-picker-option ${p.id === productId ? "is-selected" : ""}`}
+                              onClick={() => chooseProduct(p.id)}
+                            >
+                              <span className="ppo-main">
+                                <b>
+                                  {p.code} — {p.name}
+                                </b>
+                                <span>
+                                  Stok: {s?.saldo ?? 0} unit
+                                  {low ? ` · menipis · min ${s?.minimum ?? 0}` : ""}
+                                </span>
+                              </span>
+                              {p.id === productId ? <CheckCircle2 size={16} /> : null}
+                            </button>
+                          );
+                        })}
+                        {filteredOptions.length === 0 ? (
+                          <div className="product-picker-empty">Produk tidak ditemukan.</div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
               <label className="afield">
                 <span>Jumlah Dibutuhkan (unit) *</span>
                 <input
