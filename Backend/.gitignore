@@ -25,6 +25,9 @@
 /writable/uploads/*
 !/writable/uploads/index.html
 
+# Hasil build Frontend (dipublikasikan ke public/app)
+/public/app/
+
 # Editor
 /.idea/
 *.log

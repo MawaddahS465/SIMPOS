@@ -62,7 +62,10 @@ class Filters extends BaseFilters
         'after' => [
             'pagecache',   // Web Page Caching
             'performance', // Performance Metrics
-            'toolbar',     // Debug Toolbar
+            // Toolbar dimatikan: handler `?debugbar` tidak aktif (lihat
+            // app/Config/Events.php), sehingga hanya menyuntik HTML+CSS
+            // tambahan ke setiap respons dan memicu error di SPA.
+            // 'toolbar',  // Debug Toolbar
         ],
     ];
 

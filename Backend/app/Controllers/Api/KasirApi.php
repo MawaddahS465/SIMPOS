@@ -282,13 +282,20 @@ class KasirApi extends BaseController
     public function recipes(): ResponseInterface
     {
         $customerId = (int) $this->request->getGet('customerId');
+        $status      = trim((string) $this->request->getGet('status'));
+        if (! in_array($status, ['', 'aktif', 'expired', 'kedaluwarsa'], true)) {
+            return $this->failure(422, 'Filter status resep tidak valid.');
+        }
+
         $builder    = db_connect()->table('resep r')
             ->select('r.*, p.nama_pelanggan, p.no_hp')
-            ->join('pelanggan p', 'p.id_pelanggan = r.fk_id_pelanggan')
-            ->where('r.status', 'aktif');
+            ->join('pelanggan p', 'p.id_pelanggan = r.fk_id_pelanggan');
 
         if ($customerId > 0) {
             $builder->where('r.fk_id_pelanggan', $customerId);
+        }
+        if ($status !== '') {
+            $builder->where('r.status', $status);
         }
 
         return $this->success($builder
@@ -353,6 +360,58 @@ class KasirApi extends BaseController
         }
 
         return $this->success($model->find((int) $id), 201);
+    }
+
+    public function updateRecipe(int $id): ResponseInterface
+    {
+        $data = $this->input();
+        if ($data === null) {
+            return $this->failure(400, 'Body JSON tidak valid.');
+        }
+
+        $model = new ResepModel();
+        if ($model->find($id) === null) {
+            return $this->failure(404, 'Resep tidak ditemukan.');
+        }
+
+        $date = $this->stringField($data, 'date');
+        if ($date === null) {
+            return $this->failure(422, 'Tanggal resep harus berupa teks dengan format YYYY-MM-DD.');
+        }
+        $dateObject = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        if ($dateObject === false || $dateObject->format('Y-m-d') !== $date) {
+            return $this->failure(422, 'Tanggal resep tidak valid.');
+        }
+
+        $fields = [
+            'od_sph'    => 'odSph',
+            'od_cyl'    => 'odCyl',
+            'od_axis'   => 'odAxis',
+            'os_sph'    => 'osSph',
+            'os_cyl'    => 'osCyl',
+            'os_axis'   => 'osAxis',
+            'pd'        => 'pd',
+            'add_power' => 'addPower',
+            'catatan'   => 'notes',
+        ];
+        $recipe = ['tanggal_resep' => $date];
+        foreach ($fields as $column => $key) {
+            $rawValue = $this->stringField($data, $key);
+            if ($rawValue === null) {
+                return $this->failure(422, 'Nilai resep dan catatan harus berupa teks.');
+            }
+            $value = trim($rawValue);
+            if (mb_strlen($value) > 100) {
+                return $this->failure(422, 'Nilai resep atau catatan terlalu panjang.');
+            }
+            $recipe[$column] = $value !== '' ? $value : null;
+        }
+
+        if (! $model->update($id, $recipe)) {
+            return $this->failure(500, 'Resep gagal diperbarui.');
+        }
+
+        return $this->success($model->find($id));
     }
 
     public function cart(): ResponseInterface
@@ -441,6 +500,15 @@ class KasirApi extends BaseController
             return $this->failure(422, 'Keranjang masih kosong.');
         }
 
+        $discount = filter_var($data['discountAmount'] ?? 0, FILTER_VALIDATE_INT);
+        if ($discount === false || $discount < 0 || $discount > $summary['subtotal']) {
+            return $this->failure(422, 'Nominal diskon tidak valid.');
+        }
+
+        $summary['subtotal'] -= $discount;
+        $summary['pajak']     = round($summary['subtotal'] * 0.11);
+        $summary['total']     = $summary['subtotal'] + $summary['pajak'];
+
         $customerId = filter_var($data['customerId'] ?? $cart['pelanggan_id'], FILTER_VALIDATE_INT);
         if (! $customerId || (new PelangganModel())->find($customerId) === null) {
             return $this->failure(422, 'Pilih pelanggan yang valid terlebih dahulu.');
@@ -479,7 +547,7 @@ class KasirApi extends BaseController
                 'jenis'             => 'pembelian',
                 'tanggal_transaksi' => $date,
                 'total'             => $summary['total'],
-                'diskon'            => 0,
+                'diskon'            => $discount,
                 'pajak'             => $summary['pajak'],
                 'status'            => 'selesai',
             ], true);

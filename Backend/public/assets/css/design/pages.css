@@ -1607,6 +1607,20 @@ table.tt td:last-child .row-actions {
   font-weight: 500;
 }
 
+.success-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.success-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 32px;
+  margin-bottom: 8px;
+}
+
 .two-col {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1679,6 +1693,28 @@ table.tt td:last-child .row-actions {
   color: var(--muted);
 }
 
+.success-payment-heading {
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.success-payment-summary {
+  width: min(100%, 430px);
+  margin-left: auto;
+}
+
+.success-payment-summary .info-row:last-child {
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+}
+
+.success-payment-summary .info-row:last-child > span {
+  color: var(--ink);
+  font-weight: 800;
+}
+
 .action-row {
   display: flex;
   align-items: center;
@@ -1720,6 +1756,16 @@ table.tt td:last-child .row-actions {
 
   .success-actions .btn {
     flex: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .success-info-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .success-payment-summary {
     width: 100%;
   }
 }

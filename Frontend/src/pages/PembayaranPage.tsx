@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Banknote, ChevronRight, CreditCard, Download, QrCode, Wallet } from "lucide-react";
+import { Banknote, ChevronRight, CreditCard, Download, QrCode, Smartphone, Wallet } from "lucide-react";
 import { PAYMENTS, type PaymentMethod } from "../data/mock";
 import { exportXlsx, stamp } from "../store/reports";
 import { Chip, PageHeader, SearchBox, StatCard, StatusPill, formatIDR } from "../components/ui";
@@ -12,6 +12,7 @@ const METHOD_ICON: Record<PaymentMethod, typeof Banknote> = {
   "Transfer Bank": Wallet,
   "Kartu Debit/Kredit": CreditCard,
   QRIS: QrCode,
+  "E-Wallet": Smartphone,
 };
 
 export default function PembayaranPage() {

@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarDays, CheckCircle2, ChevronRight, FileText, Glasses, Pencil, Plus, Printer, Users, X } from "lucide-react";
-import { useSharedStore } from "../store/sharedStore";
+import { type ResepRecord } from "../data/mock";
+import { ApiError, kasirApi, type ApiCustomer, type ApiRecipe } from "../lib/api";
 import { Avatar, Chip, PageHeader, SearchBox, StatCard } from "../components/ui";
 import MRLogo from "../components/MRLogo";
 import "../styles/pages.css";
@@ -14,9 +15,9 @@ const EYE: Eye = { sph: "", cyl: "", axis: "" };
 const EMPTY: FormState = { customerId: "", date: "", od: { ...EYE }, os: { ...EYE }, pd: "", add: "", note: "" };
 
 export default function ResepMataPage() {
-  const store = useSharedStore();
   const [searchParams, setSearchParams] = useSearchParams();
-  const reseps = store.reseps;
+  const [reseps, setReseps] = useState<ResepRecord[]>([]);
+  const [customers, setCustomers] = useState<Array<{ id: string; code: string; name: string; phone: string; initials: string }>>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"Semua" | "Terbaru">("Semua");
@@ -26,17 +27,51 @@ export default function ResepMataPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [formError, setFormError] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const loadData = async () => {
+    try {
+      const [recipeRows, customerRows] = await Promise.all([kasirApi.recipes(), kasirApi.customers()]);
+      setCustomers(customerRows.map((customer: ApiCustomer) => ({
+        id: String(customer.id_pelanggan),
+        code: `PLG-${String(customer.id_pelanggan).padStart(4, "0")}`,
+        name: customer.nama_pelanggan,
+        phone: customer.no_hp ?? "-",
+        initials: customer.nama_pelanggan.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase(),
+      })));
+      setReseps(recipeRows.map((recipe: ApiRecipe): ResepRecord => ({
+        id: String(recipe.id_resep),
+        customer: recipe.nama_pelanggan,
+        initials: recipe.nama_pelanggan.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase(),
+        date: recipe.tanggal_resep,
+        od: { sph: recipe.od_sph ?? "", cyl: recipe.od_cyl ?? "", axis: recipe.od_axis ?? "" },
+        os: { sph: recipe.os_sph ?? "", cyl: recipe.os_cyl ?? "", axis: recipe.os_axis ?? "" },
+        pd: recipe.pd ?? "",
+        add: recipe.add_power ?? "-",
+        note: recipe.catatan ?? "-",
+        status: recipe.status === "aktif" ? "Aktif" : "Expired",
+      })));
+      setLoadError("");
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Resep gagal dimuat dari database.");
+    }
+  };
+
+  useEffect(() => {
+    void loadData();
+  }, []);
 
   useEffect(() => {
     const cid = searchParams.get("customerId");
-    if (cid && store.customers.some((c) => c.id === cid)) {
+    if (cid && customers.some((c) => c.id === cid)) {
       setEditingId(null);
       setForm({ ...EMPTY, customerId: cid, od: { ...EYE }, os: { ...EYE } });
       setFormError("");
       setOpen(true);
       setSearchParams({}, { replace: true });
     }
-  }, [searchParams, store.customers, setSearchParams]);
+  }, [searchParams, customers, setSearchParams]);
 
   // Filter "Terbaru" menampilkan resep terbaru per pelanggan; "Semua" menampilkan seluruh riwayat arsip
   const baseRows =
@@ -46,7 +81,7 @@ export default function ResepMataPage() {
 
   // Pencarian mendukung Nama Pelanggan, Nomor HP Pelanggan, Kode Resep, maupun Keterangan (sesuai Dokumen Requirement)
   const rows = baseRows.filter((r) => {
-    const cust = store.customers.find((c) => c.name === r.customer);
+    const cust = customers.find((c) => c.name === r.customer);
     const phone = cust?.phone ?? "";
     return `${r.customer} ${phone} ${r.id} ${r.date} ${r.note ?? ""}`
       .toLowerCase()
@@ -54,19 +89,23 @@ export default function ResepMataPage() {
   });
 
   const rec = selected ? reseps.find((r) => r.id === selected) : undefined;
-  const matchedCustomer = rec ? store.customers.find((c) => c.name === rec.customer) : undefined;
+  const matchedCustomer = rec ? customers.find((c) => c.name === rec.customer) : undefined;
   const uniqueCustomersWithRx = new Set(reseps.map((r) => r.customer)).size;
+  const formatDate = (date: string) => {
+    const parsed = new Date(`${date}T00:00:00`);
+    return Number.isNaN(parsed.getTime()) ? date : parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+  };
 
   function startAdd() {
     setEditingId(null);
-    setForm({ ...EMPTY, customerId: store.customers[0]?.id ?? "", od: { ...EYE }, os: { ...EYE } });
+    setForm({ ...EMPTY, customerId: customers[0]?.id ?? "", date: new Date().toISOString().slice(0, 10), od: { ...EYE }, os: { ...EYE } });
     setFormError("");
     setOpen(true);
   }
 
   function startEdit() {
     if (!rec) return;
-    const cust = store.customers.find((c) => c.name === rec.customer) ?? store.customers[0];
+    const cust = customers.find((c) => c.name === rec.customer) ?? customers[0];
     setEditingId(rec.id);
     setForm({
       customerId: cust?.id ?? "",
@@ -81,33 +120,41 @@ export default function ResepMataPage() {
     setOpen(true);
   }
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    if (editingId) {
-      const err = store.updateResep({
-        id: editingId,
+    if (!form.od.sph.trim() || !form.os.sph.trim() || !form.pd.trim()) {
+      setFormError("SPH mata kanan dan kiri serta PD wajib diisi.");
+      return;
+    }
+    setSaving(true);
+    setFormError("");
+    try {
+      const fields = {
         date: form.date,
-        od: form.od,
-        os: form.os,
+        odSph: form.od.sph,
+        odCyl: form.od.cyl,
+        odAxis: form.od.axis,
+        osSph: form.os.sph,
+        osCyl: form.os.cyl,
+        osAxis: form.os.axis,
         pd: form.pd,
-        add: form.add,
-        note: form.note,
-      });
-      if (err) {
-        setFormError(err);
-        return;
+        addPower: form.add,
+        notes: form.note,
+      };
+      if (editingId) {
+        await kasirApi.updateRecipe(Number(editingId), fields);
+        setNotice(`Data resep ${editingId} berhasil diperbarui.`);
+      } else {
+        await kasirApi.createRecipe({ customerId: Number(form.customerId), ...fields });
+        setNotice("Resep mata baru berhasil dicatat ke database.");
       }
-      setNotice(`Data resep ${editingId} berhasil diperbarui.`);
+      await loadData();
       setOpen(false);
-      return;
+    } catch (error) {
+      setFormError(error instanceof ApiError ? error.message : error instanceof Error ? error.message : "Resep gagal disimpan.");
+    } finally {
+      setSaving(false);
     }
-    const err = store.createResep(form);
-    if (err) {
-      setFormError(err);
-      return;
-    }
-    setNotice("Resep mata baru berhasil dicatat ke dalam arsip pelanggan.");
-    setOpen(false);
   }
 
   return (
@@ -154,6 +201,7 @@ export default function ResepMataPage() {
           {notice}
         </div>
       ) : null}
+      {loadError ? <div className="notice" role="alert">{loadError}</div> : null}
 
       <section className="section-block">
         <div className="section-head">
@@ -196,7 +244,7 @@ export default function ResepMataPage() {
             </thead>
             <tbody>
               {rows.map((r) => {
-                const cust = store.customers.find((c) => c.name === r.customer);
+                const cust = customers.find((c) => c.name === r.customer);
                 return (
                   <tr
                     key={r.id}
@@ -205,7 +253,7 @@ export default function ResepMataPage() {
                     style={{ cursor: "pointer" }}
                   >
                     <td>
-                      <div className="tt-num">{r.date}</div>
+                      <div className="tt-num">{formatDate(r.date)}</div>
                       <div className="tt-sub">{r.id}</div>
                     </td>
                     <td>
@@ -326,7 +374,7 @@ export default function ResepMataPage() {
               </div>
               <div className="detail-row">
                 <span>Tanggal Resep</span>
-                <b>{rec.date}</b>
+                <b>{formatDate(rec.date)}</b>
               </div>
               <div className="detail-row">
                 <span>Keterangan / Catatan</span>
@@ -378,7 +426,7 @@ export default function ResepMataPage() {
                 </div>
                 <div>
                   <span>Tanggal Resep</span>
-                  <b>{rec.date}</b>
+                  <b>{formatDate(rec.date)}</b>
                 </div>
                 <div>
                   <span>Pelanggan</span>
@@ -484,7 +532,7 @@ export default function ResepMataPage() {
                     onChange={(e) => setForm({ ...form, customerId: e.target.value })}
                     disabled={Boolean(editingId)}
                   >
-                    {store.customers.map((c) => (
+                    {customers.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name} · {c.phone} ({c.code})
                       </option>
@@ -497,7 +545,7 @@ export default function ResepMataPage() {
                   <input
                     value={form.date}
                     onChange={(e) => setForm({ ...form, date: e.target.value })}
-                    placeholder="cth. 26 Okt 2026 (kosong = hari ini)"
+                    type="date"
                   />
                 </label>
               </div>

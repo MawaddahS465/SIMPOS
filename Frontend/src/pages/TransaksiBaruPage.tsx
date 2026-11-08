@@ -13,8 +13,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { CATEGORIES, type Category } from "../data/catalog";
-import { useSharedStore } from "../store/sharedStore";
 import { useCart } from "../context/CartContext";
+import { kasirApi, type ApiProduct } from "../lib/api";
 import { Chip, PageHeader, SearchBox, Steps, formatIDR } from "../components/ui";
 import "../styles/pages.css";
 
@@ -22,36 +22,44 @@ import "../styles/pages.css";
 
 export default function TransaksiBaruPage() {
   const cart = useCart();
-  const shared = useSharedStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState<"Semua" | Category>("Semua");
   const [brand, setBrand] = useState("all");
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [sort, setSort] = useState("relevan");
+  const [products, setProducts] = useState<ApiProduct[]>([]);
+  const [loadError, setLoadError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    kasirApi.catalog()
+      .then((rows) => {
+        if (active) setProducts(rows);
+      })
+      .catch((error: unknown) => {
+        if (active) setLoadError(error instanceof Error ? error.message : "Katalog gagal dimuat.");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const q = searchParams.get("q");
     if (q !== null) setQuery(q);
   }, [searchParams]);
 
-  // Katalog + ketersediaan stok cabang dari shared store (Tugas 2 & Tugas 3 Kasir).
-  const catalog = shared.products
-    .filter((p) => p.status === "Aktif")
-    .map((p) => {
-      const st = shared.stockOf(p.id);
-      return {
-        id: p.id,
-        code: p.code,
-        name: p.name,
-        brand: p.brand,
-        category: p.type as Category,
-        price: p.price,
-        tag: p.tag,
-        saldo: st?.saldo,
-        minimum: st?.minimum ?? 0,
-      };
-    });
+  const catalog = products.map((p) => ({
+    id: String(p.id),
+    code: p.kode_barang,
+    name: p.nama_barang,
+    brand: p.merek ?? "-",
+    category: p.jenis as Category,
+    price: Number(p.harga_jual),
+    saldo: Number(p.stok),
+    minimum: Number(p.stok_minimum),
+  }));
 
   const brands = Array.from(new Set(catalog.map((p) => p.brand)));
 
@@ -120,7 +128,14 @@ export default function TransaksiBaruPage() {
             </div>
           </div>
 
+          {loadError ? (
+            <div className="notice" role="alert">{loadError} Pastikan Backend dan database berjalan.</div>
+          ) : null}
+
           <div className="product-grid">
+            {!loadError && products.length === 0 ? (
+              <div className="empty-note" style={{ gridColumn: "1 / -1" }}>Memuat katalog dari database...</div>
+            ) : null}
             {filtered.map((p) => {
               const outOfStock = p.saldo !== undefined && p.saldo <= 0;
               const lowStock = p.saldo !== undefined && p.saldo > 0 && p.saldo <= p.minimum;
@@ -136,7 +151,6 @@ export default function TransaksiBaruPage() {
                   style={{ cursor: outOfStock ? "default" : "pointer" }}
                 >
                   <div className="product-thumb">
-                    {p.tag ? <span className="pc-tag">{p.tag}</span> : null}
                     {inCartQty > 0 ? (
                       <span className="pc-in-cart-badge">
                         <Check size={12} strokeWidth={2.8} />
@@ -274,7 +288,7 @@ export default function TransaksiBaruPage() {
           {cart.items.length > 0 ? (
             <div className="cart-items-list">
               {cart.items.map((i) => {
-                const saldo = shared.stockOf(i.id)?.saldo;
+                const saldo = products.find((product) => String(product.id) === i.id)?.stok;
                 const overStock = saldo !== undefined && i.qty > saldo;
                 return (
                   <div key={i.id} className={`cart-item-card ${overStock ? "is-overstock" : ""}`}>

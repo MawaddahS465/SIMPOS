@@ -22,6 +22,7 @@ $routes->group('api', [
 
         $routes->get('resep', 'KasirApi::recipes');
         $routes->post('resep', 'KasirApi::createRecipe');
+        $routes->post('resep/(:num)', 'KasirApi::updateRecipe/$1');
 
         $routes->get('keranjang', 'KasirApi::cart');
         $routes->post('keranjang/item', 'KasirApi::setCartItem');
@@ -41,8 +42,8 @@ $routes->group('api', [
     });
 });
 
-// Halaman utama langsung menampilkan login.
-$routes->get('/', 'Auth::login');
+// Aplikasi utama (React) dilayani dari public/app. Satu alamat untuk semua.
+$routes->get('/', static fn () => redirect()->to('/app/'));
 
 // Satu halaman login untuk semua peran.
 $routes->get('login', 'Auth::login');
@@ -104,3 +105,9 @@ $routes->group('kategori', ['filter' => ['auth', 'role:admin,pemilik']], static 
     $routes->post('(:num)', 'Master\Kategori::update/$1');
     $routes->post('(:num)/hapus', 'Master\Kategori::delete/$1');
 });
+
+// Aplikasi React (Frontend hasil build). Rute dalam (deep link) juga
+// mengembalikan index.html agar React Router yang menangani halamannya.
+// Harus paling bawah agar tidak menutupi rute API dan halaman lama.
+$routes->get('app', 'Spa::index');
+$routes->get('app/(:any)', 'Spa::index');

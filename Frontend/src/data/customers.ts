@@ -5,6 +5,7 @@ export type Customer = {
   initials: string;
   phone: string;
   email: string;
+  address?: string;
   hasResep: boolean;
   resepDate?: string;
   poActive: number;

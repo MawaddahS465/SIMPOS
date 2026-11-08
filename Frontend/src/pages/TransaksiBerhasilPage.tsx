@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Eye, Glasses, History, Package, Printer, X } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useSharedStore } from "../store/sharedStore";
 import { useAuth } from "../store/auth";
 import { formatIDR } from "../components/ui";
+import { kasirApi } from "../lib/api";
 import MRLogo from "../components/MRLogo";
 import "../styles/pages.css";
 import "../styles/admin.css";
@@ -20,10 +21,76 @@ export default function TransaksiBerhasilPage() {
   const shared = useSharedStore();
   const navigate = useNavigate();
   const { session } = useAuth();
+  const [searchParams] = useSearchParams();
   const [strukOpen, setStrukOpen] = useState(false);
-  const r = cart.receipt;
+  const transactionId = searchParams.get("id");
+  const [savedReceipt, setSavedReceipt] = useState<typeof cart.receipt>(cart.receipt);
+  const [loadError, setLoadError] = useState("");
 
-  if (!r) return <Navigate to="/riwayat-transaksi" replace />;
+  useEffect(() => {
+    if (!transactionId) return;
+    const id = Number(transactionId);
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      setLoadError("Nomor transaksi tidak valid.");
+      return;
+    }
+
+    let active = true;
+    kasirApi.transaction(id)
+      .then(({ transaction, items, payment }) => {
+        if (!active) return;
+        const dateTime = new Date(transaction.tanggal_transaksi.replace(" ", "T"));
+        const paid = Number(payment[0]?.jumlah_bayar ?? transaction.jumlah_bayar ?? transaction.total);
+        const method = String(payment[0]?.metode_pembayaran ?? transaction.metode_pembayaran ?? "Tunai") as typeof cart.method;
+        setSavedReceipt({
+          no: transaction.kode_transaksi,
+          date: dateTime.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+          time: dateTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":"),
+          items: items.map((item) => ({
+            id: String(item.barang_id),
+            name: item.nama_barang,
+            brand: item.merek ?? "-",
+            category: item.jenis,
+            price: Number(item.harga),
+            qty: Number(item.jumlah),
+          })),
+          subtotal: items.reduce((sum, item) => sum + Number(item.subtotal), 0),
+          discount: Number(transaction.diskon),
+          discountPercent: 0,
+          total: Number(transaction.total),
+          tax: Number(transaction.pajak),
+          paid,
+          change: method === "Tunai" ? Math.max(0, paid - Number(transaction.total)) : 0,
+          customer: transaction.nama_pelanggan ? {
+            id: String(transaction.pelanggan_id),
+            code: `PLG-${String(transaction.pelanggan_id).padStart(4, "0")}`,
+            name: transaction.nama_pelanggan,
+            initials: transaction.nama_pelanggan.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase(),
+            phone: transaction.no_hp ?? "-",
+            email: "",
+            hasResep: false,
+            poActive: 0,
+            branch: session?.branch ?? "Cabang",
+          } : null,
+          method,
+          poId: null,
+        });
+      })
+      .catch((error: unknown) => {
+        if (active) setLoadError(error instanceof Error ? error.message : "Transaksi gagal dimuat dari database.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [transactionId, session?.branch]);
+
+  const r = savedReceipt ?? cart.receipt;
+
+  if (!r) {
+    if (transactionId && !loadError) return <div className="page"><div className="empty-note">Memuat transaksi...</div></div>;
+    if (transactionId && loadError) return <div className="page"><div className="notice" role="alert">{loadError}</div><Link className="btn btn-ghost" to="/riwayat-transaksi">Kembali ke riwayat</Link></div>;
+    return <Navigate to="/riwayat-transaksi" replace />;
+  }
 
   const items = r.items;
   const subtotal = r.subtotal;
@@ -48,12 +115,13 @@ export default function TransaksiBerhasilPage() {
         <p>Pembayaran telah diproses dan pesanan berhasil disimpan.</p>
       </div>
 
-      <div className="two-col">
-        <section className="co-card">
+      {loadError ? <div className="notice" role="alert">{loadError}</div> : null}
+      <section className="co-card success-details">
+        <div className="success-transaction-section">
           <div className="section-head">
             <h2>Informasi Transaksi</h2>
           </div>
-          <div>
+          <div className="success-info-grid">
             <div className="info-row">
               <span>No. Transaksi</span>
               <b>{trxNo}</b>
@@ -82,6 +150,12 @@ export default function TransaksiBerhasilPage() {
               <span>Metode Pembayaran</span>
               <b>{method}</b>
             </div>
+            {r.tax ? (
+              <div className="info-row">
+                <span>Pajak (PPN 11%)</span>
+                <b>{formatIDR(r.tax)}</b>
+              </div>
+            ) : null}
             <div className="info-row">
               <span>Status</span>
               <span className="status-pill" style={{ background: "#e2f7ec", color: "#1f9d63" }}>
@@ -90,9 +164,9 @@ export default function TransaksiBerhasilPage() {
               </span>
             </div>
           </div>
-        </section>
+        </div>
 
-        <section className="co-card">
+        <div className="success-transaction-section">
           <div className="section-head">
             <h2>Produk yang Dibeli</h2>
           </div>
@@ -113,10 +187,10 @@ export default function TransaksiBerhasilPage() {
             ))}
           </div>
 
-          <div className="section-head" style={{ marginTop: 6 }}>
+          <div className="section-head success-payment-heading">
             <h2>Ringkasan Pembayaran</h2>
           </div>
-          <div>
+          <div className="success-payment-summary">
             <div className="info-row">
               <span>Subtotal</span>
               <b>{formatIDR(subtotal)}</b>
@@ -128,10 +202,14 @@ export default function TransaksiBerhasilPage() {
               </span>
               <b>{formatIDR(discount)}</b>
             </div>
+            {r.tax ? (
+              <div className="info-row">
+                <span>PPN (11%)</span>
+                <b>{formatIDR(r.tax)}</b>
+              </div>
+            ) : null}
             <div className="info-row">
-              <span>
-                <b style={{ color: "var(--ink)" }}>Total Pembayaran</b>
-              </span>
+              <span><b style={{ color: "var(--ink)" }}>Total Pembayaran</b></span>
               <b>{formatIDR(total)}</b>
             </div>
             {method === "Tunai" ? (
@@ -147,8 +225,8 @@ export default function TransaksiBerhasilPage() {
               </>
             ) : null}
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <div className="action-row success-actions">
         <div className="btn-group">

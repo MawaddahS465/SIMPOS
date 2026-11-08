@@ -4,10 +4,12 @@
         {
             "label": "SIMPOS: Jalankan server (port 8080)",
             "type": "shell",
-            "command": "C:\\xampp\\php\\php.exe",
+            "command": "C:\\php\\php.exe",
             "args": [
                 "spark",
                 "serve",
+                "--host",
+                "127.0.0.1",
                 "--port",
                 "8080"
             ],
@@ -28,7 +30,7 @@
         {
             "label": "SIMPOS: Daftar route",
             "type": "shell",
-            "command": "C:\\xampp\\php\\php.exe",
+            "command": "C:\\php\\php.exe",
             "args": [
                 "spark",
                 "routes"

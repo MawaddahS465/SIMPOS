@@ -1,30 +1,36 @@
 # SIMPOS — Optik Mekar Jaya
 
 Prototype sistem informasi penjualan optik dengan tiga peran: **Kasir**, **Admin Cabang**, dan **Pemilik**.
-Frontend React + TypeScript + Vite. Autentikasi dan session memakai REST API Backend
-CodeIgniter 4; data bisnis yang belum diintegrasikan masih memakai `localStorage`.
+Frontend React + TypeScript + Vite. Autentikasi dan alur transaksi Kasir memakai REST API Backend
+CodeIgniter 4 dan MySQL. Integrasi data Admin Cabang dan Pemilik masih bertahap.
 
 ## Menjalankan
 
-Backend harus berjalan di `http://localhost:8080`:
+Prasyarat: Node.js 18+ dan PHP 8.2+.
+
+Backend harus berjalan di `http://127.0.0.1:8080`:
 
 ```sh
 cd ../Backend
-php spark serve --port 8080
+php spark serve --host 127.0.0.1 --port 8080
 ```
 
 Frontend:
 
 ```sh
 npm install
-npm run dev        # buka http://127.0.0.1:5173
+cp .env.example .env   # sekali saja
+npm run dev            # buka http://127.0.0.1:5173
 npm run build
 npm run typecheck
 ```
 
-Gunakan `http://127.0.0.1:5173` (bukan `localhost:5173`) agar cocok dengan
-origin CORS Backend. Base URL API dapat dioverride lewat `VITE_API_BASE_URL`
-(lihat `.env.example`).
+Dengan `VITE_API_BASE_URL=/`, request `/api` diteruskan proxy Vite ke
+`http://127.0.0.1:8080` (lihat `vite.config.ts`). Karena same-origin, tidak ada
+preflight CORS dan cookie session tetap first-party. Cara ini menghindari
+`ERR_EMPTY_RESPONSE` dari `php spark serve` saat browser mengirim preflight.
+Isi URL absolut (mis. `http://127.0.0.1:8080`) hanya bila frontend tidak
+dijalankan lewat Vite dev server.
 
 ## Akun login
 
@@ -59,10 +65,16 @@ docs/            catatan audit, keputusan, dan laporan QA
 figma-kit-export/ paket desain untuk Figma (screenshot + plugin importer)
 ```
 
-## Catatan
+## Integrasi data
 
 - Login, cek session (`GET /api/me`), dan logout (`POST /api/logout`) memakai Backend.
-- Role untuk proteksi route berasal dari session Backend, bukan localStorage.
-- Data contoh (produk, stok, transaksi) masih lokal dan ikut ter-reset bila `localStorage` dibersihkan.
-- Pengaturan Pemilik (`/owner/pengaturan`) mengubah pengguna, tarif PPN, dan batas minimum default
-  pada data demo lokal; belum tersimpan ke database Backend.
+- Katalog/stok, pelanggan, resep, checkout, catatan pembayaran, dan riwayat transaksi
+  Kasir menggunakan endpoint `/api/kasir/*` dan database Backend.
+- Keranjang dan preferensi tampilan masih sementara di sisi browser; Backend memvalidasi
+  stok, menghitung PPN, dan menyimpan transaksi sebelum halaman sukses ditampilkan.
+- PO (termasuk pengambilan PO), halaman `/pembayaran`, serta Dashboard, Admin Cabang,
+  dan Pemilik masih menggunakan store demo/localStorage. Modul-modul itu belum menjadi
+  sumber data MySQL dan tidak boleh dianggap sinkron dengan Backend sampai endpoint
+  dan tabel terkait diintegrasikan.
+- Data localStorage lama tidak otomatis dipindahkan ke MySQL. Perubahan data lokal lama
+  tidak muncul di database; ekspor/backup dulu sebelum membersihkan penyimpanan browser.

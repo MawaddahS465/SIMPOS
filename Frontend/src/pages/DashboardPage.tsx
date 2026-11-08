@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ShoppingCart,
@@ -10,9 +11,10 @@ import {
   PackageCheck,
   Wallet,
 } from "lucide-react";
-import { useSharedStore } from "../store/sharedStore";
 import { useAuth } from "../store/auth";
 import { formatIDR } from "../components/ui";
+import { kasirApi, type ApiOrder, type ApiTransaction } from "../lib/api";
+import { assetUrl } from "../lib/assets";
 import "../styles/dashboard.css";
 
 const MENU = [
@@ -44,18 +46,40 @@ const MENU = [
 ];
 
 export default function DashboardPage() {
-  const shared = useSharedStore();
   const { session } = useAuth();
+  const [transactions, setTransactions] = useState<ApiTransaction[]>([]);
+  const [readyPo, setReadyPo] = useState<ApiOrder[]>([]);
+  const [loadError, setLoadError] = useState("");
   const name = session?.name ?? "Kasir";
-  const today = new Date().toLocaleDateString("id-ID", {
+  const now = new Date();
+  const today = now.toLocaleDateString("id-ID", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
+  const todaySql = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
-  const todayTrx = shared.transactions.filter((t) => t.date === today && t.status === "Selesai");
-  const todayTotal = todayTrx.reduce((sum, t) => sum + t.total, 0);
-  const readyPo = shared.pos.filter((o) => o.status === "Sudah Datang" && !o.linkedTrx);
+  useEffect(() => {
+    let active = true;
+    Promise.all([kasirApi.transactions(), kasirApi.orders("sudah_datang")])
+      .then(([transactionRows, orderRows]) => {
+        if (!active) return;
+        setTransactions(transactionRows);
+        setReadyPo(orderRows);
+        setLoadError("");
+      })
+      .catch((error: unknown) => {
+        if (active) setLoadError(error instanceof Error ? error.message : "Ringkasan kasir gagal dimuat.");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const todayTrx = transactions.filter((transaction) =>
+    transaction.tanggal_transaksi.startsWith(todaySql) && transaction.status === "selesai",
+  );
+  const todayTotal = todayTrx.reduce((sum, transaction) => sum + Number(transaction.total), 0);
 
   return (
     <div className="dash dashboard-anim">
@@ -70,9 +94,11 @@ export default function DashboardPage() {
           </Link>
         </div>
         <div className="hero-media" aria-hidden="true">
-          <img src="/assets/hero-approved-right.jpg" alt="" />
+          <img src={assetUrl("assets/hero-approved-right.jpg")} alt="" />
         </div>
       </section>
+
+      {loadError ? <div className="notice" role="alert">{loadError}</div> : null}
 
       <section className="dash-metrics" aria-label="Ringkasan hari ini">
         <div className="dash-metric">

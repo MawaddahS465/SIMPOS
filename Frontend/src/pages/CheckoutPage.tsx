@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Banknote,
@@ -12,11 +12,12 @@ import {
   Trash2,
   TriangleAlert,
 } from "lucide-react";
-import { RESEP_MAP, type Customer } from "../data/customers";
+import type { Customer } from "../data/customers";
 import type { PaymentMethod } from "../data/mock";
 import { useCart } from "../context/CartContext";
 import { useSharedStore } from "../store/sharedStore";
 import { useAuth } from "../store/auth";
+import { ApiError, kasirApi, type ApiCustomer, type ApiProduct, type ApiRecipe } from "../lib/api";
 import { Avatar, PageHeader, Steps, formatIDR } from "../components/ui";
 import "../styles/pages.css";
 
@@ -35,32 +36,83 @@ export default function CheckoutPage() {
   const [query, setQuery] = useState("");
   const [picking, setPicking] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<ApiProduct[]>([]);
+  const [recipe, setRecipe] = useState<ApiRecipe | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [cashMode, setCashMode] = useState<"exact" | "manual">(() =>
-    cart.cashInput.trim() !== "" && cart.cashPaid !== cart.total ? "manual" : "exact",
+    cart.cashInput.trim() !== "" && cart.cashPaid !== Math.round((cart.subtotal - cart.discount) * 1.11) ? "manual" : "exact",
   );
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([kasirApi.customers(), kasirApi.catalog()])
+      .then(([customerRows, catalogRows]) => {
+        if (!active) return;
+        setCustomers(customerRows.map((row: ApiCustomer): Customer => ({
+          id: String(row.id_pelanggan),
+          code: `PLG-${String(row.id_pelanggan).padStart(4, "0")}`,
+          name: row.nama_pelanggan,
+          initials: row.nama_pelanggan.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase(),
+          phone: row.no_hp ?? "-",
+          email: "",
+          hasResep: Number(row.jml_resep ?? 0) > 0,
+          poActive: Number(row.po_aktif ?? 0),
+          branch: session?.branch ?? "Cabang",
+        })));
+        setProducts(catalogRows);
+      })
+      .catch((error: unknown) => {
+        if (active) setWarning(error instanceof Error ? error.message : "Data checkout gagal dimuat dari server.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [session?.branch]);
+
+  useEffect(() => {
+    const customerId = Number(cart.customer?.id);
+    if (!customerId) {
+      setRecipe(null);
+      return;
+    }
+
+    let active = true;
+    kasirApi.recipes(customerId, "aktif")
+      .then((rows) => {
+        if (active) setRecipe(rows[0] ?? null);
+      })
+      .catch((error: unknown) => {
+        if (active) setWarning(error instanceof Error ? error.message : "Resep pelanggan gagal dimuat.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [cart.customer?.id]);
+
+  const tax = useMemo(() => Math.round((cart.subtotal - cart.discount) * 0.11), [cart.subtotal, cart.discount]);
+  const grandTotal = cart.subtotal - cart.discount + tax;
 
   // Uang pas selalu mengikuti total terbaru (misalnya setelah diskon diubah).
   useEffect(() => {
     if (cart.method === "Tunai" && cashMode === "exact") {
-      cart.setCashInput(String(cart.total));
+      cart.setCashInput(String(grandTotal));
     }
-  }, [cart.method, cart.total, cashMode]);
+  }, [cart.method, grandTotal, cashMode]);
 
   const po = cart.poId ? shared.pos.find((o) => o.id === cart.poId) : undefined;
 
   const activeCustomer = picking ? null : cart.customer;
-  const results = shared.customers.filter((c) =>
+  const results = customers.filter((c) =>
     `${c.name} ${c.phone} ${c.code}`.toLowerCase().includes(query.toLowerCase()),
   );
 
-  // Resep aktif dari sharedStore (termasuk resep baru yang dicatat Kasir), fallback ke RESEP_MAP seed,
-  // lalu ke snapshot resep PO agar pengambilan PO tetap menampilkan resep walau pelanggan belum terdaftar.
-  const resep = cart.customer
-    ? (shared.reseps.find((r) => r.customer === cart.customer?.name && r.status === "Aktif") ??
-      RESEP_MAP[cart.customer.id] ??
-      po?.resepSnapshot ??
-      null)
-    : (po?.resepSnapshot ?? null);
+  const resep = recipe ? {
+    od: { sph: recipe.od_sph ?? "-", cyl: recipe.od_cyl ?? "", axis: recipe.od_axis ?? "" },
+    os: { sph: recipe.os_sph ?? "-", cyl: recipe.os_cyl ?? "", axis: recipe.os_axis ?? "" },
+    pd: recipe.pd ?? "-",
+    add: recipe.add_power ?? "-",
+  } : po?.resepSnapshot ?? null;
 
   const pick = (c: Customer) => {
     cart.setCustomer(c);
@@ -71,7 +123,7 @@ export default function CheckoutPage() {
 
   const chooseExactCash = () => {
     setCashMode("exact");
-    cart.setCashInput(String(cart.total));
+    cart.setCashInput(String(grandTotal));
     setWarning(null);
   };
 
@@ -81,7 +133,8 @@ export default function CheckoutPage() {
     setWarning(null);
   };
 
-  const finish = () => {
+  const finish = async () => {
+    if (isSaving) return;
     if (cart.items.length === 0) {
       setWarning("Keranjang masih kosong. Tambahkan produk terlebih dahulu.");
       return;
@@ -90,51 +143,73 @@ export default function CheckoutPage() {
       setWarning("Pilih pelanggan terlebih dahulu sebelum menyelesaikan transaksi.");
       return;
     }
+    if (cart.poId) {
+      setWarning("Pengambilan PO belum terhubung ke API database. Selesaikan PO melalui alur yang tersedia di Backend.");
+      return;
+    }
     if (cart.method === "Tunai") {
       if (cart.cashInput.trim() === "") {
         setWarning("Pilih Uang Pas atau masukkan jumlah uang tunai yang dibayar.");
         return;
       }
-      if (cart.cashPaid < cart.total) {
-        setWarning(`Jumlah dibayar kurang ${formatIDR(cart.total - cart.cashPaid)} dari total pembayaran.`);
+      if (cart.cashPaid < grandTotal) {
+        setWarning(`Jumlah dibayar kurang ${formatIDR(grandTotal - cart.cashPaid)} dari total pembayaran.`);
         return;
       }
     }
-    if (cart.poId && (!po || po.linkedTrx || po.status !== "Sudah Datang")) {
-      setWarning(
-        po?.linkedTrx
-          ? `PO ${po.number} sudah diselesaikan oleh transaksi ${po.linkedTrx}.`
-          : "PO yang diambil sudah tidak berstatus Sudah Datang. Muat ulang halaman PO.",
-      );
+    const customerId = Number(cart.customer.id);
+    if (!Number.isSafeInteger(customerId) || customerId <= 0) {
+      setWarning("Pelanggan tidak valid. Pilih pelanggan yang tersimpan di database.");
       return;
     }
-    // Verifikasi stok di sumber otoritatif (bukan angka dari browser saja).
-    const kurang = cart.items
-      .map((i) => ({ item: i, saldo: shared.stockOf(i.id)?.saldo }))
-      .filter((x) => x.saldo !== undefined && x.item.qty > (x.saldo as number));
-    if (kurang.length > 0) {
-      const names = kurang.map((x) => `${x.item.name} (tersedia ${x.saldo})`).join(", ");
-      setWarning(`Stok tidak mencukupi: ${names}. Kurangi jumlah atau ajukan PO untuk barang tersebut.`);
-      return;
+
+    setIsSaving(true);
+    setWarning(null);
+    try {
+      await kasirApi.clearCart();
+      for (const item of cart.items) {
+        await kasirApi.setCartItem(Number(item.id), item.qty);
+      }
+
+      const saved = await kasirApi.checkout({
+        customerId,
+        paymentMethod: cart.method,
+        ...(cart.method === "Tunai" ? { amountPaid: cart.cashPaid } : {}),
+        discountAmount: cart.discount,
+      });
+      const transaction = saved.transaction;
+      const dateTime = new Date(transaction.tanggal_transaksi.replace(" ", "T"));
+      const persistedReceipt = {
+        no: transaction.kode_transaksi,
+        date: dateTime.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+        time: dateTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":"),
+        items: saved.items.map((item) => ({
+          id: String(item.barang_id),
+          name: item.nama_barang,
+          brand: item.merek ?? "-",
+          category: item.jenis,
+          price: Number(item.harga),
+          qty: Number(item.jumlah),
+        })),
+        subtotal: saved.items.reduce((sum, item) => sum + Number(item.subtotal), 0),
+        discount: Number(transaction.diskon),
+        discountPercent: cart.discountPercent,
+        total: Number(transaction.total),
+        tax: Number(transaction.pajak),
+        paid: Number(transaction.jumlah_bayar ?? transaction.total),
+        change: Math.max(0, Number(transaction.jumlah_bayar ?? transaction.total) - Number(transaction.total)),
+        customer: cart.customer,
+        method: cart.method,
+        poId: cart.poId,
+      };
+      cart.complete(persistedReceipt);
+      navigate(`/transaksi-berhasil?id=${transaction.id_transaksi}`);
+    } catch (error) {
+      if (error instanceof ApiError) setWarning(error.message);
+      else setWarning(error instanceof Error ? error.message : "Transaksi gagal disimpan.");
+    } finally {
+      setIsSaving(false);
     }
-    // Penjualan sukses mengurangi stok SATU KALI + mutasi OUT (idempoten via no. struk).
-    const receipt = cart.complete();
-    const result = shared.recordSale(
-      receipt.items.map((i) => ({ id: i.id, name: i.name, brand: i.brand, qty: i.qty, price: i.price })),
-      receipt.no,
-      session?.name ?? "Kasir",
-      receipt.method,
-      receipt.discount,
-      receipt.paid,
-      receipt.change,
-      receipt.customer ? { name: receipt.customer.name, phone: receipt.customer.phone } : null,
-      receipt.poId,
-    );
-    if (!result.ok) {
-      setWarning(result.msg);
-      return;
-    }
-    navigate("/transaksi-berhasil");
   };
 
   return (
@@ -272,8 +347,8 @@ export default function CheckoutPage() {
               <div className="empty-note">Belum ada produk dipilih.</div>
             ) : (
               cart.items.map((i) => {
-                const saldo = shared.stockOf(i.id)?.saldo;
-                const kurangStok = saldo !== undefined && i.qty > saldo;
+                const saldo = products.find((product) => String(product.id) === i.id)?.stok;
+                const kurangStok = saldo !== undefined && i.qty > Number(saldo);
                 return (
                   <div key={i.id} className="cart-line" style={{ flexWrap: "wrap" }}>
                     <span className="cl-ico">
@@ -354,9 +429,14 @@ export default function CheckoutPage() {
             </span>
           </div>
 
+          <div className="sum-row">
+            <span>PPN (11%)</span>
+            <b>{formatIDR(tax)}</b>
+          </div>
+
           <div className="sum-total">
-            <span>Total</span>
-            <b>{formatIDR(cart.total)}</b>
+            <span>Total Pembayaran</span>
+            <b>{formatIDR(grandTotal)}</b>
           </div>
 
           <div className="mini-label" style={{ letterSpacing: 1.3 }}>
@@ -411,7 +491,7 @@ export default function CheckoutPage() {
               {cashMode === "exact" ? (
                 <div className="cash-exact-display">
                   <span>Jumlah Dibayar</span>
-                  <b>{formatIDR(cart.total)}</b>
+                  <b>{formatIDR(grandTotal)}</b>
                 </div>
               ) : (
                 <div className="cash-field">
@@ -424,7 +504,7 @@ export default function CheckoutPage() {
                       id="cash-paid-input"
                       type="text"
                       inputMode="numeric"
-                      placeholder={cart.total.toLocaleString("id-ID")}
+                      placeholder={grandTotal.toLocaleString("id-ID")}
                       value={cart.cashInput}
                       onChange={(e) => {
                         cart.setCashInput(e.target.value);
@@ -435,12 +515,12 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              <div className={`cash-change-row ${cart.cashShortfall > 0 ? "is-short" : ""}`}>
-                <span>{cart.cashShortfall > 0 ? "Kurang Bayar" : "Kembalian"}</span>
+              <div className={`cash-change-row ${cart.cashPaid < grandTotal ? "is-short" : ""}`}>
+                <span>{cart.cashPaid < grandTotal ? "Kurang Bayar" : "Kembalian"}</span>
                 <b>
-                  {cart.cashShortfall > 0
-                    ? `- ${formatIDR(cart.cashShortfall)}`
-                    : formatIDR(cart.cashChange)}
+                  {cart.cashPaid < grandTotal
+                  ? `- ${formatIDR(grandTotal - cart.cashPaid)}`
+                  : formatIDR(Math.max(0, cart.cashPaid - grandTotal))}
                 </b>
               </div>
             </div>
@@ -453,8 +533,8 @@ export default function CheckoutPage() {
             </div>
           ) : null}
 
-          <button className="btn btn-primary full" onClick={finish}>
-            Selesaikan Transaksi
+          <button className="btn btn-primary full" onClick={finish} disabled={isSaving}>
+            {isSaving ? "Menyimpan transaksi..." : "Selesaikan Transaksi"}
           </button>
         </aside>
       </div>

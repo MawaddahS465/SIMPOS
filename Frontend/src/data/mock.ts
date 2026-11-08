@@ -100,6 +100,7 @@ export type Transaction = {
   type: "Pembelian" | "Pemesanan";
   total: number;
   discount?: number; // potongan rupiah pada transaksi kasir (0/kosong = tanpa diskon)
+  tax?: number;
   paid?: number; // jumlah uang dibayar pada pembayaran tunai
   change?: number; // kembalian pada pembayaran tunai
   status: TrxStatus;
@@ -224,7 +225,7 @@ export const TRANSACTIONS: Transaction[] = [
   },
 ];
 
-export type PaymentMethod = "Tunai" | "Transfer Bank" | "Kartu Debit/Kredit" | "QRIS";
+export type PaymentMethod = "Tunai" | "Transfer Bank" | "Kartu Debit/Kredit" | "QRIS" | "E-Wallet";
 
 /** Pembayaran DEMO. */
 export const PAYMENTS: Array<{

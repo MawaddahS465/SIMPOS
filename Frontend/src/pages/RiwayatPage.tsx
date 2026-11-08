@@ -10,10 +10,11 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { type PaymentMethod, type Transaction, type TrxStatus } from "../data/mock";
+import { type PaymentMethod, type ResepRecord, type Transaction, type TrxStatus } from "../data/mock";
 import { useSharedStore, BRANCH_ID } from "../store/sharedStore";
 import { useAuth } from "../store/auth";
 import { exportXlsx, inPeriod, periodRange, stamp } from "../store/reports";
+import { kasirApi, type ApiTransaction, type ApiTransactionItem } from "../lib/api";
 import { Avatar, Chip, PageHeader, SearchBox, StatCard, StatusPill, formatIDR } from "../components/ui";
 import MRLogo from "../components/MRLogo";
 import "../styles/pages.css";
@@ -64,6 +65,7 @@ const METHOD_FILTERS: Array<"Semua" | PaymentMethod> = [
   "Transfer Bank",
   "Kartu Debit/Kredit",
   "QRIS",
+  "E-Wallet",
 ];
 
 const METHOD_ICON: Record<PaymentMethod, typeof Banknote> = {
@@ -71,6 +73,7 @@ const METHOD_ICON: Record<PaymentMethod, typeof Banknote> = {
   "Transfer Bank": Wallet,
   "Kartu Debit/Kredit": CreditCard,
   QRIS: QrCode,
+  "E-Wallet": Wallet,
 };
 
 const methodShort = (method: PaymentMethod) =>
@@ -88,7 +91,8 @@ type StrukBodyProps = {
 function StrukBody({ trx, storeName, storePhone, storeAddress, branch, cashier }: StrukBodyProps) {
   const method = (trx.method as PaymentMethod | undefined) ?? "Tunai";
   const discount = trx.discount ?? 0;
-  const subtotal = trx.total + discount;
+  const tax = trx.tax ?? 0;
+  const subtotal = trx.total + discount - tax;
   const paid = trx.paid ?? trx.total;
   const change = trx.change ?? Math.max(0, paid - trx.total);
   const items =
@@ -156,6 +160,12 @@ function StrukBody({ trx, storeName, storePhone, storeAddress, branch, cashier }
           <span>Diskon</span>
           <b>{formatIDR(discount)}</b>
         </div>
+        {tax ? (
+          <div>
+            <span>PPN (11%)</span>
+            <b>{formatIDR(tax)}</b>
+          </div>
+        ) : null}
         <div className="struk-grand">
           <span>Total</span>
           <b>{formatIDR(trx.total)}</b>
@@ -185,6 +195,10 @@ function StrukBody({ trx, storeName, storePhone, storeAddress, branch, cashier }
 export default function RiwayatPage() {
   const shared = useSharedStore();
   const { session } = useAuth();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [detailProducts, setDetailProducts] = useState<Record<string, NonNullable<Transaction["products"]>>>({});
+  const [selectedRx, setSelectedRx] = useState<ResepRecord | undefined>();
+  const [loadError, setLoadError] = useState("");
   const [period, setPeriod] = useState<RiwayatPeriod>("semua");
   const [customFrom, setCustomFrom] = useState("2026-08-01");
   const [customTo, setCustomTo] = useState("2026-10-31");
@@ -195,15 +209,84 @@ export default function RiwayatPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [strukId, setStrukId] = useState<string | null>(null);
   const [notice, setNotice] = useState(false);
-  const [cancelNo, setCancelNo] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
-  const [cancelResult, setCancelResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   const range = resolveRiwayatRange(period, customFrom, customTo);
 
-  // Riwayat & pembayaran dari shared store — discoped ke cabang data lokal,
-  // lalu filter periode & metode. ID cabang auth tidak dipakai untuk data demo.
-  const byPeriod = shared.transactions.filter(
+  const loadTransactions = async () => {
+    try {
+      const rows = await kasirApi.transactions();
+      setTransactions(rows.map((row: ApiTransaction): Transaction => {
+        const dateTime = new Date(row.tanggal_transaksi.replace(" ", "T"));
+        return {
+          id: String(row.id_transaksi),
+          date: dateTime.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+          time: dateTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":"),
+          no: row.kode_transaksi,
+          customer: row.nama_pelanggan ?? "-",
+          phone: row.no_hp ?? "-",
+          type: row.jenis === "pembelian" ? "Pembelian" : "Pemesanan",
+          total: Number(row.total),
+          discount: Number(row.diskon),
+          tax: Number(row.pajak),
+          paid: Number(row.jumlah_bayar ?? row.total),
+          change: Math.max(0, Number(row.jumlah_bayar ?? row.total) - Number(row.total)),
+          status: row.status === "dibatalkan" ? "Dibatalkan" : row.status === "pending" ? "Pending" : "Selesai",
+          branchId: BRANCH_ID,
+          method: (row.metode_pembayaran ?? "Tunai") as PaymentMethod,
+        };
+      }));
+      setLoadError("");
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Riwayat transaksi gagal dimuat dari database.");
+    }
+  };
+
+  useEffect(() => {
+    void loadTransactions();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    let active = true;
+    setSelectedRx(undefined);
+    kasirApi.transaction(Number(selectedId))
+      .then(async ({ transaction, items }) => {
+        if (!active) return;
+        setDetailProducts((previous) => ({
+          ...previous,
+          [selectedId]: items.map((item: ApiTransactionItem) => ({
+            id: String(item.barang_id),
+            name: item.nama_barang,
+            brand: item.merek ?? "-",
+            qty: Number(item.jumlah),
+            price: Number(item.harga),
+          })),
+        }));
+        const recipes = await kasirApi.recipes(transaction.pelanggan_id, "aktif");
+        if (!active) return;
+        const recipe = recipes[0];
+        setSelectedRx(recipe ? {
+          id: String(recipe.id_resep),
+          customer: recipe.nama_pelanggan,
+          initials: recipe.nama_pelanggan.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase(),
+          date: recipe.tanggal_resep,
+          od: { sph: recipe.od_sph ?? "", cyl: recipe.od_cyl ?? "", axis: recipe.od_axis ?? "" },
+          os: { sph: recipe.os_sph ?? "", cyl: recipe.os_cyl ?? "", axis: recipe.os_axis ?? "" },
+          pd: recipe.pd ?? "",
+          add: recipe.add_power ?? "-",
+          note: recipe.catatan ?? "-",
+          status: "Aktif",
+        } : undefined);
+      })
+      .catch((error: unknown) => {
+        if (active) setLoadError(error instanceof Error ? error.message : "Rincian transaksi gagal dimuat.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedId]);
+
+  const byPeriod = transactions.filter(
     (t) =>
       (t.branchId ?? BRANCH_ID) === BRANCH_ID &&
       inPeriod(`${t.date}${t.time ? `, ${t.time}` : ""}`, range.from, range.to),
@@ -231,15 +314,13 @@ export default function RiwayatPage() {
     .reduce((sum, t) => sum + t.total, 0);
 
   const visibleRows = rows.slice(0, pageSize);
-  const selected = selectedId ? shared.transactions.find((t) => t.id === selectedId) : undefined;
-  const active = strukId ? shared.transactions.find((t) => t.id === strukId) : undefined;
-  const selectedRx = selected
-    ? shared.reseps.find((r) => r.customer === selected.customer)
-    : undefined;
+  const selectedRow = selectedId ? transactions.find((t) => t.id === selectedId) : undefined;
+  const selected = selectedRow ? { ...selectedRow, products: detailProducts[selectedRow.id] ?? selectedRow.products } : undefined;
+  const active = strukId ? transactions.find((t) => t.id === strukId) : undefined;
   const selectedMethod = (selected?.method as PaymentMethod | undefined) ?? "Tunai";
   const SelectedMethodIcon = METHOD_ICON[selectedMethod] ?? Banknote;
   const selectedDiscount = selected?.discount ?? 0;
-  const selectedSubtotal = (selected?.total ?? 0) + selectedDiscount;
+  const selectedSubtotal = (selected?.total ?? 0) + selectedDiscount - (selected?.tax ?? 0);
   const selectedPaid =
     selectedMethod === "Tunai" ? (selected?.paid ?? selected?.total ?? 0) : (selected?.total ?? 0);
   const selectedChange =
@@ -301,18 +382,6 @@ export default function RiwayatPage() {
     setNotice(true);
   };
 
-  const doCancel = () => {
-    if (!cancelNo) return;
-    const r = shared.cancelSale(cancelNo, cancelReason, "Kasir");
-    if (r.ok) {
-      setCancelNo(null);
-      setCancelReason("");
-      setCancelResult(null);
-    } else {
-      setCancelResult(r);
-    }
-  };
-
   return (
     <div className="page">
       <PageHeader
@@ -345,6 +414,8 @@ export default function RiwayatPage() {
           </>
         }
       />
+
+      {loadError ? <div className="notice" role="alert">{loadError}</div> : null}
 
       {period === "custom" ? (
         <div className="custom-date-bar">
@@ -412,7 +483,7 @@ export default function RiwayatPage() {
         <StatCard
           label="Jumlah ditampilkan"
           value={String(rows.length)}
-          caption={`Dari ${shared.transactions.length} total riwayat transaksi`}
+          caption={`Dari ${transactions.length} total riwayat transaksi`}
           icon={<CreditCard size={22} />}
           tone="violet"
         />
@@ -556,7 +627,7 @@ export default function RiwayatPage() {
 
           <div className="table-foot">
             <span className="foot-note">
-              Menampilkan {visibleRows.length} dari {rows.length} transaksi sesuai filter ({shared.transactions.length} total)
+              Menampilkan {visibleRows.length} dari {rows.length} transaksi sesuai filter ({transactions.length} total)
             </span>
             <div className="foot-actions">
               <select
@@ -695,6 +766,12 @@ export default function RiwayatPage() {
                   <span>Diskon</span>
                   <b>{formatIDR(selectedDiscount)}</b>
                 </div>
+                {selected.tax ? (
+                  <div className="sub-row">
+                    <span>PPN (11%)</span>
+                    <b>{formatIDR(selected.tax)}</b>
+                  </div>
+                ) : null}
                 <div className="sub-row total">
                   <span>Total Tagihan</span>
                   <b>{formatIDR(selected.total)}</b>
@@ -715,24 +792,9 @@ export default function RiwayatPage() {
             </div>
 
             <div className="drawer-foot">
-              {selected.date === today && selected.status === "Selesai" ? (
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  style={{ marginRight: "auto" }}
-                  onClick={() => {
-                    setCancelNo(selected.no);
-                    setCancelReason("");
-                    setCancelResult(null);
-                  }}
-                >
-                  Batalkan Transaksi
-                </button>
-              ) : (
-                <button type="button" className="btn btn-ghost" onClick={() => setSelectedId(null)}>
-                  Tutup
-                </button>
-              )}
+              <button type="button" className="btn btn-ghost" onClick={() => setSelectedId(null)}>
+                Tutup
+              </button>
               <button
                 type="button"
                 className="btn btn-primary"
@@ -759,38 +821,6 @@ export default function RiwayatPage() {
         </div>
       ) : null}
 
-      {cancelNo ? (
-        <div className="overlay" onClick={() => setCancelNo(null)}>
-          <div className="confirm" onClick={(e) => e.stopPropagation()} role="alertdialog" aria-modal="true">
-            <h2>Batalkan transaksi?</h2>
-            <p>
-              {cancelNo} akan berstatus <b>Dibatalkan</b> dan stok produk dikembalikan otomatis. Aksi ini
-              tercatat di audit.
-            </p>
-            <label className="afield">
-              <span>Alasan pembatalan (wajib)</span>
-              <input
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder="cth. pelanggan membatalkan pesanan"
-              />
-            </label>
-            {cancelResult ? (
-              <div className="notice" role="status">
-                {cancelResult.msg}
-              </div>
-            ) : null}
-            <div className="drawer-foot">
-              <button className="btn btn-ghost" onClick={() => setCancelNo(null)}>
-                Batal
-              </button>
-              <button className="btn btn-danger" onClick={doCancel} disabled={cancelReason.trim().length < 3}>
-                Batalkan Transaksi
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

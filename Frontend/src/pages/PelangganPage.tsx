@@ -1,44 +1,67 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Glasses, MessageSquare, Pencil, UserPlus, Users, X } from "lucide-react";
 import { type Customer } from "../data/customers";
-import { useSharedStore } from "../store/sharedStore";
+import { ApiError, kasirApi, type ApiCustomer } from "../lib/api";
 import { Avatar, Chip, PageHeader, SearchBox, StatCard, StatusPill } from "../components/ui";
 import "../styles/pages.css";
 import "../styles/admin.css";
 
-type FormState = { name: string; phone: string; email: string };
+type FormState = { name: string; phone: string; address: string };
 
-const EMPTY: FormState = { name: "", phone: "", email: "" };
+const EMPTY: FormState = { name: "", phone: "", address: "" };
 
 export default function PelangganPage() {
-  const store = useSharedStore();
-  const customers = store.customers;
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"Semua" | "Resep" | "PO">("Semua");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [formError, setFormError] = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const poCountOf = (name: string) =>
-    store.pos.filter((o) => o.customer === name && o.status !== "Selesai" && o.status !== "Dibatalkan").length;
+  const loadCustomers = async () => {
+    try {
+      const rows = await kasirApi.customers();
+      setCustomers(rows.map((row: ApiCustomer): Customer => ({
+        id: String(row.id_pelanggan),
+        code: `PLG-${String(row.id_pelanggan).padStart(4, "0")}`,
+        name: row.nama_pelanggan,
+        initials: row.nama_pelanggan.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase(),
+        phone: row.no_hp ?? "-",
+        email: "",
+        address: row.alamat ?? "",
+        hasResep: Number(row.jml_resep ?? 0) > 0,
+        poActive: Number(row.po_aktif ?? 0),
+        branch: "Cabang",
+      })));
+      setLoadError("");
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "Pelanggan gagal dimuat dari database.");
+    }
+  };
 
-  const hasResepOf = (c: Customer) =>
-    c.hasResep || store.reseps.some((r) => r.customer === c.name);
+  useEffect(() => {
+    void loadCustomers();
+  }, []);
+
+  const poCountOf = (customer: Customer) => customer.poActive;
+
+  const hasResepOf = (c: Customer) => c.hasResep;
 
   const rows = customers
     .filter((c) => {
       if (filter === "Resep" && !hasResepOf(c)) return false;
-      if (filter === "PO" && poCountOf(c.name) === 0) return false;
+      if (filter === "PO" && poCountOf(c) === 0) return false;
       return `${c.name} ${c.phone} ${c.code}`.toLowerCase().includes(query.toLowerCase());
     });
 
   const withResep = customers.filter((c) => hasResepOf(c)).length;
-  const withPo = customers.filter((c) => poCountOf(c.name) > 0).length;
+  const withPo = customers.filter((c) => poCountOf(c) > 0).length;
 
   const editingCustomer = editing ? customers.find((c) => c.id === editing) : null;
-  const previewCode =
-    editingCustomer?.code ?? `PLG-${String(41 + customers.length).padStart(4, "0")}`;
+  const previewCode = editingCustomer?.code ?? "Dibuat otomatis";
 
   function startAdd() {
     setEditing(null);
@@ -49,19 +72,26 @@ export default function PelangganPage() {
 
   function startEdit(c: Customer) {
     setEditing(c.id);
-    setForm({ name: c.name, phone: c.phone, email: c.email });
+    setForm({ name: c.name, phone: c.phone, address: c.address ?? "" });
     setFormError("");
     setOpen(true);
   }
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    const r = store.upsertCustomer({ id: editing ?? undefined, ...form });
-    if (!r.ok) {
-      setFormError(r.msg);
-      return;
+    setSaving(true);
+    setFormError("");
+    try {
+      const payload = form;
+      if (editing) await kasirApi.updateCustomer(Number(editing), payload);
+      else await kasirApi.createCustomer(payload);
+      await loadCustomers();
+      setOpen(false);
+    } catch (error) {
+      setFormError(error instanceof ApiError ? error.message : error instanceof Error ? error.message : "Pelanggan gagal disimpan.");
+    } finally {
+      setSaving(false);
     }
-    setOpen(false);
   }
 
   return (
@@ -85,6 +115,7 @@ export default function PelangganPage() {
       </div>
 
       <section className="section-block">
+        {loadError ? <div className="notice" role="alert">{loadError}</div> : null}
         <div className="section-head">
           <div>
             <h2>Daftar Pelanggan</h2>
@@ -126,7 +157,7 @@ export default function PelangganPage() {
             </thead>
             <tbody>
               {rows.map((c) => {
-                const activePo = poCountOf(c.name);
+                const activePo = poCountOf(c);
                 const hasRx = hasResepOf(c);
                 return (
                   <tr key={c.id}>
@@ -219,24 +250,25 @@ export default function PelangganPage() {
                     placeholder="cth. 0812 3456 7890"
                   />
                 </label>
-
-                <label className="afield">
-                  <span>Email (opsional)</span>
-                  <input
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="nama@email.com"
-                  />
-                </label>
               </div>
+
+              <label className="afield">
+                <span>Alamat (opsional)</span>
+                <textarea
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  placeholder="Alamat pelanggan"
+                  rows={3}
+                />
+              </label>
 
               <div className="drawer-foot">
                 <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
                   Batal
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn btn-primary" disabled={saving}>
                   <UserPlus size={16} />
-                  {editing ? "Simpan Perubahan" : "Simpan Pelanggan"}
+                  {saving ? "Menyimpan..." : editing ? "Simpan Perubahan" : "Simpan Pelanggan"}
                 </button>
               </div>
             </form>

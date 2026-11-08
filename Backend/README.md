@@ -30,27 +30,50 @@ standar tanpa memperbarui konfigurasi dan memeriksa dampaknya.
 
 ## Cara Menjalankan
 
-Prasyarat: PHP 8.2+ (XAMPP), MySQL/MariaDB, ekstensi `intl` dan `mbstring`.
+Prasyarat: PHP 8.2+, MySQL/MariaDB, ekstensi `intl` dan `mbstring`, serta
+Node.js 18+ (hanya untuk membangun frontend). PHP bawaan XAMPP 8.0 tidak
+memenuhi syarat CI4 ini, jadi gunakan PHP 8.2 (mis. `C:\php\php.exe`).
 
 1. Nyalakan **MySQL** dari XAMPP Control Panel.
-2. Buka terminal di folder proyek, lalu jalankan:
+2. Build frontend satu kali (ulangi setelah kode frontend berubah):
 
    ```powershell
-   php spark serve --port 8080
+   cd ..\Frontend
+   npm ci
+   npm run build
+   ```
+
+   Hasil build ditulis ke `Backend/public/app`, jadi backend yang menyajikan
+   halaman sekaligus API.
+3. Jalankan server dari folder `Backend`:
+
+   ```powershell
+   C:\php\php.exe spark serve --host 127.0.0.1 --port 8080
    ```
 
    Di VS Code cukup tekan `Ctrl + Shift + B` (task "SIMPOS: Jalankan server").
-3. Buka <http://localhost:8080>.
-4. Login dengan akun contoh: `pemilik` / `123`, `admin1` / `123`, `kasir1` / `123`.
+4. Buka satu alamat: <http://127.0.0.1:8080/> — otomatis diarahkan ke `/app/`.
+5. Login dengan akun contoh: `pemilik` / `123`, `admin1` / `123`, `kasir1` / `123`.
+
+Semua permintaan dari browser bersifat same-origin: halaman dan API dilayani
+host yang sama, sehingga tidak ada preflight CORS dan cookie session tetap
+first-party. Frontend memakai path dasar `/app/`, jadi aset dan deep link
+(`/app/dashboard`, `/app/admin/...`) aman di-refresh langsung. Route `app` dan
+`app/(:any)` dilayani `App\Controllers\Spa` yang mengembalikan
+`public/app/index.html`; bila folder itu belum ada, responsnya 503 dengan
+pesan agar menjalankan `npm run build`.
+
+Untuk pengembangan cepat, jalankan juga `npm run dev` di folder `Frontend`
+(<http://127.0.0.1:5173/>). Vite meneruskan `/api` ke backend port 8080
+sehingga perilakunya sama dengan mode produksi.
 
 Backend menyediakan API autentikasi session di `POST /api/login`, `GET /api/me`,
-dan `POST /api/logout`. Request dari frontend Vite `http://127.0.0.1:5173`
-menggunakan `credentials: 'include'` dan header `X-CSRF-TOKEN`. Ambil token awal
+dan `POST /api/logout`. Request dari frontend menggunakan
+`credentials: 'include'` dan header `X-CSRF-TOKEN`. Ambil token awal
 dari `GET /api/me` (respons 200 maupun 401 selalu menyertakan `csrfToken`), lalu
 perbarui token dari setiap respons JSON karena token dirotasi setelah request
 POST yang valid. Cookie session memakai `SameSite=None; Secure`; pada
-development, request loopback ditandai secure agar cookie tetap terkirim di
-`http://localhost:8080`.
+development, request loopback ditandai secure agar cookie tetap terkirim.
 
 Route yang memerlukan otorisasi API harus memakai filter `api-role`, misalnya:
 
@@ -103,9 +126,10 @@ transaksi database. Penerimaan PO hanya mengurangi stok saat transaksi
 pengambilan berhasil. Aturan pajak penjualan tetap mengikuti implementasi
 Kasir Backend yang ada (11%); keputusan kebijakan pajak belum diubah di sini.
 
-Catatan: `php spark serve` berjalan satu proses, sehingga Chrome kadang menutup
-koneksi preflight/POST pertama (`ERR_EMPTY_RESPONSE`). Ulangi request atau
-gunakan Apache saat menguji integrasi frontend.
+Catatan: `php spark serve` berjalan satu proses. Karena semua request kini
+same-origin dan tanpa preflight CORS, masalah `ERR_EMPTY_RESPONSE` pada POST
+pertama tidak lagi muncul. Untuk deployment, arahkan Apache ke folder
+`Backend/public` dan pastikan `mod_rewrite` aktif.
 
 Database awal bisa dibuat dengan
 `php spark migrate` lalu `php spark db:seed CabangSeeder` dan `php spark db:seed UserSeeder`

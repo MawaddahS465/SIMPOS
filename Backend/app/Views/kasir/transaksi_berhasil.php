@@ -19,103 +19,87 @@ $kembalian = $metode === 'Tunai' ? max(0, $dibayar - (float) $trx['total']) : 0;
         <p>Pembayaran telah diproses dan pesanan berhasil disimpan.</p>
     </div>
 
-    <div class="two-col">
-        <section class="co-card">
-            <div class="section-head">
-                <h2>Informasi Transaksi</h2>
+    <section class="co-card success-details">
+        <div class="section-head">
+            <h2>Informasi Transaksi</h2>
+        </div>
+        <div class="success-info-grid">
+            <div class="info-row">
+                <span>No. Transaksi</span>
+                <b><?= esc($trx['kode_transaksi']) ?></b>
             </div>
-            <div>
-                <div class="info-row">
-                    <span>No. Transaksi</span>
-                    <b><?= esc($trx['kode_transaksi']) ?></b>
-                </div>
-                <div class="info-row">
-                    <span>Tanggal &amp; Jam</span>
-                    <b><?= esc(tgl_id($trx['tanggal_transaksi'], true)) ?> WIB</b>
-                </div>
-                <div class="info-row">
-                    <span>Kasir</span>
-                    <b><?= esc(session()->get('nama')) ?></b>
-                </div>
-                <div class="info-row">
-                    <span>Nama Pelanggan</span>
-                    <b><?= esc($cust['nama_pelanggan'] ?? '-') ?></b>
-                </div>
-                <div class="info-row">
-                    <span>Metode Pembayaran</span>
-                    <b><?= esc($metode) ?></b>
-                </div>
-                <div class="info-row">
-                    <span>Total Pembayaran</span>
-                    <b><?= rupiah($trx['total']) ?></b>
-                </div>
-                <?php if ($metode === 'Tunai'): ?>
-                    <div class="info-row">
-                        <span>Jumlah Dibayar</span>
-                        <b><?= rupiah($dibayar) ?></b>
-                    </div>
-                    <div class="info-row">
-                        <span>Kembalian</span>
-                        <b><?= rupiah($kembalian) ?></b>
-                    </div>
-                <?php endif; ?>
-                <div class="info-row">
-                    <span>Status</span>
-                    <?= status_pill($bayar['status'] ?? 'lunas') ?>
-                </div>
+            <div class="info-row">
+                <span>Tanggal &amp; Jam</span>
+                <b><?= esc(tgl_id($trx['tanggal_transaksi'], true)) ?> WIB</b>
             </div>
-        </section>
-
-        <section class="co-card">
-            <div class="section-head">
-                <h2>Produk yang Dibeli</h2>
+            <div class="info-row">
+                <span>Kasir</span>
+                <b><?= esc(session()->get('nama')) ?></b>
             </div>
-            <div>
-                <?php foreach ($detail as $d): ?>
-                    <div class="receipt-line">
-                        <span class="rl-ico"><?= icon('glasses', 20) ?></span>
-                        <span class="rl-body">
-                            <b><?= esc($d['nama_barang']) ?></b>
-                            <span><?= esc($d['merek']) ?> · <?= esc($d['jenis']) ?> · Qty: <?= (int) $d['jumlah'] ?></span>
-                        </span>
-                        <span class="tt-money"><?= rupiah($d['subtotal']) ?></span>
-                    </div>
-                <?php endforeach; ?>
+            <div class="info-row">
+                <span>Nama Pelanggan</span>
+                <b><?= esc($cust['nama_pelanggan'] ?? '-') ?></b>
             </div>
-
-            <div class="section-head" style="margin-top:6px">
-                <h2>Ringkasan Pembayaran</h2>
+            <div class="info-row">
+                <span>Metode Pembayaran</span>
+                <b><?= esc($metode) ?></b>
             </div>
-            <div>
+            <div class="info-row">
+                <span>Status</span>
+                <?= status_pill($bayar['status'] ?? 'lunas') ?>
+            </div>
+            <?php if ($metode === 'Tunai'): ?>
                 <div class="info-row">
-                    <span>Subtotal</span>
-                    <b><?= rupiah($subtotal) ?></b>
+                    <span>Jumlah Dibayar</span>
+                    <b><?= rupiah($dibayar) ?></b>
                 </div>
                 <div class="info-row">
-                    <span>Diskon</span>
-                    <b><?= rupiah($trx['diskon']) ?></b>
+                    <span>Kembalian</span>
+                    <b><?= rupiah($kembalian) ?></b>
                 </div>
-                <div class="info-row">
-                    <span>Pajak (PPN 11%)</span>
-                    <b><?= rupiah($trx['pajak']) ?></b>
-                </div>
-                <div class="info-row">
-                    <span><b style="color:var(--ink)">Total Pembayaran</b></span>
-                    <b><?= rupiah($trx['total']) ?></b>
-                </div>
-            </div>
-        </section>
-    </div>
-
-    <div class="action-row">
-        <div class="receipt-note">
-            <span class="rn-ico"><?= icon('shield-check', 22) ?></span>
-            <div>
-                <b>Data Tersimpan dengan Aman</b>
-                <p>Data transaksi, produk, dan pembayaran telah berhasil disimpan ke sistem. Anda dapat menghubungi pelanggan jika diperlukan.</p>
-            </div>
+            <?php endif; ?>
         </div>
 
+        <div class="section-head success-payment-heading">
+            <h2>Produk yang Dibeli</h2>
+        </div>
+        <div>
+            <?php foreach ($detail as $d): ?>
+                <div class="receipt-line">
+                    <span class="rl-ico"><?= icon('glasses', 20) ?></span>
+                    <span class="rl-body">
+                        <b><?= esc($d['nama_barang']) ?></b>
+                        <span><?= esc($d['merek']) ?> · <?= esc($d['jenis']) ?> · <?= (int) $d['jumlah'] ?> item</span>
+                    </span>
+                    <span class="tt-money"><?= rupiah($d['subtotal']) ?></span>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <div class="section-head success-payment-heading">
+            <h2>Ringkasan Pembayaran</h2>
+        </div>
+        <div class="success-payment-summary">
+            <div class="info-row">
+                <span>Subtotal</span>
+                <b><?= rupiah($subtotal) ?></b>
+            </div>
+            <div class="info-row">
+                <span>Diskon</span>
+                <b><?= rupiah($trx['diskon']) ?></b>
+            </div>
+            <div class="info-row">
+                <span>Pajak (PPN 11%)</span>
+                <b><?= rupiah($trx['pajak']) ?></b>
+            </div>
+            <div class="info-row">
+                <span>Total Pembayaran</span>
+                <b><?= rupiah($trx['total']) ?></b>
+            </div>
+        </div>
+    </section>
+
+    <div class="action-row">
         <div class="btn-group">
             <button class="btn btn-ghost" type="button" onclick="window.print()">
                 <?= icon('printer', 16) ?>
