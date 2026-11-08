@@ -36,6 +36,8 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'auth'          => \App\Filters\AuthFilter::class,
         'role'          => \App\Filters\RoleFilter::class,
+        'api-csrf'      => \App\Filters\ApiCsrfFilter::class,
+        'api-role'      => \App\Filters\ApiRoleFilter::class,
     ];
 
     /**
@@ -53,6 +55,7 @@ class Filters extends BaseFilters
      */
     public array $required = [
         'before' => [
+            'cors',
             'forcehttps', // Force Global Secure Requests
             'pagecache',  // Web Page Caching
         ],
@@ -75,7 +78,7 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             // 'honeypot',
-            'csrf',
+            'csrf' => ['except' => ['api/*']],
             // 'invalidchars',
         ],
         'after' => [

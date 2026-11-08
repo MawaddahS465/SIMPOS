@@ -36,15 +36,78 @@ Prasyarat: PHP 8.2+ (XAMPP), MySQL/MariaDB, ekstensi `intl` dan `mbstring`.
 2. Buka terminal di folder proyek, lalu jalankan:
 
    ```powershell
-   php spark serve --port 8082
+   php spark serve --port 8080
    ```
 
    Di VS Code cukup tekan `Ctrl + Shift + B` (task "SIMPOS: Jalankan server").
-3. Buka <http://localhost:8082>.
+3. Buka <http://localhost:8080>.
 4. Login dengan akun contoh: `pemilik` / `123`, `admin1` / `123`, `kasir1` / `123`.
 
-Port 8082 dipakai karena 8080/8081 sering dipakai aplikasi lain. Kalau port diubah,
-sesuaikan juga `app.baseURL` di `.env`. Database awal bisa dibuat dengan
+Backend menyediakan API autentikasi session di `POST /api/login`, `GET /api/me`,
+dan `POST /api/logout`. Request dari frontend Vite `http://127.0.0.1:5173`
+menggunakan `credentials: 'include'` dan header `X-CSRF-TOKEN`. Ambil token awal
+dari `GET /api/me` (respons 200 maupun 401 selalu menyertakan `csrfToken`), lalu
+perbarui token dari setiap respons JSON karena token dirotasi setelah request
+POST yang valid. Cookie session memakai `SameSite=None; Secure`; pada
+development, request loopback ditandai secure agar cookie tetap terkirim di
+`http://localhost:8080`.
+
+Route yang memerlukan otorisasi API harus memakai filter `api-role`, misalnya:
+
+```php
+$routes->get('kasir/transaksi', 'TransaksiApi::index', [
+    'filter' => 'api-role:kasir',
+]);
+```
+
+Filter tersebut mengembalikan JSON `401` untuk sesi tidak valid dan `403` untuk
+role yang tidak diizinkan. Sesi aktif juga divalidasi ulang terhadap akun
+terbaru di database, sehingga akun nonaktif, role berubah, atau cabang yang
+tidak lagi valid tidak terus memakai hak akses lama. Saat ini operasi bisnis
+frontend masih menggunakan data lokal; filter ini perlu dipasang pada setiap
+endpoint bisnis ketika endpoint tersebut tersedia.
+
+### API Kasir
+
+Semua endpoint berikut memakai session cookie, CSRF, dan role `kasir`.
+Respons sukses berbentuk `{ "success": true, "data": ..., "csrfToken": "..." }`;
+respons gagal menyertakan `success: false`, `message`, dan token CSRF terbaru.
+Untuk request `POST`, kirim `Content-Type: application/json` dan
+`X-CSRF-TOKEN`. Seluruh data transaksi dan PO dibatasi ke cabang pada sesi
+pengguna. Data master pelanggan dan resep mengikuti cakupan global yang saat
+ini dipakai aplikasi.
+
+| Metode | Endpoint | Fungsi |
+| --- | --- | --- |
+| GET | `/api/kasir/katalog?q=&type=&brand=&sort=` | Katalog aktif dan stok cabang; sort `murah` atau `mahal` |
+| GET | `/api/kasir/pelanggan?q=` | Cari pelanggan |
+| POST | `/api/kasir/pelanggan` | Tambah pelanggan: `name`, `phone`, `address` |
+| POST | `/api/kasir/pelanggan/{id}` | Ubah pelanggan: `name`, `phone`, `address` |
+| GET | `/api/kasir/resep?customerId=` | Daftar resep aktif, opsional untuk satu pelanggan |
+| POST | `/api/kasir/resep` | Tambah resep: `customerId`, `date` (`YYYY-MM-DD`), `odSph`, `odCyl`, `odAxis`, `osSph`, `osCyl`, `osAxis`, `pd`, `addPower`, `notes` |
+| GET | `/api/kasir/keranjang` | Isi keranjang sesi dan ringkasan |
+| POST | `/api/kasir/keranjang/item` | Set jumlah barang: `productId`, `quantity` (0 menghapus) |
+| POST | `/api/kasir/keranjang/pelanggan` | Pilih pelanggan: `customerId` |
+| POST | `/api/kasir/keranjang/kosongkan` | Kosongkan keranjang |
+| POST | `/api/kasir/checkout` | Simpan penjualan: `customerId`, `paymentMethod`, dan `amountPaid` untuk Tunai |
+| GET | `/api/kasir/transaksi?q=&status=` | Riwayat transaksi cabang |
+| GET | `/api/kasir/transaksi/{id}` | Detail transaksi dan pembayaran, hanya cabang sendiri |
+| GET | `/api/kasir/pemesanan?q=&status=` | Daftar PO cabang |
+| POST | `/api/kasir/pemesanan` | Buat PO: `customerId`, `productId`, `quantity`, opsional `recipeId`, `notes` |
+| GET | `/api/kasir/pemesanan/{id}` | Detail PO cabang |
+| POST | `/api/kasir/pemesanan/{id}/pengambilan` | Selesaikan PO berstatus `sudah_datang`: `paymentMethod`, dan `amountPaid` untuk Tunai |
+| GET | `/api/kasir/pembayaran` | Daftar pembayaran transaksi cabang |
+
+Checkout memvalidasi ulang harga/stok dari database dan mengurangi stok dalam
+transaksi database. Penerimaan PO hanya mengurangi stok saat transaksi
+pengambilan berhasil. Aturan pajak penjualan tetap mengikuti implementasi
+Kasir Backend yang ada (11%); keputusan kebijakan pajak belum diubah di sini.
+
+Catatan: `php spark serve` berjalan satu proses, sehingga Chrome kadang menutup
+koneksi preflight/POST pertama (`ERR_EMPTY_RESPONSE`). Ulangi request atau
+gunakan Apache saat menguji integrasi frontend.
+
+Database awal bisa dibuat dengan
 `php spark migrate` lalu `php spark db:seed CabangSeeder` dan `php spark db:seed UserSeeder`
 (atau import `dbsimpos.sql` lewat phpMyAdmin).
 

@@ -24,6 +24,27 @@ use CodeIgniter\HotReloader\HotReloader;
  */
 
 Events::on('pre_system', static function (): void {
+    /*
+     * --------------------------------------------------------------------
+     * Secure cookie pada pengembangan lokal (loopback)
+     * --------------------------------------------------------------------
+     * Frontend Vite (http://127.0.0.1:5173) dan backend CI4
+     * (http://localhost:8080) berbeda origin. Agar cookie session dapat
+     * dikirim lintas origin, Config\Cookie memakai SameSite=None; Secure.
+     * Browser menganggap loopback sebagai secure context, tetapi CI4
+     * menolak mengirim cookie Secure di koneksi non-HTTPS. Tandai request
+     * loopback sebagai secure hanya saat development; di produksi status
+     * HTTPS berasal dari server/proxy yang sebenarnya.
+     */
+    if (ENVIRONMENT === 'development' && ! is_cli()) {
+        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        $host = preg_replace('/:\d+$/', '', $host);
+
+        if (in_array($host, ['localhost', '127.0.0.1', '::1', '[::1]'], true)) {
+            service('superglobals')->setServer('HTTPS', 'on');
+        }
+    }
+
     if (ENVIRONMENT !== 'testing') {
         $value = ini_get('zlib.output_compression');
 
