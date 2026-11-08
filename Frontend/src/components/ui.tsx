@@ -10,7 +10,7 @@ export function PageHeader({
   actions,
   crumbs,
 }: {
-  overline: string;
+  overline?: string;
   title: string;
   desc?: string;
   actions?: ReactNode;
@@ -21,7 +21,7 @@ export function PageHeader({
       {crumbs ? <div className="crumbs">{crumbs}</div> : null}
       <div className="pagehead-main">
         <div>
-          <div className="overline">{overline}</div>
+          {overline ? <div className="overline">{overline}</div> : null}
           <h1>{title}</h1>
           {desc ? <p>{desc}</p> : null}
         </div>

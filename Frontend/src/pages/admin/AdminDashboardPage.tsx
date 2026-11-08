@@ -84,7 +84,6 @@ export default function AdminDashboardPage() {
             Ajukan Stok
           </Link>
         </div>
-        <span className="foot-note">Aksi cepat harian cabang {DEMO_ADMIN.branch}.</span>
       </div>
 
       <section className="panel">

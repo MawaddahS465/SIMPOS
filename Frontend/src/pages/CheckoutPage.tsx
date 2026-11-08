@@ -1,16 +1,25 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
+  ArrowLeft,
+  ArrowRight,
   Banknote,
   Building2,
+  ChevronRight,
   ClipboardList,
   CreditCard,
+  Eye,
   Glasses,
   Minus,
+  Package,
   Plus,
   QrCode,
+  Search,
   Trash2,
   TriangleAlert,
+  UserPlus,
+  Wallet,
+  X,
 } from "lucide-react";
 import type { Customer } from "../data/customers";
 import type { PaymentMethod } from "../data/mock";
@@ -18,7 +27,7 @@ import { useCart } from "../context/CartContext";
 import { useSharedStore } from "../store/sharedStore";
 import { useAuth } from "../store/auth";
 import { ApiError, kasirApi, type ApiCustomer, type ApiProduct, type ApiRecipe } from "../lib/api";
-import { Avatar, PageHeader, Steps, formatIDR } from "../components/ui";
+import { Avatar, formatIDR } from "../components/ui";
 import "../styles/pages.css";
 
 const METHODS: Array<{ id: PaymentMethod; label: string; desc: string; icon: typeof Banknote }> = [
@@ -26,23 +35,66 @@ const METHODS: Array<{ id: PaymentMethod; label: string; desc: string; icon: typ
   { id: "Transfer Bank", label: "Transfer Bank", desc: "Pembayaran melalui transfer bank", icon: Building2 },
   { id: "Kartu Debit/Kredit", label: "Kartu Debit/Kredit", desc: "Visa, Mastercard, JCB, dll", icon: CreditCard },
   { id: "QRIS", label: "QRIS", desc: "Pembayaran dengan QRIS", icon: QrCode },
+  { id: "E-Wallet", label: "E-Wallet", desc: "OVO, GoPay, DANA, ShopeePay", icon: Wallet },
 ];
+
+const FLOW_STEPS = ["Pilih Produk", "Pilih Pelanggan", "Konfirmasi", "Pembayaran", "Selesai"] as const;
+
+type FlowStep = "customer" | "confirm" | "payment";
+
+function CheckoutSteps({ current }: { current: 2 | 3 | 4 | 5 }) {
+  return (
+    <div className="co-stepper" aria-label="Langkah transaksi">
+      {FLOW_STEPS.map((label, index) => {
+        const number = index + 1;
+        return (
+          <div
+            key={label}
+            className={`co-step ${number < current ? "done" : ""} ${number === current ? "active" : ""}`}
+          >
+            <span className="co-step-dot">{number}</span>
+            <span className="co-step-label">{label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ProductIcon({ category }: { category: string }) {
+  if (category === "Aksesoris") return <Package size={20} strokeWidth={1.7} />;
+  if (category === "Lensa") return <Eye size={20} strokeWidth={1.7} />;
+  return <Glasses size={20} strokeWidth={1.7} />;
+}
 
 export default function CheckoutPage() {
   const cart = useCart();
   const shared = useSharedStore();
-  const navigate = useNavigate();
   const { session } = useAuth();
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState("");
-  const [picking, setPicking] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const [cashMode, setCashMode] = useState<"exact" | "manual">(() => {
+    const gross = Math.round((cart.subtotal - cart.discount) * 1.11);
+    return cart.cashInput.trim() !== "" && cart.cashPaid !== gross ? "manual" : "exact";
+  });
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm, setAddForm] = useState({ name: "", phone: "", email: "" });
+  const [addError, setAddError] = useState("");
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [recipe, setRecipe] = useState<ApiRecipe | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [cashMode, setCashMode] = useState<"exact" | "manual">(() =>
-    cart.cashInput.trim() !== "" && cart.cashPaid !== Math.round((cart.subtotal - cart.discount) * 1.11) ? "manual" : "exact",
-  );
+
+  const tax = useMemo(() => Math.round((cart.subtotal - cart.discount) * 0.11), [cart.subtotal, cart.discount]);
+  const grandTotal = cart.subtotal - cart.discount + tax;
+  const cashShortfall = Math.max(0, grandTotal - cart.cashPaid);
+  const cashChange = Math.max(0, cart.cashPaid - grandTotal);
+
+  const rawStep = params.get("step");
+  const step: FlowStep = rawStep === "confirm" ? "confirm" : rawStep === "payment" ? "payment" : "customer";
+  const current = step === "customer" ? 2 : step === "confirm" ? 3 : 4;
 
   useEffect(() => {
     let active = true;
@@ -90,9 +142,6 @@ export default function CheckoutPage() {
     };
   }, [cart.customer?.id]);
 
-  const tax = useMemo(() => Math.round((cart.subtotal - cart.discount) * 0.11), [cart.subtotal, cart.discount]);
-  const grandTotal = cart.subtotal - cart.discount + tax;
-
   // Uang pas selalu mengikuti total terbaru (misalnya setelah diskon diubah).
   useEffect(() => {
     if (cart.method === "Tunai" && cashMode === "exact") {
@@ -100,13 +149,30 @@ export default function CheckoutPage() {
     }
   }, [cart.method, grandTotal, cashMode]);
 
-  const po = cart.poId ? shared.pos.find((o) => o.id === cart.poId) : undefined;
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [step]);
 
-  const activeCustomer = picking ? null : cart.customer;
+  // Jangan biarkan langkah lanjutan terbuka tanpa produk/pelanggan.
+  useEffect(() => {
+    if (cart.receipt) return;
+    if (cart.items.length === 0) {
+      navigate("/transaksi-baru", { replace: true });
+      return;
+    }
+    if (step !== "customer" && !cart.customer) {
+      setParams({}, { replace: true });
+    }
+  }, [cart.receipt, cart.items.length, cart.customer, step, navigate, setParams]);
+
+  const po = cart.poId ? shared.pos.find((o) => o.id === cart.poId) : undefined;
+  const customer = cart.customer;
+
   const results = customers.filter((c) =>
     `${c.name} ${c.phone} ${c.code}`.toLowerCase().includes(query.toLowerCase()),
   );
 
+  // Resep aktif dari API, fallback ke snapshot resep PO agar pengambilan PO tetap menampilkan resep.
   const resep = recipe ? {
     od: { sph: recipe.od_sph ?? "-", cyl: recipe.od_cyl ?? "", axis: recipe.od_axis ?? "" },
     os: { sph: recipe.os_sph ?? "-", cyl: recipe.os_cyl ?? "", axis: recipe.os_axis ?? "" },
@@ -114,11 +180,55 @@ export default function CheckoutPage() {
     add: recipe.add_power ?? "-",
   } : po?.resepSnapshot ?? null;
 
+  const go = (next: FlowStep) => {
+    setWarning(null);
+    setParams(next === "customer" ? {} : { step: next });
+  };
+
   const pick = (c: Customer) => {
     cart.setCustomer(c);
-    setPicking(false);
     setQuery("");
     setWarning(null);
+    go("confirm");
+  };
+
+  const openAddCustomer = () => {
+    setAddForm({ name: "", phone: "", email: "" });
+    setAddError("");
+    setAddOpen(true);
+  };
+
+  const submitCustomer = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!addForm.name.trim() || !addForm.phone.trim()) {
+      setAddError("Nama dan nomor HP pelanggan wajib diisi.");
+      return;
+    }
+    setAddError("");
+    try {
+      const row = await kasirApi.createCustomer({
+        name: addForm.name.trim(),
+        phone: addForm.phone.trim(),
+        address: "",
+      });
+      const created: Customer = {
+        id: String(row.id_pelanggan),
+        code: `PLG-${String(row.id_pelanggan).padStart(4, "0")}`,
+        name: row.nama_pelanggan,
+        initials: row.nama_pelanggan.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase(),
+        phone: row.no_hp ?? "-",
+        email: addForm.email.trim(),
+        hasResep: Number(row.jml_resep ?? 0) > 0,
+        poActive: Number(row.po_aktif ?? 0),
+        branch: session?.branch ?? "Cabang",
+      };
+      setCustomers((prev) => [created, ...prev]);
+      cart.setCustomer(created);
+      setAddOpen(false);
+      go("confirm");
+    } catch (error) {
+      setAddError(error instanceof Error ? error.message : "Pelanggan gagal disimpan.");
+    }
   };
 
   const chooseExactCash = () => {
@@ -160,6 +270,15 @@ export default function CheckoutPage() {
     const customerId = Number(cart.customer.id);
     if (!Number.isSafeInteger(customerId) || customerId <= 0) {
       setWarning("Pelanggan tidak valid. Pilih pelanggan yang tersimpan di database.");
+      return;
+    }
+    // Verifikasi stok dari katalog API sebelum menyimpan transaksi.
+    const kurang = cart.items
+      .map((i) => ({ item: i, saldo: products.find((product) => String(product.id) === i.id)?.stok }))
+      .filter((x) => x.saldo !== undefined && x.item.qty > (x.saldo as number));
+    if (kurang.length > 0) {
+      const names = kurang.map((x) => `${x.item.name} (tersedia ${x.saldo})`).join(", ");
+      setWarning(`Stok tidak mencukupi: ${names}. Kurangi jumlah atau ajukan PO untuk barang tersebut.`);
       return;
     }
 
@@ -212,147 +331,240 @@ export default function CheckoutPage() {
     }
   };
 
-  return (
-    <div className="page">
-      <PageHeader
-        overline="CHECKOUT"
-        title="Lengkapi data transaksi dan selesaikan pembayaran"
-        desc="Pastikan data pelanggan, resep, dan ketersediaan stok produk sudah sesuai sebelum memproses pembayaran."
-        actions={<Steps current={2} />}
-      />
+  const poNotice = po ? (
+    <div className="notice notice-ok" role="status">
+      <ClipboardList size={16} />
+      Transaksi ini menyelesaikan pengambilan <b>{po.number}</b> untuk {po.customer}.
+      <button
+        type="button"
+        className="link-action"
+        style={{ marginLeft: "auto" }}
+        onClick={() => cart.setPoId(null)}
+      >
+        Lepas tautan PO
+      </button>
+    </div>
+  ) : null;
 
-      {po ? (
-        <div className="notice notice-ok" role="status">
-          <ClipboardList size={16} />
-          Transaksi ini menyelesaikan pengambilan <b>{po.number}</b> untuk {po.customer}.
+  if (step === "customer") {
+    return (
+      <div className="page co-flow">
+        <CheckoutSteps current={2} />
+
+        <section className="co-card co-pick-card">
+          <div className="section-head">
+            <div>
+              <h2>Pilih Pelanggan</h2>
+              <div className="section-desc">
+                Pelanggan dipilih sebelum memeriksa resep dan produk transaksi.
+              </div>
+            </div>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={openAddCustomer}>
+              <UserPlus size={15} />
+              Tambah Pelanggan
+            </button>
+          </div>
+
+          <label className="toolbar-search co-search" aria-label="Cari pelanggan">
+            <Search size={16} />
+            <input
+              type="search"
+              placeholder="Cari nama, nomor HP, atau kode pelanggan."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+
+          <div className="cust-pick co-cust-pick">
+            {results.map((c) => (
+              <button key={c.id} type="button" className="cust-pick-row" onClick={() => pick(c)}>
+                <Avatar initials={c.initials} size={40} />
+                <span className="pick-body">
+                  <b>{c.name}</b>
+                  <span>
+                    {c.code} · {c.phone}
+                  </span>
+                </span>
+                <ChevronRight size={18} className="co-row-chevron" />
+              </button>
+            ))}
+            {results.length === 0 ? <div className="empty-note">Pelanggan tidak ditemukan.</div> : null}
+          </div>
+
           <button
             type="button"
-            className="link-action"
-            style={{ marginLeft: "auto" }}
-            onClick={() => cart.setPoId(null)}
+            className="btn btn-ghost full"
+            onClick={() => navigate("/transaksi-baru")}
           >
-            Lepas tautan PO
+            <ArrowLeft size={16} />
+            Kembali ke Pilih Produk
           </button>
-        </div>
-      ) : null}
+        </section>
 
-      <div className="checkout-grid">
-        <div className="checkout-left">
-          {/* Data Pelanggan */}
-          <section className="co-card">
-            <div className="section-head">
-              <h2>Data Pelanggan</h2>
-            </div>
-
-            {activeCustomer ? (
-              <div className="cust-card">
-                <Avatar initials={activeCustomer.initials} size={46} />
-                <div className="cc-body">
-                  <b>{activeCustomer.name}</b>
-                  <div className="cc-meta">
-                    <span>{activeCustomer.code}</span>
-                    <span>{activeCustomer.phone}</span>
+        {addOpen ? (
+          <div className="overlay po-modal-overlay" onClick={() => setAddOpen(false)}>
+            <div className="drawer simple-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+              <div className="simple-modal-head">
+                <div className="smh-left">
+                  <div className="smh-ico">
+                    <UserPlus size={20} />
                   </div>
-                  <div className="cc-meta">{activeCustomer.email}</div>
+                  <div>
+                    <h2>Tambah Pelanggan</h2>
+                    <p>Lengkapi nama dan nomor kontak pelanggan baru.</p>
+                  </div>
                 </div>
-                <button className="btn btn-ghost btn-sm" onClick={() => setPicking(true)}>
-                  Ubah
+                <button className="icon-pill" aria-label="Tutup" onClick={() => setAddOpen(false)}>
+                  <X size={18} />
                 </button>
               </div>
-            ) : (
-              <div>
-                <label className="toolbar-search" style={{ marginBottom: 12 }}>
-                  <Glasses size={16} />
+
+              <form onSubmit={submitCustomer} className="drawer-form simple-modal-form" noValidate>
+                {addError ? (
+                  <div className="form-error" role="alert">
+                    {addError}
+                  </div>
+                ) : null}
+
+                <label className="afield">
+                  <span>Nama Pelanggan *</span>
                   <input
-                    type="search"
-                    placeholder="Cari pelanggan (nama, nomor HP, atau kode)."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    value={addForm.name}
+                    onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                    placeholder="cth. Siti Rahma"
                   />
                 </label>
-                <div className="cust-pick">
-                  {results.map((c) => (
-                    <button key={c.id} className="cust-pick-row" onClick={() => pick(c)}>
-                      <Avatar initials={c.initials} size={40} />
-                      <span className="pick-body">
-                        <b>{c.name}</b>
-                        <span>
-                          {c.code} · {c.phone}
-                        </span>
-                      </span>
-                    </button>
-                  ))}
-                  {results.length === 0 ? <div className="empty-note">Pelanggan tidak ditemukan.</div> : null}
+
+                <div className="simple-two-col">
+                  <label className="afield">
+                    <span>Nomor HP / WhatsApp *</span>
+                    <input
+                      inputMode="tel"
+                      value={addForm.phone}
+                      onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
+                      placeholder="cth. 0812 3456 7890"
+                    />
+                  </label>
+
+                  <label className="afield">
+                    <span>Email (opsional)</span>
+                    <input
+                      value={addForm.email}
+                      onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
+                      placeholder="nama@email.com"
+                    />
+                  </label>
                 </div>
-              </div>
-            )}
-          </section>
 
-          {/* Resep Mata */}
-          <section className="co-card">
-            <div className="section-head">
-              <h2>Resep Mata</h2>
+                <div className="drawer-foot">
+                  <button type="button" className="btn btn-ghost" onClick={() => setAddOpen(false)}>
+                    Batal
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    <UserPlus size={16} />
+                    Simpan Pelanggan
+                  </button>
+                </div>
+              </form>
             </div>
-            {resep ? (
-              <table className="rx-table">
-                <thead>
-                  <tr>
-                    <th>Mata</th>
-                    <th>SPH</th>
-                    <th>CYL</th>
-                    <th>AXIS</th>
-                    <th>ADD</th>
-                    <th>PD</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>OD (Kanan)</td>
-                    <td>{resep.od.sph}</td>
-                    <td>{resep.od.cyl || "0.00"}</td>
-                    <td>{resep.od.axis || "-"}</td>
-                    <td>{resep.add ?? "-"}</td>
-                    <td>{resep.pd}</td>
-                  </tr>
-                  <tr>
-                    <td>OS (Kiri)</td>
-                    <td>{resep.os.sph}</td>
-                    <td>{resep.os.cyl || "0.00"}</td>
-                    <td>{resep.os.axis || "-"}</td>
-                    <td>{resep.add ?? "-"}</td>
-                    <td>{resep.pd}</td>
-                  </tr>
-                </tbody>
-              </table>
-            ) : (
-              <div className="empty-note">
-                Belum ada resep tersimpan untuk pelanggan ini.
-              </div>
-            )}
-          </section>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
-          {/* Produk Dipilih */}
-          <section className="co-card">
-            <div className="section-head">
-              <h2>Produk Dipilih</h2>
-              <div className="section-action">
-                <button className="btn btn-ghost btn-sm" onClick={() => navigate("/transaksi-baru")}>
-                  <Plus size={15} />
-                  Tambah Produk
-                </button>
+  if (!customer) return null;
+
+  if (step === "confirm") {
+    return (
+      <div className="page co-flow">
+        <CheckoutSteps current={3} />
+        {poNotice}
+
+        <section className="co-card">
+          <div className="section-head">
+            <h2>Data Pelanggan</h2>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => go("customer")}>
+              Ubah
+            </button>
+          </div>
+          <div className="cust-card">
+            <Avatar initials={customer.initials} size={46} />
+            <div className="cc-body">
+              <b>{customer.name}</b>
+              <div className="cc-meta">
+                <span>{customer.code}</span>
+                <span>{customer.phone}</span>
+                {customer.email ? <span>{customer.email}</span> : null}
               </div>
             </div>
+          </div>
+        </section>
 
-            {cart.items.length === 0 ? (
-              <div className="empty-note">Belum ada produk dipilih.</div>
-            ) : (
-              cart.items.map((i) => {
-                const saldo = products.find((product) => String(product.id) === i.id)?.stok;
-                const kurangStok = saldo !== undefined && i.qty > Number(saldo);
-                return (
-                  <div key={i.id} className="cart-line" style={{ flexWrap: "wrap" }}>
+        <section className="co-card">
+          <div className="section-head">
+            <h2>Resep Mata</h2>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate("/resep-mata")}>
+              <Glasses size={15} />
+              Lihat Arsip Resep
+            </button>
+          </div>
+          {resep ? (
+            <table className="rx-table">
+              <thead>
+                <tr>
+                  <th>Mata</th>
+                  <th>SPH</th>
+                  <th>CYL</th>
+                  <th>AXIS</th>
+                  <th>ADD</th>
+                  <th>PD</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>OD (Kanan)</td>
+                  <td>{resep.od.sph}</td>
+                  <td>{resep.od.cyl || "0.00"}</td>
+                  <td>{resep.od.axis || "-"}</td>
+                  <td>{resep.add ?? "-"}</td>
+                  <td>{resep.pd}</td>
+                </tr>
+                <tr>
+                  <td>OS (Kiri)</td>
+                  <td>{resep.os.sph}</td>
+                  <td>{resep.os.cyl || "0.00"}</td>
+                  <td>{resep.os.axis || "-"}</td>
+                  <td>{resep.add ?? "-"}</td>
+                  <td>{resep.pd}</td>
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            <div className="empty-note">Belum ada resep tersimpan untuk pelanggan ini.</div>
+          )}
+        </section>
+
+        <section className="co-card">
+          <div className="section-head">
+            <h2>Produk Dipilih</h2>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate("/transaksi-baru")}>
+              <Plus size={15} />
+              Tambah Produk
+            </button>
+          </div>
+
+          {cart.items.length === 0 ? (
+            <div className="empty-note">Belum ada produk dipilih.</div>
+          ) : (
+            cart.items.map((i) => {
+              const saldo = products.find((product) => String(product.id) === i.id)?.stok;
+              const kurangStok = saldo !== undefined && i.qty > saldo;
+              return (
+                <div key={i.id}>
+                  <div className="co-product-line">
                     <span className="cl-ico">
-                      <Glasses size={20} strokeWidth={1.7} />
+                      <ProductIcon category={i.category} />
                     </span>
                     <span className="cl-body">
                       <b>{i.name}</b>
@@ -374,43 +586,72 @@ export default function CheckoutPage() {
                     <button className="ci-remove" onClick={() => cart.remove(i.id)} aria-label={`Hapus ${i.name}`}>
                       <Trash2 size={16} />
                     </button>
-                    {kurangStok ? (
-                      <div
-                        style={{
-                          width: "100%",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginTop: 6,
-                          padding: "6px 10px",
-                          borderRadius: 8,
-                          background: "var(--danger-bg)",
-                          color: "var(--danger-ink)",
-                          fontSize: 12,
-                          fontWeight: 700,
-                        }}
-                      >
-                        <span>Stok cabang hanya tersedia {saldo} unit (diminta {i.qty} unit).</span>
-                        <Link className="btn btn-ghost btn-sm" to={`/pemesanan?productId=${i.id}`}>
-                          <ClipboardList size={14} />
-                          Buat PO
-                        </Link>
-                      </div>
-                    ) : null}
                   </div>
-                );
-              })
-            )}
-          </section>
+                  {kurangStok ? (
+                    <div className="co-stock-warn">
+                      <span>Stok cabang hanya tersedia {saldo} unit (diminta {i.qty} unit).</span>
+                      <Link className="btn btn-ghost btn-sm" to={`/pemesanan?productId=${i.id}`}>
+                        <ClipboardList size={14} />
+                        Buat PO
+                      </Link>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })
+          )}
+        </section>
+
+        <div className="co-flow-actions">
+          <button type="button" className="btn btn-ghost" onClick={() => go("customer")}>
+            <ArrowLeft size={16} />
+            Ubah Pelanggan
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => go("payment")}>
+            Lanjut ke Ringkasan
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page co-flow">
+      <CheckoutSteps current={4} />
+      {poNotice}
+
+      <section className="co-card co-pay-card">
+        <div className="section-head">
+          <div>
+            <h2>Ringkasan Pesanan</h2>
+            <div className="section-desc">
+              {customer.name} · {customer.code}
+            </div>
+          </div>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => go("confirm")}>
+            Ubah Pesanan
+          </button>
         </div>
 
-        {/* Ringkasan Transaksi */}
-        <aside className="summary">
-          <div className="cart-head">
-            <h2>Ringkasan Transaksi</h2>
-            <span className="cart-count">{cart.count} produk</span>
-          </div>
+        <div>
+          {cart.items.map((i) => (
+            <div key={i.id} className="co-product-line">
+              <span className="cl-ico">
+                <ProductIcon category={i.category} />
+              </span>
+              <span className="cl-body">
+                <b>{i.name}</b>
+                <span>
+                  {i.brand} · {i.category} · {i.qty} × {formatIDR(i.price)}
+                </span>
+              </span>
+              <span className="ci-price">{formatIDR(i.price * i.qty)}</span>
+            </div>
+          ))}
+        </div>
 
+        <div className="co-pay-totals">
           <div className="sum-row">
             <span>Subtotal</span>
             <b>{formatIDR(cart.subtotal)}</b>
@@ -428,116 +669,122 @@ export default function CheckoutPage() {
               <b>{formatIDR(cart.discount)}</b>
             </span>
           </div>
-
           <div className="sum-row">
             <span>PPN (11%)</span>
             <b>{formatIDR(tax)}</b>
           </div>
-
           <div className="sum-total">
             <span>Total Pembayaran</span>
             <b>{formatIDR(grandTotal)}</b>
           </div>
+        </div>
 
-          <div className="mini-label" style={{ letterSpacing: 1.3 }}>
-            METODE PEMBAYARAN
-          </div>
-          <div className="pay-list">
-            {METHODS.map((m) => {
-              const Icon = m.icon;
-              return (
-                <button
-                  key={m.id}
-                  className={`pay-opt ${cart.method === m.id ? "on" : ""}`}
-                  onClick={() => {
-                    cart.setMethod(m.id);
-                    setWarning(null);
-                  }}
-                >
-                  <span className="po-ico">
-                    <Icon size={18} />
-                  </span>
-                  <span className="po-body">
-                    <b>{m.label}</b>
-                    <span>{m.desc}</span>
-                  </span>
-                  <span className="radio-dot" />
-                </button>
-              );
-            })}
-          </div>
+        <div className="mini-label" style={{ letterSpacing: 1.3 }}>
+          METODE PEMBAYARAN
+        </div>
+        <div className="pay-list">
+          {METHODS.map((m) => {
+            const Icon = m.icon;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                className={`pay-opt ${cart.method === m.id ? "on" : ""}`}
+                onClick={() => {
+                  cart.setMethod(m.id);
+                  setWarning(null);
+                }}
+              >
+                <span className="po-ico">
+                  <Icon size={18} />
+                </span>
+                <span className="po-body">
+                  <b>{m.label}</b>
+                  <span>{m.desc}</span>
+                </span>
+                <span className="radio-dot" />
+              </button>
+            );
+          })}
+        </div>
 
-          {cart.method === "Tunai" ? (
-            <div className="cash-box">
-              <div className="cash-mode-toggle" role="group" aria-label="Cara pembayaran tunai">
-                <button
-                  type="button"
-                  className={`cash-mode-btn ${cashMode === "exact" ? "on" : ""}`}
-                  aria-pressed={cashMode === "exact"}
-                  onClick={chooseExactCash}
-                >
-                  Uang Pas
-                </button>
-                <button
-                  type="button"
-                  className={`cash-mode-btn ${cashMode === "manual" ? "on" : ""}`}
-                  aria-pressed={cashMode === "manual"}
-                  onClick={chooseManualCash}
-                >
-                  Input Manual
-                </button>
-              </div>
-
-              {cashMode === "exact" ? (
-                <div className="cash-exact-display">
-                  <span>Jumlah Dibayar</span>
-                  <b>{formatIDR(grandTotal)}</b>
-                </div>
-              ) : (
-                <div className="cash-field">
-                  <div className="cash-label-row">
-                    <label htmlFor="cash-paid-input">Jumlah Dibayar</label>
-                  </div>
-                  <div className="cash-input-wrap">
-                    <span className="cash-prefix">Rp</span>
-                    <input
-                      id="cash-paid-input"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder={grandTotal.toLocaleString("id-ID")}
-                      value={cart.cashInput}
-                      onChange={(e) => {
-                        cart.setCashInput(e.target.value);
-                        setWarning(null);
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className={`cash-change-row ${cart.cashPaid < grandTotal ? "is-short" : ""}`}>
-                <span>{cart.cashPaid < grandTotal ? "Kurang Bayar" : "Kembalian"}</span>
-                <b>
-                  {cart.cashPaid < grandTotal
-                  ? `- ${formatIDR(grandTotal - cart.cashPaid)}`
-                  : formatIDR(Math.max(0, cart.cashPaid - grandTotal))}
-                </b>
-              </div>
+        {cart.method === "Tunai" ? (
+          <div className="cash-box">
+            <div className="cash-mode-toggle" role="group" aria-label="Cara pembayaran tunai">
+              <button
+                type="button"
+                className={`cash-mode-btn ${cashMode === "exact" ? "on" : ""}`}
+                aria-pressed={cashMode === "exact"}
+                onClick={chooseExactCash}
+              >
+                Uang Pas
+              </button>
+              <button
+                type="button"
+                className={`cash-mode-btn ${cashMode === "manual" ? "on" : ""}`}
+                aria-pressed={cashMode === "manual"}
+                onClick={chooseManualCash}
+              >
+                Input Manual
+              </button>
             </div>
-          ) : null}
 
-          {warning ? (
-            <div className="notice">
-              <TriangleAlert size={16} />
-              {warning}
+            {cashMode === "exact" ? (
+              <div className="cash-exact-display">
+                <span>Jumlah Dibayar</span>
+                <b>{formatIDR(grandTotal)}</b>
+              </div>
+            ) : (
+              <div className="cash-field">
+                <div className="cash-label-row">
+                  <label htmlFor="cash-paid-input">Jumlah Dibayar</label>
+                </div>
+                <div className="cash-input-wrap">
+                  <span className="cash-prefix">Rp</span>
+                  <input
+                    id="cash-paid-input"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder={grandTotal.toLocaleString("id-ID")}
+                    value={cart.cashInput}
+                    onChange={(e) => {
+                      cart.setCashInput(e.target.value);
+                      setWarning(null);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className={`cash-change-row ${cashShortfall > 0 ? "is-short" : ""}`}>
+              <span>{cashShortfall > 0 ? "Kurang Bayar" : "Kembalian"}</span>
+              <b>
+                {cashShortfall > 0
+                  ? `- ${formatIDR(cashShortfall)}`
+                  : formatIDR(cashChange)}
+              </b>
             </div>
-          ) : null}
+          </div>
+        ) : null}
 
-          <button className="btn btn-primary full" onClick={finish} disabled={isSaving}>
-            {isSaving ? "Menyimpan transaksi..." : "Selesaikan Transaksi"}
+        {warning ? (
+          <div className="notice">
+            <TriangleAlert size={16} />
+            {warning}
+          </div>
+        ) : null}
+
+        <div className="co-flow-actions">
+          <button type="button" className="btn btn-ghost" onClick={() => go("confirm")}>
+            <ArrowLeft size={16} />
+            Periksa Kembali
           </button>
-        </aside>
-      </div>
+          <button type="button" className="btn btn-primary" onClick={finish} disabled={isSaving}>
+            {isSaving ? "Menyimpan transaksi..." : "Konfirmasi Transaksi"}
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </section>
     </div>
   );
 }
