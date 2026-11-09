@@ -85,9 +85,13 @@ class Cookie extends BaseConfig
      * (empty string) means default SameSite attribute set by browsers (`Lax`)
      * will be set on cookies. If set to `None`, `$secure` must also be set.
      *
+     * Frontend dan API dilayani dari origin yang sama (satu link), jadi `Lax`
+     * cukup dan lebih aman: cookie tidak ikut terkirim pada POST lintas situs.
+     * Jangan ubah ke `None` kecuali frontend benar-benar dipisah ke domain lain.
+     *
      * @var ''|'Lax'|'None'|'Strict'
      */
-    public string $samesite = 'None';
+    public string $samesite = 'Lax';
 
     /**
      * --------------------------------------------------------------------------

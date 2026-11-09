@@ -40,8 +40,32 @@ class Session extends BaseConfig
      *
      * The number of SECONDS you want the session to last.
      * Setting to 0 (zero) means expire when the browser is closed.
+     *
+     * Nilai ini hanya umur cookie. Pemutusan sesi yang sebenarnya diatur oleh
+     * $idleTimeout dan $absoluteTimeout di bawah, dan diperiksa di server
+     * pada setiap request (App\Libraries\SessionAuthenticator).
      */
-    public int $expiration = 7200;
+    public int $expiration = 28800;
+
+    /**
+     * --------------------------------------------------------------------------
+     * Session Idle Timeout
+     * --------------------------------------------------------------------------
+     *
+     * Sesi berakhir bila tidak ada request terautentikasi selama sekian detik.
+     * Ini melindungi komputer yang ditinggal dalam keadaan login.
+     */
+    public int $idleTimeout = 1800;
+
+    /**
+     * --------------------------------------------------------------------------
+     * Session Absolute Timeout
+     * --------------------------------------------------------------------------
+     *
+     * Sesi wajib berakhir setelah sekian detik sejak login, sekalipun pengguna
+     * aktif. Memaksa login ulang secara berkala.
+     */
+    public int $absoluteTimeout = 28800;
 
     /**
      * --------------------------------------------------------------------------
@@ -69,6 +93,9 @@ class Session extends BaseConfig
      *
      * WARNING: If you're using the database driver, don't forget to update
      *          your session table's PRIMARY KEY when changing this setting.
+     *
+     * Sengaja dibiarkan false: backend bisa diakses lewat tunnel/proxy
+     * (IP klien terlihat berubah), dan pengguna mobile sering berpindah IP.
      */
     public bool $matchIP = false;
 
@@ -90,7 +117,7 @@ class Session extends BaseConfig
      * when auto-regenerating the session ID. When set to FALSE, the data
      * will be later deleted by the garbage collector.
      */
-    public bool $regenerateDestroy = false;
+    public bool $regenerateDestroy = true;
 
     /**
      * --------------------------------------------------------------------------

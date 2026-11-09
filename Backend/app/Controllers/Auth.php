@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Enums\Role;
+use App\Libraries\SessionAuthenticator;
 use App\Models\UserModel;
 
 class Auth extends BaseController
@@ -39,6 +40,15 @@ class Auth extends BaseController
             return redirect()->to('/login')
                 ->withInput()
                 ->with('error', 'Username dan password wajib diisi.');
+        }
+
+        // Batasi percobaan login: maksimal 5 kali per menit per IP + username.
+        $throttleKey = 'login_' . md5($this->request->getIPAddress() . '|' . strtolower($username));
+        $throttler   = service('throttler');
+
+        if (! $throttler->check($throttleKey, 5, MINUTE)) {
+            return redirect()->to('/login')
+                ->with('error', 'Terlalu banyak percobaan login. Coba lagi dalam satu menit.');
         }
 
         $userModel = new UserModel();
@@ -97,6 +107,10 @@ class Auth extends BaseController
             'remember_username' => $this->request->getPost('remember') === '1',
             'isLoggedIn'       => true,
         ]);
+
+        // Cap waktu login & aktivitas untuk pemeriksaan idle/absolute timeout.
+        (new SessionAuthenticator())->markLogin();
+        $throttler->remove($throttleKey);
 
         $redirect = redirect()->to($this->tujuanSetelahLogin($role->value));
 

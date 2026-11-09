@@ -43,7 +43,7 @@ $routes->group('api', [
 });
 
 // Aplikasi utama (React) dilayani dari public/app. Satu alamat untuk semua.
-$routes->get('/', static fn () => redirect()->to('/app/'));
+$routes->get('/', static fn () => redirect()->to('/app/login'));
 
 // Satu halaman login untuk semua peran.
 $routes->get('login', 'Auth::login');
@@ -106,8 +106,11 @@ $routes->group('kategori', ['filter' => ['auth', 'role:admin,pemilik']], static 
     $routes->post('(:num)/hapus', 'Master\Kategori::delete/$1');
 });
 
-// Aplikasi React (Frontend hasil build). Rute dalam (deep link) juga
-// mengembalikan index.html agar React Router yang menangani halamannya.
-// Harus paling bawah agar tidak menutupi rute API dan halaman lama.
-$routes->get('app', 'Spa::index');
-$routes->get('app/(:any)', 'Spa::index');
+// Halaman login React: boleh diakses tanpa login.
+$routes->get('app/login', 'Spa::index');
+
+// Aplikasi React: wajib login.
+$routes->group('app', ['filter' => 'auth'], static function ($routes): void {
+    $routes->get('/', 'Spa::index');
+    $routes->get('(:any)', 'Spa::index');
+});

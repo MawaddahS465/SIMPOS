@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Enums\Role;
 use App\Libraries\SessionAuthenticator;
 use App\Models\UserModel;
+use CodeIgniter\HTTP\Exceptions\HTTPException;
 
 class AuthApi extends BaseController
 {
@@ -47,7 +48,13 @@ class AuthApi extends BaseController
      */
     public function login()
     {
-        $data = $this->request->getJSON(true);
+        // Body JSON rusak bukan alasan untuk 500: perlakukan sebagai input
+        // tidak valid supaya klien mendapat pesan yang bisa ditindaklanjuti.
+        try {
+            $data = $this->request->getJSON(true);
+        } catch (HTTPException) {
+            $data = null;
+        }
 
         if (! is_array($data)) {
             $data = $this->request->getPost();
@@ -66,6 +73,18 @@ class AuthApi extends BaseController
 
         if ($username === '' || $password === '') {
             return $this->jsonError(400, 'Username dan password wajib diisi.');
+        }
+
+        // Batasi percobaan login: maksimal 5 kali per menit untuk kombinasi
+        // IP + username. Mencegah brute force tanpa mengunci akun selamanya.
+        $throttleKey = 'login_' . md5($this->request->getIPAddress() . '|' . strtolower($username));
+        $throttler   = service('throttler');
+
+        if (! $throttler->check($throttleKey, 5, MINUTE)) {
+            return $this->jsonError(
+                429,
+                'Terlalu banyak percobaan login. Coba lagi dalam satu menit.',
+            )->setHeader('Retry-After', '60');
         }
 
         $userModel = new UserModel();
@@ -118,6 +137,12 @@ class AuthApi extends BaseController
             'cabang_id'  => $user['cabang_id'],
             'isLoggedIn' => true,
         ]);
+
+        // Cap waktu login & aktivitas: dasar pemeriksaan idle/absolute timeout.
+        (new SessionAuthenticator())->markLogin();
+
+        // Login berhasil: percobaan gagal sebelumnya tidak perlu dihitung lagi.
+        $throttler->remove($throttleKey);
 
         return $this->response->setJSON([
             'success'   => true,
