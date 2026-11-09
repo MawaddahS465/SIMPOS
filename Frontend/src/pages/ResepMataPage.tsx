@@ -162,7 +162,6 @@ export default function ResepMataPage() {
       <PageHeader
         overline="ARSIP RESEP"
         title="Resep Mata"
-        desc="Catat dan kelola riwayat resep ukuran lensa mata kanan (OD) dan kiri (OS) pelanggan."
         actions={
           <button className="btn btn-primary" onClick={startAdd}>
             <Plus size={16} />
