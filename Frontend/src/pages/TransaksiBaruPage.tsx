@@ -70,7 +70,6 @@ export default function TransaksiBaruPage() {
       <PageHeader
         overline="TRANSAKSI BARU & CEK STOK CABANG"
         title="Pilih frame dan lensa untuk pelanggan"
-        desc="Periksa ketersediaan stok cabang, tambahkan produk ke keranjang, atau ajukan PO bila stok habis."
       />
 
       <div className="catalog-grid">
