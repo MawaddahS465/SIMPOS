@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ArrowRight, CheckCircle2, Plus, Truck, X } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown, Plus, Search, Truck, X } from "lucide-react";
 import { useSharedStore } from "../../store/sharedStore";
 import { useAuth } from "../../store/auth";
 import { Chip, PageHeader, SearchBox, StatusPill } from "../../components/ui";
@@ -38,7 +38,10 @@ export default function OwnerAlokasiPage() {
   const [error, setError] = useState("");
   const [done, setDone] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [productQuery, setProductQuery] = useState("");
   const keyRef = useRef("");
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   const rows = useMemo(
     () =>
@@ -55,12 +58,28 @@ export default function OwnerAlokasiPage() {
     () => store.products.filter((p) => p.status === "Aktif" && p.type !== "Aksesoris"),
     [store.products],
   );
+  const selectedProduct = products.find((p) => p.id === productId);
+  const filteredProducts = useMemo(() => {
+    const needle = productQuery.trim().toLowerCase();
+    if (!needle) return products;
+    return products.filter((p) => `${p.code} ${p.name} ${p.type}`.toLowerCase().includes(needle));
+  }, [products, productQuery]);
   const avail = store.availableToAllocate(productId);
   const req = requestId ? store.requests.find((r) => r.id === requestId && r.productId === productId) : undefined;
   const outstanding = requestId ? store.outstandingForRequest(requestId, productId) : null;
 
+  const chooseProduct = (id: string) => {
+    setProductId(id);
+    setPickerOpen(false);
+    setProductQuery("");
+    const r = requestId ? store.requests.find((x) => x.id === requestId) : undefined;
+    if (r && r.productId !== id) setRequestId("");
+  };
+
   const pickRequest = (id: string) => {
     setRequestId(id);
+    setPickerOpen(false);
+    setProductQuery("");
     if (!id) return;
     const r = store.requests.find((x) => x.id === id);
     if (!r) return;
@@ -88,6 +107,8 @@ export default function OwnerAlokasiPage() {
     setError("");
     setDone(null);
     setBusy(false);
+    setPickerOpen(false);
+    setProductQuery("");
     keyRef.current = Math.random().toString(36).slice(2) + Date.now().toString(36);
     setOpen(true);
   };
@@ -108,10 +129,30 @@ export default function OwnerAlokasiPage() {
     setQty(String(store.outstandingForRequest(r.id, r.productId)));
     setError("");
     setDone(null);
+    setPickerOpen(false);
+    setProductQuery("");
     keyRef.current = Math.random().toString(36).slice(2) + Date.now().toString(36);
     setOpen(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
+
+  useEffect(() => {
+    if (!open) {
+      setPickerOpen(false);
+      setProductQuery("");
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setPickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [pickerOpen]);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -301,24 +342,96 @@ export default function OwnerAlokasiPage() {
                       ))}
                     </select>
                   </label>
-                  <label className="afield">
+                  <div className="afield" ref={pickerRef}>
                     <span>Produk (frame / lensa)</span>
-                    <select
-                      value={productId}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        setProductId(next);
-                        const r = requestId ? store.requests.find((x) => x.id === requestId) : undefined;
-                        if (r && r.productId !== next) setRequestId("");
-                      }}
-                    >
-                      {products.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.code} — {p.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                    <div className="product-picker">
+                      <button
+                        type="button"
+                        className={`product-picker-trigger ${pickerOpen ? "is-open" : ""}`}
+                        onClick={() => setPickerOpen((value) => !value)}
+                        aria-haspopup="listbox"
+                        aria-expanded={pickerOpen}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") {
+                            setPickerOpen(false);
+                            setProductQuery("");
+                          }
+                        }}
+                      >
+                        <span className="ppt-body">
+                          {selectedProduct ? (
+                            <>
+                              <b>
+                                {selectedProduct.code} — {selectedProduct.name}
+                              </b>
+                              <span>
+                                Stok pusat: {avail.onHand} · bisa dialokasikan: {avail.available}
+                              </span>
+                            </>
+                          ) : (
+                            <b>Pilih produk...</b>
+                          )}
+                        </span>
+                        <ChevronDown size={18} className="ppt-chevron" />
+                      </button>
+
+                      {pickerOpen ? (
+                        <div className="product-picker-panel">
+                          <label className="product-picker-search">
+                            <Search size={15} />
+                            <input
+                              autoFocus
+                              type="search"
+                              value={productQuery}
+                              onChange={(e) => setProductQuery(e.target.value)}
+                              placeholder="Cari kode atau nama produk..."
+                              aria-label="Cari produk"
+                              onKeyDown={(e) => {
+                                if (e.key === "Escape") {
+                                  setPickerOpen(false);
+                                  setProductQuery("");
+                                }
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const first = filteredProducts[0];
+                                  if (first) chooseProduct(first.id);
+                                }
+                              }}
+                            />
+                          </label>
+
+                          <div className="product-picker-list" role="listbox" aria-label="Daftar produk">
+                            {filteredProducts.map((p) => {
+                              const a = store.availableToAllocate(p.id);
+                              return (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={p.id === productId}
+                                  className={`product-picker-option ${p.id === productId ? "is-selected" : ""}`}
+                                  onClick={() => chooseProduct(p.id)}
+                                >
+                                  <span className="ppo-main">
+                                    <b>
+                                      {p.code} — {p.name}
+                                    </b>
+                                    <span>
+                                      Stok pusat: {a.onHand} · bisa dialokasikan: {a.available}
+                                    </span>
+                                  </span>
+                                  {p.id === productId ? <CheckCircle2 size={16} /> : null}
+                                </button>
+                              );
+                            })}
+                            {filteredProducts.length === 0 ? (
+                              <div className="product-picker-empty">Produk tidak ditemukan.</div>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
                   <label className="afield">
                     <span>Pengajuan terkait (opsional)</span>
                     <select value={requestId} onChange={(e) => pickRequest(e.target.value)}>

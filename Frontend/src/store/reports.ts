@@ -99,6 +99,40 @@ export function exportXlsx(
   return name;
 }
 
+/* ---------------- CSV ---------------- */
+
+export function exportCsv(
+  title: string,
+  meta: Array<[string, string]>,
+  head: string[],
+  body: Array<Array<string | number>>,
+  totalRow?: Array<string | number>,
+  fileName?: string,
+) {
+  const cell = (value: string | number | undefined) => {
+    const text = String(value ?? "");
+    return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  const rows: Array<Array<string | number>> = [
+    [title],
+    ...meta.map(([k, v]) => [`${k}: ${v}`]),
+    [],
+    head,
+    ...body,
+  ];
+  if (totalRow) rows.push(totalRow);
+  const csv = "\uFEFF" + rows.map((row) => row.map(cell).join(",")).join("\r\n");
+  const name = fileName ?? `${title.replace(/[^A-Za-z0-9]+/g, "-")}-${stamp()}.csv`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+  return name;
+}
+
 /* ---------------- PDF (tabel manual, tanpa plugin) ---------------- */
 
 export function exportPdf(

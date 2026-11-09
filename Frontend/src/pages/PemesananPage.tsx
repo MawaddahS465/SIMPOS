@@ -47,9 +47,7 @@ export default function PemesananPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="MANAJEMEN PESANAN"
         title="Pemesanan (PO)"
-        desc="Catat pemesanan pelanggan (frame/lensa) dan pantau perkembangan status pesanan di Cabang Padang"
         actions={
           <button className="btn btn-primary" onClick={startCreate}>
             <Plus size={16} />
