@@ -41,11 +41,12 @@ class Session extends BaseConfig
      * The number of SECONDS you want the session to last.
      * Setting to 0 (zero) means expire when the browser is closed.
      *
-     * Nilai ini hanya umur cookie. Pemutusan sesi yang sebenarnya diatur oleh
-     * $idleTimeout dan $absoluteTimeout di bawah, dan diperiksa di server
-     * pada setiap request (App\Libraries\SessionAuthenticator).
+     * Sengaja dipakai `0`: cookie sesi hanya hidup selama browser terbuka,
+     * jadi menutup dan membuka ulang browser selalu diminta login kembali.
+     * Sesi yang terlalu lama tetap diputus di server oleh $idleTimeout
+     * dan $absoluteTimeout (App\Libraries\SessionAuthenticator).
      */
-    public int $expiration = 28800;
+    public int $expiration = 0;
 
     /**
      * --------------------------------------------------------------------------
