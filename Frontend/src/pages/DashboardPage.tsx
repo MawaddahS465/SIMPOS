@@ -23,7 +23,6 @@ const MENU = [
     icon: ShoppingCart,
     title: "Transaksi Baru",
     desc: "Pilih frame dan lensa untuk pelanggan baru",
-    featured: true,
   },
   {
     to: "/pemesanan",
@@ -144,7 +143,7 @@ export default function DashboardPage() {
 
         <div className="menu-cards">
           {MENU.map((m) => (
-            <Link key={m.to} to={m.to} className={`menu-card ${m.featured ? "featured" : ""}`}>
+            <Link key={m.to} to={m.to} className="menu-card">
               <span className="m-icon">
                 <m.icon size={24} strokeWidth={2.1} />
               </span>
