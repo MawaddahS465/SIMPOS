@@ -42,6 +42,7 @@ $routes->group('api', [
     });
 
     $routes->group('admin', ['filter' => 'api-role:admin'], static function ($routes): void {
+        $routes->get('notifikasi', 'AdminNotificationApi::index');
         $routes->get('dashboard', 'AdminDashboardApi::summary');
         $routes->get('produk', 'AdminInventoryApi::products');
         $routes->post('produk', 'AdminInventoryApi::createProduct');

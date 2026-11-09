@@ -11,6 +11,7 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
+import { adminNotificationApi, ApiError, type AdminNotification } from "../lib/api";
 import { useSharedStore } from "../store/sharedStore";
 
 type Role = "kasir" | "admin" | "pemilik";
@@ -153,8 +154,50 @@ export default function NotificationBell({ role }: { role: Role }) {
   const wrap = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [read, setRead] = useState<string[]>(() => loadRead()[role] ?? []);
+  const [adminItems, setAdminItems] = useState<AdminNotification[]>([]);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminError, setAdminError] = useState("");
 
-  const items = useMemo(() => buildItems(role, store), [role, store]);
+  useEffect(() => {
+    if (role !== "admin") return;
+
+    let active = true;
+    const loadNotifications = async () => {
+      setAdminLoading(true);
+      setAdminError("");
+      try {
+        const notifications = await adminNotificationApi.notifications();
+        if (active) {
+          setAdminItems(notifications);
+          const currentIds = new Set(notifications.map((item) => item.id));
+          setRead((current) => current.filter((id) => currentIds.has(id)));
+        }
+      } catch (requestError) {
+        if (active) {
+          setAdminError(requestError instanceof ApiError ? requestError.message : "Notifikasi gagal dimuat.");
+        }
+      } finally {
+        if (active) setAdminLoading(false);
+      }
+    };
+
+    void loadNotifications();
+    const intervalId = window.setInterval(() => void loadNotifications(), 60_000);
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+    };
+  }, [role]);
+
+  const items = useMemo<NotifItem[]>(
+    () => role === "admin"
+      ? adminItems.map((item) => ({
+          ...item,
+          icon: item.icon === "po" ? ClipboardList : item.icon === "stock" ? TriangleAlert : FilePlus2,
+        }))
+      : buildItems(role, store),
+    [adminItems, role, store],
+  );
   const unread = items.filter((i) => !read.includes(i.id));
 
   useEffect(() => {
@@ -220,7 +263,7 @@ export default function NotificationBell({ role }: { role: Role }) {
           {items.length === 0 ? (
             <div className="notif-empty">
               <BellOff size={22} />
-              <span>Belum ada notifikasi.</span>
+              <span>{adminLoading ? "Memuat notifikasi..." : "Belum ada notifikasi."}</span>
             </div>
           ) : (
             <ul className="notif-list">
@@ -244,6 +287,26 @@ export default function NotificationBell({ role }: { role: Role }) {
               })}
             </ul>
           )}
+          {role === "admin" && adminError ? (
+            <div className="notif-empty" role="alert">
+              <span>{adminError}</span>
+              <button className="notif-readall" onClick={() => {
+                setAdminError("");
+                setAdminLoading(true);
+                void adminNotificationApi.notifications()
+                  .then(setAdminItems)
+                  .catch((requestError: unknown) => {
+                    setAdminError(requestError instanceof ApiError ? requestError.message : "Notifikasi gagal dimuat.");
+                  })
+                  .finally(() => setAdminLoading(false));
+              }}>
+                Coba lagi
+              </button>
+            </div>
+          ) : null}
+          {role === "admin" && adminLoading && items.length > 0 ? (
+            <div className="notif-empty">Memperbarui notifikasi...</div>
+          ) : null}
         </div>
       )}
     </div>

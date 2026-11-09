@@ -8,6 +8,15 @@
 
 export type Role = "kasir" | "admin" | "pemilik";
 
+export type AdminNotification = {
+  id: string;
+  title: string;
+  sub: string;
+  to: string;
+  tone: "info" | "warn" | "danger" | "ok";
+  icon: "po" | "stock" | "request";
+};
+
 export type AuthUser = {
   id: number;
   name: string;
@@ -617,6 +626,10 @@ export const adminPoApi = {
       method: "POST",
       body: { status, note },
     }),
+};
+
+export const adminNotificationApi = {
+  notifications: () => requestData<AdminNotification[]>("/api/admin/notifikasi"),
 };
 
 export const adminInventoryApi = {
