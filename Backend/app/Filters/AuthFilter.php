@@ -14,7 +14,7 @@ class AuthFilter implements FilterInterface
         $arguments = null
     ) {
         if ((new SessionAuthenticator())->current() === null) {
-            return redirect()->to('/login')
+            return redirect()->to('/app/login')
                 ->with('error', 'Silakan login kembali.');
         }
     }

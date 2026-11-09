@@ -43,8 +43,13 @@ $routes->group('api', [
 });
 
 // Backend hanya menyediakan API dan frontend React hasil build.
-$routes->get('/', static fn () => redirect()->to('/app/'));
+$routes->get('/', static fn () => redirect()->to('/app/login'));
 
-// Semua halaman aplikasi dan deep link ditangani oleh React Router.
-$routes->get('app', 'Spa::index');
-$routes->get('app/(:any)', 'Spa::index');
+// Halaman login React: boleh diakses tanpa login.
+$routes->get('app/login', 'Spa::index');
+
+// Aplikasi React: wajib login.
+$routes->group('app', ['filter' => 'auth'], static function ($routes): void {
+    $routes->get('/', 'Spa::index');
+    $routes->get('(:any)', 'Spa::index');
+});
