@@ -20,10 +20,103 @@ type ApiPayload = {
   success?: boolean;
   message?: string;
   user?: AuthUser;
+  data?: unknown;
   csrfToken?: string;
 };
 
 export type AuthResponse = ApiPayload & { user?: AuthUser };
+
+export type ApiProduct = {
+  id: number;
+  kode_barang: string;
+  nama_barang: string;
+  jenis: string;
+  merek: string | null;
+  harga_jual: number;
+  nama_kategori: string | null;
+  stok: number;
+  stok_minimum: number;
+};
+
+export type ApiCustomer = {
+  id_pelanggan: number;
+  nama_pelanggan: string;
+  no_hp: string | null;
+  alamat: string | null;
+  jml_resep?: number;
+  po_aktif?: number;
+};
+
+export type ApiRecipe = {
+  id_resep: number;
+  fk_id_pelanggan: number;
+  nama_pelanggan: string;
+  no_hp: string | null;
+  tanggal_resep: string;
+  catatan: string | null;
+  od_sph: string | null;
+  od_cyl: string | null;
+  od_axis: string | null;
+  os_sph: string | null;
+  os_cyl: string | null;
+  os_axis: string | null;
+  pd: string | null;
+  add_power: string | null;
+  status: string;
+};
+
+export type ApiRecipeInput = {
+  customerId: number;
+  date: string;
+  odSph: string;
+  odCyl: string;
+  odAxis: string;
+  osSph: string;
+  osCyl: string;
+  osAxis: string;
+  pd: string;
+  addPower: string;
+  notes: string;
+};
+
+export type ApiTransaction = {
+  id_transaksi: number;
+  kode_transaksi: string;
+  pelanggan_id: number;
+  cabang_id: number;
+  pengguna_id: number;
+  jenis: string;
+  tanggal_transaksi: string;
+  total: number;
+  diskon: number;
+  pajak: number;
+  status: string;
+  nama_pelanggan: string | null;
+  no_hp: string | null;
+  metode_pembayaran: string | null;
+  jumlah_bayar: number | null;
+  status_bayar: string | null;
+};
+
+export type ApiTransactionItem = {
+  barang_id: number;
+  nama_barang: string;
+  merek: string | null;
+  jenis: string;
+  jumlah: number;
+  harga: number;
+  subtotal: number;
+};
+
+export type ApiOrder = {
+  id_po: number;
+  kode_po: string;
+  status: string;
+  tanggal_po: string;
+  nama_pelanggan: string | null;
+};
+
+type ApiDataResponse<T> = ApiPayload & { data?: T };
 
 export class ApiError extends Error {
   readonly status: number;
@@ -148,6 +241,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return payload as T;
 }
 
+async function requestData<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const response = await request<ApiDataResponse<T>>(path, options);
+  if (response.data === undefined) {
+    throw new ApiError("Respons data dari server tidak lengkap.", 500, response);
+  }
+  return response.data;
+}
+
 export const authApi = {
   me: () => request<AuthResponse>("/api/me"),
 
@@ -161,4 +262,46 @@ export const authApi = {
     request<AuthResponse>("/api/logout", {
       method: "POST",
     }),
+};
+
+export const kasirApi = {
+  catalog: (query = "") =>
+    requestData<ApiProduct[]>(`/api/kasir/katalog${query ? `?q=${encodeURIComponent(query)}` : ""}`),
+  customers: (query = "") =>
+    requestData<ApiCustomer[]>(`/api/kasir/pelanggan${query ? `?q=${encodeURIComponent(query)}` : ""}`),
+  createCustomer: (customer: { name: string; phone: string; address: string }) =>
+    requestData<ApiCustomer>("/api/kasir/pelanggan", { method: "POST", body: customer }),
+  updateCustomer: (id: number, customer: { name: string; phone: string; address: string }) =>
+    requestData<ApiCustomer>(`/api/kasir/pelanggan/${id}`, { method: "POST", body: customer }),
+  recipes: (customerId?: number, status?: string) => {
+    const params = new URLSearchParams();
+    if (customerId) params.set("customerId", String(customerId));
+    if (status) params.set("status", status);
+    const query = params.toString();
+    return requestData<ApiRecipe[]>(`/api/kasir/resep${query ? `?${query}` : ""}`);
+  },
+  createRecipe: (recipe: ApiRecipeInput) =>
+    requestData<ApiRecipe>("/api/kasir/resep", { method: "POST", body: recipe }),
+  updateRecipe: (id: number, recipe: Omit<ApiRecipeInput, "customerId">) =>
+    requestData<ApiRecipe>(`/api/kasir/resep/${id}`, { method: "POST", body: recipe }),
+  setCartItem: (productId: number, quantity: number) =>
+    requestData<unknown>("/api/kasir/keranjang/item", {
+      method: "POST",
+      body: { productId, quantity },
+    }),
+  clearCart: () => requestData<unknown>("/api/kasir/keranjang/kosongkan", { method: "POST" }),
+  checkout: (payload: { customerId: number; paymentMethod: string; amountPaid?: number; discountAmount: number }) =>
+    requestData<{ transaction: ApiTransaction; items: ApiTransactionItem[] }>("/api/kasir/checkout", {
+      method: "POST",
+      body: payload,
+    }),
+  transactions: () => requestData<ApiTransaction[]>("/api/kasir/transaksi"),
+  orders: (status = "") =>
+    requestData<ApiOrder[]>(`/api/kasir/pemesanan${status ? `?status=${encodeURIComponent(status)}` : ""}`),
+  transaction: (id: number) =>
+    requestData<{
+      transaction: ApiTransaction;
+      items: ApiTransactionItem[];
+      payment: Array<Record<string, unknown>>;
+    }>(`/api/kasir/transaksi/${id}`),
 };

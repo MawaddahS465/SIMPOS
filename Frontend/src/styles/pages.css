@@ -1345,6 +1345,46 @@ table.tt td:last-child .row-actions {
   font-weight: 500;
 }
 
+.success-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.success-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 32px;
+}
+
+.success-transaction-section {
+  min-width: 0;
+}
+
+.success-transaction-section + .success-transaction-section {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.success-payment-heading {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.success-payment-summary {
+  width: min(100%, 430px);
+  margin-left: auto;
+}
+
+.success-payment-summary .info-row:last-child {
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+}
+
 .two-col {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1864,6 +1904,14 @@ table.tt td:last-child .row-actions {
 @media (max-width: 620px) {
   .product-grid {
     grid-template-columns: 1fr;
+  }
+
+  .success-info-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .success-payment-summary {
+    width: 100%;
   }
 }
 

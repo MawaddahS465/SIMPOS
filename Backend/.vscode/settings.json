@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.env.windows": {
+        "Path": "C:\\xampp\\php;C:\\Program Files\\Git\\cmd;${env:Path}"
+    },
+    "php.validate.executablePath": "C:\\xampp\\php\\php.exe"
+}

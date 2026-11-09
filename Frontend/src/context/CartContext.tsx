@@ -21,6 +21,7 @@ export type Receipt = {
   discount: number;
   discountPercent: number;
   total: number;
+  tax?: number;
   paid: number;
   change: number;
   customer: Customer | null;
@@ -54,7 +55,7 @@ type CartValue = {
   poId: string | null;
   setPoId: (id: string | null) => void;
   receipt: Receipt | null;
-  complete: () => Receipt;
+  complete: (receipt?: Receipt) => Receipt;
 };
 
 const CartContext = createContext<CartValue | null>(null);
@@ -131,7 +132,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   /** Finalisasi transaksi: simpan struk lalu kosongkan keranjang. */
-  const complete = (): Receipt => {
+  const complete = (savedReceipt?: Receipt): Receipt => {
+    if (savedReceipt) {
+      setReceipt(savedReceipt);
+      clear();
+      return savedReceipt;
+    }
+
     const now = new Date();
     const trxNo = `TRX-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(
       now.getDate(),
@@ -147,6 +154,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       discount,
       discountPercent,
       total,
+      tax: 0,
       paid,
       change,
       customer,

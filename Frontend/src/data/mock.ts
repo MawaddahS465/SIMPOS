@@ -100,6 +100,7 @@ export type Transaction = {
   type: "Pembelian" | "Pemesanan";
   total: number;
   discount?: number; // potongan rupiah pada transaksi kasir (0/kosong = tanpa diskon)
+  tax?: number;
   paid?: number; // jumlah uang dibayar pada pembayaran tunai
   change?: number; // kembalian pada pembayaran tunai
   status: TrxStatus;

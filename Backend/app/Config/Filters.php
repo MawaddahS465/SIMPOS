@@ -37,6 +37,7 @@ class Filters extends BaseFilters
         'auth'          => \App\Filters\AuthFilter::class,
         'role'          => \App\Filters\RoleFilter::class,
         'api-csrf'      => \App\Filters\ApiCsrfFilter::class,
+        'api-role'      => \App\Filters\ApiRoleFilter::class,
     ];
 
     /**
@@ -61,7 +62,10 @@ class Filters extends BaseFilters
         'after' => [
             'pagecache',   // Web Page Caching
             'performance', // Performance Metrics
-            'toolbar',     // Debug Toolbar
+            // Toolbar dimatikan: handler `?debugbar` tidak aktif (lihat
+            // app/Config/Events.php), sehingga hanya menyuntik HTML+CSS
+            // tambahan ke setiap respons dan memicu error di SPA.
+            // 'toolbar',  // Debug Toolbar
         ],
     ];
 

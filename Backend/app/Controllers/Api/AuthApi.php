@@ -4,6 +4,7 @@ namespace App\Controllers\Api;
 
 use App\Controllers\BaseController;
 use App\Enums\Role;
+use App\Libraries\SessionAuthenticator;
 use App\Models\UserModel;
 
 class AuthApi extends BaseController
@@ -52,9 +53,16 @@ class AuthApi extends BaseController
             $data = $this->request->getPost();
         }
 
-        $username = trim((string) ($data['username'] ?? ''));
+        if (
+            ! is_array($data)
+            || ! is_string($data['username'] ?? null)
+            || ! is_string($data['password'] ?? null)
+        ) {
+            return $this->jsonError(400, 'Username dan password wajib diisi.');
+        }
 
-        $password = (string) ($data['password'] ?? '');
+        $username = trim($data['username']);
+        $password = $data['password'];
 
         if ($username === '' || $password === '') {
             return $this->jsonError(400, 'Username dan password wajib diisi.');
@@ -67,7 +75,7 @@ class AuthApi extends BaseController
             ->first();
 
         if (! $user || $user['status'] !== 'aktif') {
-            return $this->jsonError(401, 'Username atau password salah, atau akun tidak aktif.');
+            return $this->jsonError(401, 'Username atau password salah.');
         }
 
         $storedPassword = (string) $user['password'];
@@ -124,29 +132,15 @@ class AuthApi extends BaseController
      */
     public function me()
     {
-        if (! session()->get('isLoggedIn')) {
-            return $this->jsonError(401, 'Belum login.');
-        }
+        $authenticated = (new SessionAuthenticator())->current();
 
-        $userModel = new UserModel();
-        $user = $userModel->find(session()->get('user_id'));
-
-        $role = $user ? Role::tryFrom((string) $user['role']) : null;
-
-        if (
-            ! $user
-            || $user['status'] !== 'aktif'
-            || $role === null
-            || ($role->requiresCabang() && empty($user['cabang_id']))
-        ) {
-            session()->destroy();
-
+        if ($authenticated === null) {
             return $this->jsonError(401, 'Sesi tidak valid atau akun tidak aktif.');
         }
 
         return $this->response->setJSON([
             'success'   => true,
-            'user'      => $this->publicUser($user, $role),
+            'user'      => $this->publicUser($authenticated['user'], $authenticated['role']),
             'csrfToken' => service('security')->getHash(),
         ]);
     }

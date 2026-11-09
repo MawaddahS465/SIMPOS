@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowBigUp, Eye, EyeOff, Lock, User } from "lucide-react";
 import MRLogo from "./MRLogo";
 import { ApiError } from "../lib/api";
+import { assetUrl } from "../lib/assets";
 import { useAuth } from "../store/auth";
 import {
   LOGIN_PATH,
@@ -70,7 +71,7 @@ export default function RoleLoginPage({ role }: { role: Role }) {
     <div className="page-bg auth">
       <div className="auth-card" data-role={role}>
         <section className="auth-visual">
-          <img src="/assets/login-approved-visual.jpg" alt="Koleksi kacamata Optik Mekar Jaya" />
+          <img src={assetUrl("assets/login-approved-visual.jpg")} alt="Koleksi kacamata Optik Mekar Jaya" />
           <div className="tint" />
           <div className="auth-copy">
             <h1>
