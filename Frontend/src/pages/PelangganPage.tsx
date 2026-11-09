@@ -68,7 +68,6 @@ export default function PelangganPage() {
     <div className="page">
       <PageHeader
         title="Data Pelanggan"
-        desc="Cari pelanggan berdasarkan nama atau nomor HP, kelola data pelanggan, dan catat riwayat resep."
         actions={
           <button className="btn btn-primary" onClick={startAdd}>
             <UserPlus size={16} />
