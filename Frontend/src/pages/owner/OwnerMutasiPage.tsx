@@ -67,7 +67,7 @@ export default function OwnerMutasiPage() {
   // Telusur dua arah: Pengajuan <-> Alokasi <-> Penerimaan <-> Mutasi
   const initialReceipt =
     directMove?.sumber === "Penerimaan"
-      ? store.receipts.find((r) => r.id === directMove.ref)
+      ? store.receipts.find((r) => r.id === (directMove.traceId ?? directMove.ref))
       : undefined;
   const resolvedAllocId = initialReceipt?.distributionId;
   const initialAlloc = resolvedAllocId ? store.distributions.find((d) => d.id === resolvedAllocId) : undefined;
@@ -94,7 +94,7 @@ export default function OwnerMutasiPage() {
     ? store.mutations.filter(
         (m) =>
           m.id === directMove.id ||
-          traceReceipts.some((r) => r.id === m.ref && m.productId === directMove.productId),
+          traceReceipts.some((r) => r.id === (m.traceId ?? m.ref) && m.productId === directMove.productId),
       )
     : [];
 
@@ -178,6 +178,7 @@ export default function OwnerMutasiPage() {
           <option value="Penjualan">Penjualan</option>
           <option value="Pembatalan">Pembatalan</option>
           <option value="Saldo Awal">Saldo Awal</option>
+          <option value="Pengambilan PO">Pengambilan PO</option>
         </select>
         <select
           className="select-pill"

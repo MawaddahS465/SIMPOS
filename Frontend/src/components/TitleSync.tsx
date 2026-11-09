@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-/* Judul tab per role — supaya Kasir/Admin/Pemilik gampang dibedakan saat banyak tab terbuka. */
+/* Judul tab mengikuti area aplikasi yang sedang dibuka. */
 const TITLES: Array<[RegExp, string]> = [
   [/^\/owner(\/|$)/, "Pemilik — SIMPOS"],
   [/^\/admin(\/|$)/, "Admin — SIMPOS"],
-  [/^\/login$/, "Kasir — SIMPOS"],
+  [/^\/login$/, "Login — SIMPOS"],
   [
     /^\/(dashboard|transaksi-baru|checkout|transaksi-berhasil|pemesanan|riwayat-transaksi|pelanggan|resep-mata|pembayaran)(\/|$)/,
     "Kasir — SIMPOS",

@@ -8,16 +8,6 @@ import type { AuthUser, Role } from "../lib/api";
 
 export type { Role };
 
-export class RoleMismatchError extends Error {
-  readonly user: AuthUser;
-
-  constructor(user: AuthUser) {
-    super(`Akun terdaftar sebagai ${user.role}.`);
-    this.name = "RoleMismatchError";
-    this.user = user;
-  }
-}
-
 export type Session = {
   id: number;
   role: Role;
@@ -40,12 +30,6 @@ export const ROLE_HOME: Record<Role, string> = {
   kasir: "/dashboard",
   admin: "/admin/dashboard",
   pemilik: "/owner/dashboard",
-};
-
-export const LOGIN_PATH: Record<Role, string> = {
-  kasir: "/login",
-  admin: "/admin/login",
-  pemilik: "/owner/login",
 };
 
 /** Kunci sesi demo lama — dibersihkan agar tidak ada role lokal yang tersisa. */

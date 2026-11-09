@@ -6,6 +6,7 @@ import { useAuth } from "../store/auth";
 import { ROLE_LABEL } from "../store/session";
 import MRLogo from "./MRLogo";
 import NotificationBell from "./NotificationBell";
+import { useSharedStore } from "../store/sharedStore";
 import "../styles/layout.css";
 import "../styles/admin.css";
 
@@ -14,10 +15,11 @@ export default function OwnerLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { session, signOut } = useAuth();
+  const ownerData = useSharedStore();
 
   const logout = async () => {
     await signOut();
-    navigate("/owner/login", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -89,7 +91,14 @@ export default function OwnerLayout() {
           </header>
 
           <div className="main-content">
-            <Outlet />
+            {ownerData.ownerDataStatus === "loading" || ownerData.ownerDataStatus === "idle" ? (
+              <div className="panel empty-note" role="status">Memuat data Pemilik dari server...</div>
+            ) : ownerData.ownerDataStatus === "error" ? (
+              <div className="notice" role="alert">
+                {ownerData.ownerDataError}
+                <button className="btn btn-ghost" onClick={() => void ownerData.refreshOwnerData()}>Coba lagi</button>
+              </div>
+            ) : <Outlet />}
           </div>
         </main>
       </div>

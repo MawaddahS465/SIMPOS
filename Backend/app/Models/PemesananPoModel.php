@@ -12,7 +12,7 @@ class PemesananPoModel extends Model
     protected $useTimestamps = true;
     protected $allowedFields = [
         'kode_po', 'pelanggan_id', 'cabang_id', 'pengguna_id', 'resep_id',
-        'tanggal_po', 'tanggal_estimasi_selesai', 'total', 'status', 'catatan',
+        'tanggal_po', 'tanggal_estimasi_selesai', 'total', 'status', 'transaksi_id', 'catatan',
     ];
 
     public function daftarCabang(int $cabangId, string $status = '', string $cari = ''): array
@@ -79,9 +79,10 @@ class PemesananPoModel extends Model
     public function satu(int $poId): ?array
     {
         $row = $this->db->table('pemesanan_po po')
-            ->select('po.*, p.nama_pelanggan, p.no_hp, p.alamat, r.id_resep, r.od_sph, r.od_cyl, r.od_axis, r.os_sph, r.os_cyl, r.os_axis, r.pd, r.add_power')
+            ->select('po.*, p.nama_pelanggan, p.no_hp, p.alamat, r.id_resep, r.od_sph, r.od_cyl, r.od_axis, r.os_sph, r.os_cyl, r.os_axis, r.pd, r.add_power, t.id_transaksi, t.kode_transaksi, t.tanggal_transaksi, t.total AS total_transaksi')
             ->join('pelanggan p', 'p.id_pelanggan = po.pelanggan_id', 'left')
             ->join('resep r', 'r.id_resep = po.resep_id', 'left')
+            ->join('transaksi t', 't.id_transaksi = po.transaksi_id', 'left')
             ->where('po.id_po', $poId)
             ->get()
             ->getRowArray();

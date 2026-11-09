@@ -8,6 +8,7 @@ use App\Models\DetailTransaksiModel;
 use App\Models\PembayaranModel;
 use App\Models\PelangganModel;
 use App\Models\PemesananPoModel;
+use App\Models\PoTimelineModel;
 use App\Models\ResepModel;
 use App\Models\TransaksiModel;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -68,6 +69,53 @@ class KasirApi extends BaseController
     private function userId(): int
     {
         return (int) session()->get('user_id');
+    }
+
+    private function recordStockOut(
+        $db,
+        int $productId,
+        int $quantity,
+        string $productName,
+        string $source,
+        string $reference,
+        string $eventKey,
+        string $date
+    ): void {
+        $stock = $db->query(
+            'SELECT jumlah_stok FROM stok_cabang WHERE cabang_id = ? AND barang_id = ? FOR UPDATE',
+            [$this->branchId(), $productId]
+        )->getRowArray();
+        $before = (int) ($stock['jumlah_stok'] ?? 0);
+        if ($quantity < 1 || $stock === null || $before < $quantity) {
+            throw new \RuntimeException('Stok ' . $productName . ' tidak mencukupi.');
+        }
+
+        $after = $before - $quantity;
+        $db->table('stok_cabang')
+            ->where('cabang_id', $this->branchId())
+            ->where('barang_id', $productId)
+            ->where('jumlah_stok >=', $quantity)
+            ->set('jumlah_stok', 'jumlah_stok - ' . $quantity, false)
+            ->update();
+        if ($db->affectedRows() !== 1) {
+            throw new \RuntimeException('Stok ' . $productName . ' berubah saat transaksi diproses.');
+        }
+
+        if (! $db->table('mutasi_stok')->insert([
+            'cabang_id'     => $this->branchId(),
+            'barang_id'     => $productId,
+            'pengguna_id'   => $this->userId(),
+            'arah'          => 'OUT',
+            'sumber'        => $source,
+            'jumlah'        => $quantity,
+            'saldo_sebelum' => $before,
+            'saldo_sesudah' => $after,
+            'referensi'     => $reference,
+            'event_key'     => $eventKey,
+            'created_at'    => $date,
+        ])) {
+            throw new \RuntimeException('Riwayat mutasi stok gagal disimpan.');
+        }
     }
 
     /**
@@ -572,16 +620,16 @@ class KasirApi extends BaseController
                     throw new \RuntimeException('Rincian transaksi gagal disimpan.');
                 }
 
-                $db->table('stok_cabang')
-                    ->where('cabang_id', $this->branchId())
-                    ->where('barang_id', (int) $row['id'])
-                    ->where('jumlah_stok >=', (int) $row['qty'])
-                    ->set('jumlah_stok', 'jumlah_stok - ' . (int) $row['qty'], false)
-                    ->update();
-
-                if ($db->affectedRows() !== 1) {
-                    throw new \RuntimeException('Stok ' . $row['nama_barang'] . ' berubah saat transaksi diproses.');
-                }
+                $this->recordStockOut(
+                    $db,
+                    (int) $row['id'],
+                    (int) $row['qty'],
+                    (string) $row['nama_barang'],
+                    'Penjualan',
+                    $code,
+                    'sale-' . $transactionId . '-' . (int) $row['id'],
+                    $date
+                );
             }
 
             if (! (new PembayaranModel())->insert([
@@ -640,6 +688,12 @@ class KasirApi extends BaseController
                 ->where('transaksi_id', $id)
                 ->get()
                 ->getResultArray(),
+            'linkedPo'    => db_connect()->table('pemesanan_po')
+                ->select('id_po, kode_po')
+                ->where('transaksi_id', $id)
+                ->where('cabang_id', $this->branchId())
+                ->get()
+                ->getRowArray(),
         ]);
     }
 
@@ -647,7 +701,7 @@ class KasirApi extends BaseController
     {
         $status = trim((string) $this->request->getGet('status'));
         $query  = trim((string) $this->request->getGet('q'));
-        $allowedStatuses = ['', 'dipesan', 'menunggu', 'diproses', 'sudah_datang', 'selesai'];
+        $allowedStatuses = ['', 'dipesan', 'menunggu', 'diproses', 'sudah_datang', 'selesai', 'dibatalkan'];
         if (! in_array($status, $allowedStatuses, true)) {
             return $this->failure(422, 'Filter status PO tidak valid.');
         }
@@ -663,19 +717,43 @@ class KasirApi extends BaseController
         }
 
         $customerId = filter_var($data['customerId'] ?? null, FILTER_VALIDATE_INT);
-        $productId  = filter_var($data['productId'] ?? null, FILTER_VALIDATE_INT);
-        $quantity   = filter_var($data['quantity'] ?? null, FILTER_VALIDATE_INT);
         $customer   = $customerId ? (new PelangganModel())->find($customerId) : null;
-        $product    = $productId ? (new BarangModel())->find($productId) : null;
 
         if ($customer === null) {
             return $this->failure(422, 'Pelanggan tidak ditemukan.');
         }
-        if ($product === null || $product['status'] !== 'aktif' || $product['jenis'] === 'Aksesoris') {
-            return $this->failure(422, 'Pilih produk frame atau lensa yang aktif.');
+
+        $requestedItems = $data['items'] ?? null;
+        if (! is_array($requestedItems)) {
+            $requestedItems = [[
+                'productId' => $data['productId'] ?? null,
+                'quantity'  => $data['quantity'] ?? null,
+            ]];
         }
-        if ($quantity === false || $quantity < 1 || $quantity > 1000) {
-            return $this->failure(422, 'Jumlah harus bilangan bulat antara 1 dan 1000.');
+        if ($requestedItems === [] || count($requestedItems) > 50) {
+            return $this->failure(422, 'PO harus berisi antara 1 dan 50 jenis produk.');
+        }
+
+        $products = [];
+        $hasLens = false;
+        foreach ($requestedItems as $requestedItem) {
+            if (! is_array($requestedItem)) {
+                return $this->failure(422, 'Rincian produk PO tidak valid.');
+            }
+            $productId = filter_var($requestedItem['productId'] ?? null, FILTER_VALIDATE_INT);
+            $quantity  = filter_var($requestedItem['quantity'] ?? null, FILTER_VALIDATE_INT);
+            $product   = $productId ? (new BarangModel())->find($productId) : null;
+
+            if ($product === null || $product['status'] !== 'aktif' || $product['jenis'] === 'Aksesoris') {
+                return $this->failure(422, 'Pilih produk frame atau lensa yang aktif.');
+            }
+            if ($quantity === false || $quantity < 1 || $quantity > 1000) {
+                return $this->failure(422, 'Jumlah setiap produk harus bilangan bulat antara 1 dan 1000.');
+            }
+
+            $product['requested_quantity'] = (int) $quantity;
+            $products[] = $product;
+            $hasLens = $hasLens || $product['jenis'] === 'Lensa';
         }
 
         $notes = $this->stringField($data, 'notes');
@@ -690,7 +768,7 @@ class KasirApi extends BaseController
             if ($recipe === null || (int) $recipe['fk_id_pelanggan'] !== (int) $customerId || $recipe['status'] !== 'aktif') {
                 return $this->failure(422, 'Resep tidak ditemukan untuk pelanggan yang dipilih.');
             }
-        } elseif ($product['jenis'] === 'Lensa') {
+        } elseif ($hasLens) {
             $recipe = (new ResepModel())->terakhirPelanggan((int) $customerId);
             $recipeId = $recipe ? (int) $recipe['id_resep'] : null;
             if ($recipeId === null) {
@@ -698,8 +776,10 @@ class KasirApi extends BaseController
             }
         }
 
-        $price = (float) $product['harga_jual'];
-        $total = $price * (int) $quantity;
+        $total = array_sum(array_map(
+            static fn (array $product): float => (float) $product['harga_jual'] * (int) $product['requested_quantity'],
+            $products
+        ));
         $date  = date('Y-m-d H:i:s');
         $db    = db_connect();
         $db->transBegin();
@@ -724,15 +804,24 @@ class KasirApi extends BaseController
             }
 
             $code = 'PO-' . date('Y') . '-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT);
-            if (! $model->update($id, ['kode_po' => $code])
-                || ! $db->table('detail_po')->insert([
+            if (! $model->update($id, ['kode_po' => $code])) {
+                throw new \RuntimeException('Nomor PO gagal disimpan.');
+            }
+            foreach ($products as $product) {
+                $price = (float) $product['harga_jual'];
+                $quantity = (int) $product['requested_quantity'];
+                if (! $db->table('detail_po')->insert([
                     'po_id'     => $id,
-                    'barang_id' => (int) $productId,
-                    'jumlah'    => (int) $quantity,
+                    'barang_id' => (int) $product['id'],
+                    'jumlah'    => $quantity,
                     'harga'     => $price,
-                    'subtotal'  => $total,
+                    'subtotal'  => $price * $quantity,
                     'catatan'   => trim($notes) ?: null,
-                ])
+                ])) {
+                    throw new \RuntimeException('Rincian produk PO gagal disimpan.');
+                }
+            }
+            if (! (new PoTimelineModel())->catat($id, null, 'dipesan', trim($notes) ?: null, $this->userId())
                 || ! $db->transStatus()
                 || ! $db->transCommit()) {
                 throw new \RuntimeException('Rincian PO gagal disimpan.');
@@ -747,6 +836,7 @@ class KasirApi extends BaseController
         return $this->success([
             'order' => $model->satu($id),
             'items' => $model->detail($id, $this->branchId()),
+            'timeline' => (new PoTimelineModel())->forPo($id),
         ], 201);
     }
 
@@ -761,6 +851,7 @@ class KasirApi extends BaseController
         return $this->success([
             'order' => $order,
             'items' => $model->detail($id, $this->branchId()),
+            'timeline' => (new PoTimelineModel())->forPo($id),
         ]);
     }
 
@@ -840,15 +931,16 @@ class KasirApi extends BaseController
 
             foreach ($items as $item) {
                 $quantity = (int) $item['jumlah'];
-                $db->table('stok_cabang')
-                    ->where('cabang_id', $this->branchId())
-                    ->where('barang_id', (int) $item['barang_id'])
-                    ->where('jumlah_stok >=', $quantity)
-                    ->set('jumlah_stok', 'jumlah_stok - ' . $quantity, false)
-                    ->update();
-                if ($quantity < 1 || $db->affectedRows() !== 1) {
-                    throw new \RuntimeException('Stok ' . $item['nama_barang'] . ' tidak mencukupi untuk pengambilan.');
-                }
+                $this->recordStockOut(
+                    $db,
+                    (int) $item['barang_id'],
+                    $quantity,
+                    (string) $item['nama_barang'],
+                    'Pengambilan PO',
+                    $transactionCode,
+                    'po-pickup-' . $transactionId . '-' . (int) $item['barang_id'],
+                    $date
+                );
 
                 if (! (new DetailTransaksiModel())->insert([
                     'transaksi_id' => $transactionId,
@@ -867,7 +959,9 @@ class KasirApi extends BaseController
                 'metode_pembayaran'  => $method,
                 'jumlah_bayar'       => $amount,
                 'status'             => 'lunas',
-            ]) || ! $model->update($id, ['status' => 'selesai']) || ! $db->transCommit()) {
+            ]) || ! $model->update($id, ['status' => 'selesai', 'transaksi_id' => $transactionId])
+                || ! (new PoTimelineModel())->catat($id, 'sudah_datang', 'selesai', 'PO diselesaikan melalui pengambilan pelanggan.', $this->userId())
+                || ! $db->transCommit()) {
                 throw new \RuntimeException('Pengambilan PO gagal diselesaikan.');
             }
         } catch (Throwable $error) {
@@ -883,6 +977,7 @@ class KasirApi extends BaseController
         return $this->success([
             'order'       => $model->satu($id),
             'transaction' => (new TransaksiModel())->riwayatSatuCabang($this->branchId(), $transactionId),
+            'items'       => $model->detail($id, $this->branchId()),
         ]);
     }
 

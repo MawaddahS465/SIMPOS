@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Glasses, Lock, TriangleAlert } from "lucide-react";
-import { DEMO_ADMIN } from "../../data/admin";
-import { useSharedStore } from "../../store/sharedStore";
 import type { PoStatus } from "../../data/mock";
+import { adminPoApi, ApiError } from "../../lib/api";
+import { mapApiPo, type KasirPo } from "../../lib/po";
+import { useAuth } from "../../store/auth";
 import { Avatar, PageHeader, StatusPill, formatIDR } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -16,12 +17,43 @@ const NEXT_LABEL: Record<string, string> = {
 
 export default function AdminDetailPoPage() {
   const { id } = useParams();
-  const store = useSharedStore();
+  const { session } = useAuth();
   const [note, setNote] = useState("");
   const [cancelReason, setCancelReason] = useState("");
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [order, setOrder] = useState<KasirPo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const order = store.pos.find((o) => o.id === id);
+  useEffect(() => {
+    let active = true;
+    const orderId = Number(id);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+      setLoadError("Nomor PO tidak valid.");
+      setLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    adminPoApi.order(orderId)
+      .then((response) => {
+        if (active) setOrder(mapApiPo(response.order, response.items, response.timeline));
+      })
+      .catch((requestError: unknown) => {
+        if (active) setLoadError(requestError instanceof ApiError ? requestError.message : "Detail PO gagal dimuat.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  if (loading) return <div className="page"><div className="empty-note">Memuat detail PO...</div></div>;
+
   if (!order) {
     return (
       <div className="page">
@@ -33,7 +65,7 @@ export default function AdminDetailPoPage() {
           }
           overline="OPERASIONAL — DETAIL PO"
           title="PO Tidak Ditemukan"
-          desc={`Nomor PO "${id ?? "-"}" tidak ada. Periksa kembali daftar pemesanan.`}
+          desc={loadError || `Nomor PO "${id ?? "-"}" tidak ada. Periksa kembali daftar pemesanan.`}
           actions={
             <Link className="btn btn-ghost" to="/admin/pemesanan">
               <ArrowLeft size={16} />
@@ -43,7 +75,7 @@ export default function AdminDetailPoPage() {
         />
         <div className="notice" role="alert">
           <TriangleAlert size={16} />
-          PO tidak ditemukan.
+          {loadError || "PO tidak ditemukan."}
         </div>
       </div>
     );
@@ -54,20 +86,36 @@ export default function AdminDetailPoPage() {
     order.status === "Dipesan" ? "Diproses" : order.status === "Diproses" ? "Sudah Datang" : null;
   const canCancel = order.status === "Dipesan" || order.status === "Diproses";
 
+  const transition = async (target: "diproses" | "sudah_datang" | "dibatalkan", comment: string) => {
+    if (saving) return;
+    setSaving(true);
+    setResult(null);
+    try {
+      const response = await adminPoApi.updateStatus(Number(order.id), target, comment);
+      setOrder(mapApiPo(response.order, response.items, response.timeline));
+      setResult({ ok: true, msg: "Status PO berhasil diperbarui dan tersinkron ke Kasir." });
+      setNote("");
+      setCancelReason("");
+    } catch (requestError) {
+      setResult({
+        ok: false,
+        msg: requestError instanceof ApiError ? requestError.message : "Status PO gagal diperbarui.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!next) return;
     const defaultNote = next === "Sudah Datang" ? "Barang tersedia di cabang" : "Produk disiapkan";
-    const r = store.transitionPO(order.id, next, note.trim() || defaultNote, DEMO_ADMIN.name);
-    setResult(r);
-    if (r.ok) setNote("");
+    void transition(next === "Diproses" ? "diproses" : "sudah_datang", note.trim() || defaultNote);
   };
 
   const doCancel = (e: FormEvent) => {
     e.preventDefault();
-    const r = store.cancelPO(order.id, cancelReason, DEMO_ADMIN.name);
-    setResult(r);
-    if (r.ok) setCancelReason("");
+    void transition("dibatalkan", cancelReason.trim());
   };
 
   return (
@@ -145,7 +193,7 @@ export default function AdminDetailPoPage() {
             <div key={i} className="todo-row">
               <div className="todo-body">
                 <b>
-                  {t.from} → {t.to}
+                  {t.from || "—"} → {t.to}
                 </b>
                 <span>
                   {t.at} · {t.actor}
@@ -268,8 +316,8 @@ export default function AdminDetailPoPage() {
                     }
                   />
                 </label>
-                <button type="submit" className="btn btn-primary full">
-                  {NEXT_LABEL[order.status]}
+                <button type="submit" className="btn btn-primary full" disabled={saving}>
+                  {saving ? "Menyimpan..." : NEXT_LABEL[order.status]}
                   <ArrowRight size={16} />
                 </button>
               </form>
@@ -291,7 +339,7 @@ export default function AdminDetailPoPage() {
                         placeholder="cth. pelanggan membatalkan pesanan"
                       />
                     </label>
-                    <button type="submit" className="btn btn-danger full" disabled={cancelReason.trim().length < 3}>
+                    <button type="submit" className="btn btn-danger full" disabled={saving || cancelReason.trim().length < 3}>
                       Batalkan PO
                     </button>
                   </form>

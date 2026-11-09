@@ -6,7 +6,7 @@ import { ROLE_HOME } from "../store/session";
 export default function OwnerGuard({ children }: { children: JSX.Element }) {
   const { session } = useAuth();
 
-  if (!session) return <Navigate to="/owner/login" replace />;
+  if (!session) return <Navigate to="/login" replace />;
   if (session.role !== "pemilik") return <Navigate to={ROLE_HOME[session.role]} replace />;
 
   return children;

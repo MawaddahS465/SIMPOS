@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ChevronRight, ClipboardList, PackageCheck, PackagePlus, Plus } from "lucide-react";
 import { type PoStatus } from "../data/mock";
-import { useSharedStore } from "../store/sharedStore";
-import { Avatar, Chip, PageHeader, SearchBox, StatCard, StatusPill } from "../components/ui";
+import { ApiError, kasirApi } from "../lib/api";
+import { mapApiPo } from "../lib/po";
+import { Avatar, PageHeader, SearchBox, StatCard, StatusPill } from "../components/ui";
 import PoBuilderModal from "../components/PoBuilderModal";
 import "../styles/pages.css";
 import "../styles/admin.css";
@@ -11,13 +12,16 @@ import "../styles/admin.css";
 const FILTERS: Array<"Semua" | PoStatus> = ["Semua", "Dipesan", "Diproses", "Sudah Datang", "Selesai", "Dibatalkan"];
 
 export default function PemesananPage() {
-  const shared = useSharedStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [filter, setFilter] = useState<"Semua" | PoStatus>("Semua");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [prefillId, setPrefillId] = useState<string | null>(null);
   const [created, setCreated] = useState<string | null>(null);
+  const [orders, setOrders] = useState<ReturnType<typeof mapApiPo>[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Buka otomatis modal Buat PO bila diarahkan dari Katalog/Checkout (?productId=...)
   useEffect(() => {
@@ -29,14 +33,40 @@ export default function PemesananPage() {
     }
   }, [searchParams, setSearchParams]);
 
-  // PO dibaca dari shared store — Kasir mencatat PO dan memantau status yang diperbarui Admin Cabang.
-  const rows = shared.pos
-    .filter((o) => (filter === "Semua" ? true : o.status === filter))
-    .filter((o) => `${o.number} ${o.customer} ${o.phone} ${o.productLabel}`.toLowerCase().includes(query.toLowerCase()));
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const status = filter === "Semua" ? "" : Object.entries({
+        dipesan: "Dipesan",
+        diproses: "Diproses",
+        sudah_datang: "Sudah Datang",
+        selesai: "Selesai",
+        dibatalkan: "Dibatalkan",
+      }).find(([, label]) => label === filter)?.[0] ?? "";
+      const results = await kasirApi.orders(status);
+      setOrders(results.map((order) => mapApiPo(order)));
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Daftar PO gagal dimuat.");
+    } finally {
+      setLoading(false);
+    }
+  }, [filter]);
 
-  const poBaru = shared.pos.filter((o) => o.status === "Dipesan").length;
-  const diproses = shared.pos.filter((o) => o.status === "Diproses").length;
-  const datang = shared.pos.filter((o) => o.status === "Sudah Datang").length;
+  useEffect(() => {
+    void reload();
+  }, [reload, refreshKey]);
+
+  const rows = useMemo(
+    () => orders.filter((order) =>
+      `${order.number} ${order.customer} ${order.phone} ${order.productLabel}`.toLowerCase().includes(query.toLowerCase()),
+    ),
+    [orders, query],
+  );
+
+  const poBaru = orders.filter((o) => o.status === "Dipesan").length;
+  const diproses = orders.filter((o) => o.status === "Diproses").length;
+  const datang = orders.filter((o) => o.status === "Sudah Datang").length;
 
   const startCreate = () => {
     setPrefillId(null);
@@ -71,6 +101,7 @@ export default function PemesananPage() {
           </Link>
         </div>
       ) : null}
+      {error ? <div className="notice" role="alert">{error}</div> : null}
 
       <section className="section-block">
         <div className="section-head">
@@ -110,7 +141,9 @@ export default function PemesananPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((o) => (
+              {loading ? (
+                <tr><td colSpan={5}><div className="empty-note">Memuat daftar PO...</div></td></tr>
+              ) : rows.map((o) => (
                 <tr key={o.id}>
                   <td>
                     <div className="tt-num">{o.number}</div>
@@ -129,7 +162,7 @@ export default function PemesananPage() {
                     <div className="tt-num" style={{ fontSize: 13 }}>
                       {o.productLabel}
                     </div>
-                    <div className="tt-sub">{o.products[1]}</div>
+                    <div className="tt-sub">{o.items.length ? `${o.items.length} jenis produk` : "Detail produk tersedia di PO"}</div>
                   </td>
                   <td className="tt-center">
                     <StatusPill label={o.status} />
@@ -142,7 +175,7 @@ export default function PemesananPage() {
                   </td>
                 </tr>
               ))}
-              {rows.length === 0 ? (
+              {!loading && rows.length === 0 ? (
                 <tr>
                   <td colSpan={5}>
                     <div className="empty-note">Tidak ada pesanan yang cocok dengan filter.</div>
@@ -152,7 +185,7 @@ export default function PemesananPage() {
             </tbody>
           </table>
           <div className="table-foot">
-            <span className="foot-note">Menampilkan {rows.length} dari {shared.pos.length} pesanan</span>
+            <span className="foot-note">Menampilkan {rows.length} dari {orders.length} pesanan</span>
           </div>
         </div>
       </section>
@@ -164,6 +197,7 @@ export default function PemesananPage() {
           onCreated={(id) => {
             setCreated(id);
             setOpen(false);
+            setRefreshKey((key) => key + 1);
           }}
         />
       ) : null}

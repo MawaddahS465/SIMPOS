@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronRight, ClipboardList, PackageCheck, PackagePlus } from "lucide-react";
-import { DEMO_ADMIN } from "../../data/admin";
-import { useSharedStore } from "../../store/sharedStore";
 import type { PoStatus } from "../../data/mock";
+import { adminPoApi, ApiError } from "../../lib/api";
+import { mapApiPo } from "../../lib/po";
+import { useAuth } from "../../store/auth";
 import { Avatar, PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -11,30 +12,51 @@ import "../../styles/admin.css";
 const FILTERS: Array<"Semua" | PoStatus> = ["Semua", "Dipesan", "Diproses", "Sudah Datang", "Selesai", "Dibatalkan"];
 
 export default function AdminPemesananPage() {
-  const store = useSharedStore();
+  const { session } = useAuth();
   const [filter, setFilter] = useState<"Semua" | PoStatus>("Semua");
   const [query, setQuery] = useState("");
+  const [orders, setOrders] = useState<ReturnType<typeof mapApiPo>[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const rows = useMemo(
-    () =>
-      store.pos
-        .filter((o) => (filter === "Semua" ? true : o.status === filter))
-        .filter((o) =>
-          `${o.number} ${o.customer} ${o.phone} ${o.productLabel}`.toLowerCase().includes(query.toLowerCase()),
-        ),
-    [store.pos, filter, query],
-  );
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError("");
+    const status = filter === "Semua" ? "" : ({
+      Dipesan: "dipesan",
+      Diproses: "diproses",
+      "Sudah Datang": "sudah_datang",
+      Selesai: "selesai",
+      Dibatalkan: "dibatalkan",
+    } as const)[filter];
+    adminPoApi.orders(status, query)
+      .then((rows) => {
+        if (active) setOrders(rows.map((order) => mapApiPo(order)));
+      })
+      .catch((requestError: unknown) => {
+        if (active) setError(requestError instanceof ApiError ? requestError.message : "Daftar PO gagal dimuat.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [filter, query]);
 
-  const baru = store.pos.filter((o) => o.status === "Dipesan").length;
-  const diproses = store.pos.filter((o) => o.status === "Diproses").length;
-  const datang = store.pos.filter((o) => o.status === "Sudah Datang").length;
+  const rows = orders;
+
+  const baru = orders.filter((o) => o.status === "Dipesan").length;
+  const diproses = orders.filter((o) => o.status === "Diproses").length;
+  const datang = orders.filter((o) => o.status === "Sudah Datang").length;
 
   return (
     <div className="page">
       <PageHeader
         overline="OPERASIONAL — PEMESANAN"
         title="Pemesanan (PO)"
-        desc={`Antrean PO dari Kasir ${DEMO_ADMIN.branch}. ${baru} PO baru menunggu diproses.`}
+        desc={`Antrean PO dari Kasir ${session?.branch ?? "cabang"}. ${baru} PO baru menunggu diproses.`}
       />
 
       <div className="stat-row">
@@ -42,6 +64,7 @@ export default function AdminPemesananPage() {
         <StatCard label="Sedang Diproses" value={String(diproses).padStart(2, "0")} caption="Dalam penanganan cabang" icon={<ClipboardList size={22} />} tone="amber" />
         <StatCard label="Sudah Datang" value={String(datang).padStart(2, "0")} caption="Siap diambil pelanggan" icon={<PackageCheck size={22} />} tone="green" />
       </div>
+      {error ? <div className="notice" role="alert">{error}</div> : null}
 
       <section className="section-block">
         <div className="section-head">
@@ -81,7 +104,9 @@ export default function AdminPemesananPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((o) => (
+              {loading ? (
+                <tr><td colSpan={5}><div className="empty-note">Memuat daftar PO...</div></td></tr>
+              ) : rows.map((o) => (
                 <tr key={o.id}>
                   <td>
                     <div className="tt-num">{o.number}</div>
@@ -100,7 +125,7 @@ export default function AdminPemesananPage() {
                     <div className="tt-num" style={{ fontSize: 13 }}>
                       {o.productLabel}
                     </div>
-                    <div className="tt-sub">{o.products[1]}</div>
+                    <div className="tt-sub">{o.items.length ? `${o.items.length} jenis produk` : "Detail produk tersedia di PO"}</div>
                   </td>
                   <td className="tt-center">
                     <StatusPill label={o.status} />
@@ -120,7 +145,7 @@ export default function AdminPemesananPage() {
                   </td>
                 </tr>
               ))}
-              {rows.length === 0 ? (
+              {!loading && rows.length === 0 ? (
                 <tr>
                   <td colSpan={5}>
                     <div className="empty-note">Tidak ada pesanan yang cocok dengan filter.</div>
@@ -130,7 +155,7 @@ export default function AdminPemesananPage() {
             </tbody>
           </table>
           <div className="table-foot">
-            <span className="foot-note">Menampilkan {rows.length} dari {store.pos.length} pesanan</span>
+            <span className="foot-note">Menampilkan {rows.length} pesanan</span>
           </div>
         </div>
       </section>

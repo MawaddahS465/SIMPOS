@@ -14,7 +14,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import { useSharedStore, type ProductType } from "../store/sharedStore";
+import { ApiError, kasirApi, type ApiCustomer, type ApiProduct, type ApiRecipe } from "../lib/api";
 import { Avatar, formatIDR } from "./ui";
 
 type Props = {
@@ -24,6 +24,43 @@ type Props = {
 };
 
 type Line = { productId: string; qty: number };
+type ProductType = "Frame" | "Lensa" | "Aksesoris";
+type PoCustomer = { id: string; code: string; name: string; initials: string; phone: string };
+type PoProduct = { id: string; code: string; name: string; brand: string; type: ProductType; price: number; status: "Aktif"; stock: number };
+type PoRecipe = { id: string; date: string; od: { sph: string }; os: { sph: string }; pd: string };
+
+function mapCustomer(row: ApiCustomer): PoCustomer {
+  return {
+    id: String(row.id_pelanggan),
+    code: `PLG-${String(row.id_pelanggan).padStart(4, "0")}`,
+    name: row.nama_pelanggan,
+    initials: row.nama_pelanggan.split(/\s+/).slice(0, 2).map((part) => part[0] ?? "").join("").toUpperCase(),
+    phone: row.no_hp ?? "-",
+  };
+}
+
+function mapProduct(row: ApiProduct): PoProduct {
+  return {
+    id: String(row.id),
+    code: row.kode_barang,
+    name: row.nama_barang,
+    brand: row.merek ?? "-",
+    type: row.jenis === "Frame" || row.jenis === "Lensa" ? row.jenis : "Aksesoris",
+    price: Number(row.harga_jual),
+    status: "Aktif",
+    stock: Number(row.stok),
+  };
+}
+
+function mapRecipe(row: ApiRecipe): PoRecipe {
+  return {
+    id: String(row.id_resep),
+    date: row.tanggal_resep,
+    od: { sph: row.od_sph ?? "-" },
+    os: { sph: row.os_sph ?? "-" },
+    pd: row.pd ?? "-",
+  };
+}
 
 function ProductIcon({ type }: { type: ProductType }) {
   if (type === "Frame") return <Glasses size={20} strokeWidth={1.7} />;
@@ -33,15 +70,13 @@ function ProductIcon({ type }: { type: ProductType }) {
 
 /** Modal Buat PO: pilih pelanggan, susun beberapa produk, lalu simpan sebagai PO Dipesan. */
 export default function PoBuilderModal({ onClose, onCreated, initialProductId }: Props) {
-  const shared = useSharedStore();
-  const products = useMemo(() => shared.products.filter((p) => p.status === "Aktif"), [shared.products]);
-
-  const [customerId, setCustomerId] = useState(shared.customers[0]?.id ?? "");
-  const [items, setItems] = useState<Line[]>(() =>
-    initialProductId && products.some((p) => p.id === initialProductId)
-      ? [{ productId: initialProductId, qty: 1 }]
-      : [],
-  );
+  const [customers, setCustomers] = useState<PoCustomer[]>([]);
+  const [products, setProducts] = useState<PoProduct[]>([]);
+  const [reseps, setReseps] = useState<PoRecipe[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [customerId, setCustomerId] = useState("");
+  const [items, setItems] = useState<Line[]>([]);
   const [note, setNote] = useState("");
   const [resepId, setResepId] = useState("");
   const [error, setError] = useState("");
@@ -55,15 +90,54 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
   const custSearch = useRef<HTMLInputElement>(null);
   const catSearch = useRef<HTMLInputElement>(null);
 
-  const customer = shared.customers.find((c) => c.id === customerId);
-  const reseps = useMemo(
-    () => shared.reseps.filter((r) => r.customer === customer?.name),
-    [shared.reseps, customer?.name],
-  );
+  const customer = customers.find((c) => c.id === customerId);
 
   useEffect(() => {
-    setResepId(reseps[0]?.id ?? "");
-  }, [customerId, reseps.length]);
+    let active = true;
+    Promise.all([kasirApi.customers(), kasirApi.catalog()])
+      .then(([customerRows, productRows]) => {
+        if (!active) return;
+        const mappedCustomers = customerRows.map(mapCustomer);
+        const mappedProducts = productRows.map(mapProduct).filter((product) => product.type === "Frame" || product.type === "Lensa");
+        setCustomers(mappedCustomers);
+        setProducts(mappedProducts);
+        setCustomerId((current) => current || mappedCustomers[0]?.id || "");
+        setItems((current) => current.length || !initialProductId || !mappedProducts.some((product) => product.id === initialProductId)
+          ? current
+          : [{ productId: initialProductId, qty: 1 }]);
+      })
+      .catch((requestError: unknown) => {
+        if (active) setError(requestError instanceof ApiError ? requestError.message : "Data PO gagal dimuat dari server.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [initialProductId]);
+
+  useEffect(() => {
+    if (!customerId) {
+      setReseps([]);
+      setResepId("");
+      return;
+    }
+    let active = true;
+    kasirApi.recipes(Number(customerId), "aktif")
+      .then((rows) => {
+        if (!active) return;
+        const mapped = rows.map(mapRecipe);
+        setReseps(mapped);
+        setResepId(mapped[0]?.id ?? "");
+      })
+      .catch((requestError: unknown) => {
+        if (active) setError(requestError instanceof ApiError ? requestError.message : "Resep pelanggan gagal dimuat.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [customerId]);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -113,7 +187,7 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
   const hasLensa = rows.some((r) => r.product.type === "Lensa");
 
   const q = custQuery.trim().toLowerCase();
-  const filteredCustomers = shared.customers.filter((c) =>
+  const filteredCustomers = customers.filter((c) =>
     `${c.name} ${c.code} ${c.phone}`.toLowerCase().includes(q),
   );
 
@@ -143,8 +217,9 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
     );
   }
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
+    if (saving) return;
     if (!customerId) {
       setError("Pilih pelanggan terlebih dahulu.");
       return;
@@ -153,18 +228,21 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
       setError("Tambahkan minimal satu produk ke daftar pesanan.");
       return;
     }
-    const r = shared.createPO({
-      customerId,
-      items: rows.map((r2) => ({ productId: r2.productId, qty: r2.qty })),
-      note,
-      actor: "Kasir",
-      resepId: hasLensa && resepId ? resepId : undefined,
-    });
-    if (!r.ok) {
-      setError(r.msg);
-      return;
+    setSaving(true);
+    setError("");
+    try {
+      const saved = await kasirApi.createOrder({
+        customerId: Number(customerId),
+        items: rows.map((row) => ({ productId: Number(row.productId), quantity: row.qty })),
+        notes: note,
+        ...(hasLensa && resepId ? { recipeId: Number(resepId) } : {}),
+      });
+      onCreated(String(saved.order.id_po));
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "PO gagal disimpan.");
+    } finally {
+      setSaving(false);
     }
-    onCreated(r.id ?? "");
   }
 
   return (
@@ -318,7 +396,7 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
                     <div className="po-catalog-list">
                       {filteredProducts.map((p) => {
                         const added = items.some((i) => i.productId === p.id);
-                        const saldo = shared.stockOf(p.id)?.saldo;
+                        const saldo = p.stock;
                         return (
                           <button
                             type="button"
@@ -360,7 +438,7 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
                   </div>
 
                   {rows.map((r, i) => {
-                    const saldo = shared.stockOf(r.product.id)?.saldo;
+                    const saldo = r.product.stock;
                     return (
                       <div className="po-line" key={r.productId}>
                         <span className="po-line-no">{i + 1}</span>
@@ -504,9 +582,9 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
               <button type="button" className="btn btn-ghost" onClick={onClose}>
                 Batal
               </button>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" disabled={saving || loading}>
                 <Save size={16} />
-                Simpan PO
+                {saving ? "Menyimpan..." : "Simpan PO"}
               </button>
             </div>
           </footer>

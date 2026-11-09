@@ -37,7 +37,7 @@ export default function TransaksiBerhasilPage() {
 
     let active = true;
     kasirApi.transaction(id)
-      .then(({ transaction, items, payment }) => {
+      .then(({ transaction, items, payment, linkedPo }) => {
         if (!active) return;
         const dateTime = new Date(transaction.tanggal_transaksi.replace(" ", "T"));
         const paid = Number(payment[0]?.jumlah_bayar ?? transaction.jumlah_bayar ?? transaction.total);
@@ -73,7 +73,7 @@ export default function TransaksiBerhasilPage() {
             branch: session?.branch ?? "Cabang",
           } : null,
           method,
-          poId: null,
+          poId: linkedPo ? String(linkedPo.id_po) : null,
         });
       })
       .catch((error: unknown) => {
@@ -103,7 +103,7 @@ export default function TransaksiBerhasilPage() {
   const method = r.method;
   const paid = method === "Tunai" ? r.paid : total;
   const change = method === "Tunai" ? r.change : 0;
-  const linkedPo = r.poId ? shared.pos.find((p) => p.id === r.poId) : undefined;
+  const linkedPo = r.poId;
 
   return (
     <div className="success page co-success">
@@ -162,7 +162,7 @@ export default function TransaksiBerhasilPage() {
           {linkedPo ? (
             <div className="info-row">
               <span>Pengambilan PO</span>
-              <b>{linkedPo.number}</b>
+              <Link to={`/pemesanan/${linkedPo}`}>PO #{linkedPo}</Link>
             </div>
           ) : null}
         </div>

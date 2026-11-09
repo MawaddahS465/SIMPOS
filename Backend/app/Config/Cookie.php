@@ -52,9 +52,9 @@ class Cookie extends BaseConfig
      * Cookie Secure
      * --------------------------------------------------------------------------
      *
-     * Cookie will only be set if a secure HTTPS connection exists.
+     * Require HTTPS in production; allow HTTP for local development.
      */
-    public bool $secure = true;
+    public bool $secure = ENVIRONMENT === 'production';
 
     /**
      * --------------------------------------------------------------------------

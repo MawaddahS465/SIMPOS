@@ -14,7 +14,6 @@ import AppLayout from "./components/AppLayout";
 import KasirGuard from "./components/KasirGuard";
 import AdminLayout from "./components/AdminLayout";
 import AdminGuard from "./components/AdminGuard";
-import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminProdukPage from "./pages/admin/AdminProdukPage";
 import AdminStokPage from "./pages/admin/AdminStokPage";
@@ -25,7 +24,6 @@ import AdminDetailPoPage from "./pages/admin/AdminDetailPoPage";
 import AdminMutasiPage from "./pages/admin/AdminMutasiPage";
 import OwnerGuard from "./components/OwnerGuard";
 import OwnerLayout from "./components/OwnerLayout";
-import OwnerLoginPage from "./pages/owner/OwnerLoginPage";
 import OwnerDashboardPage from "./pages/owner/OwnerDashboardPage";
 import OwnerCabangPage from "./pages/owner/OwnerCabangPage";
 import OwnerCabangDetailPage from "./pages/owner/OwnerCabangDetailPage";
@@ -106,14 +104,7 @@ function AppRoutes() {
         </Route>
       </Route>
       {/* ADMIN CABANG — Tahap 01. Rute Kasir di atas tidak diubah. */}
-      <Route
-        path="/admin/login"
-        element={
-          <GuestOnly>
-            <AdminLoginPage />
-          </GuestOnly>
-        }
-      />
+      <Route path="/admin/login" element={<Navigate to="/login" replace />} />
       <Route
         element={
           <AdminGuard>
@@ -132,14 +123,7 @@ function AppRoutes() {
         <Route path="/admin/mutasi" element={<AdminMutasiPage />} />
       </Route>
       {/* PEMILIK — Tahap 04 Checkpoint 1. Rute Kasir & Admin di atas tidak diubah. */}
-      <Route
-        path="/owner/login"
-        element={
-          <GuestOnly>
-            <OwnerLoginPage />
-          </GuestOnly>
-        }
-      />
+      <Route path="/owner/login" element={<Navigate to="/login" replace />} />
       <Route
         element={
           <OwnerGuard>

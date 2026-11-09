@@ -1,39 +1,91 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { FilePlus2, Settings2 } from "lucide-react";
-import { useAdminStore } from "../../store/sharedStore";
-import { Chip, PageHeader, SearchBox, StatusPill } from "../../components/ui";
+import { adminInventoryApi, ApiError, type AdminStockRow } from "../../lib/api";
+import { PageHeader, SearchBox, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
+type StockRow = {
+  id: string;
+  code: string;
+  name: string;
+  brand: string;
+  type: string;
+  saldo: number;
+  minimum: number;
+};
+
+function mapStock(row: AdminStockRow): StockRow {
+  return {
+    id: String(row.id),
+    code: row.kode_barang,
+    name: row.nama_barang,
+    brand: row.merek ?? "",
+    type: row.jenis,
+    saldo: Number(row.stok),
+    minimum: Number(row.stok_minimum),
+  };
+}
+
 export default function AdminStokPage() {
-  const store = useAdminStore();
+  const [stock, setStock] = useState<StockRow[]>([]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"Semua" | "Aman" | "Menipis">("Semua");
-  const [minFor, setMinFor] = useState<string | null>(null);
+  const [minFor, setMinFor] = useState<StockRow | null>(null);
   const [minVal, setMinVal] = useState("");
   const [minError, setMinError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
+  const loadStock = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setStock((await adminInventoryApi.stocks(q.trim())).map(mapStock));
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Daftar stok gagal dimuat.");
+    } finally {
+      setLoading(false);
+    }
+  }, [q]);
+
+  useEffect(() => {
+    void loadStock();
+  }, [loadStock]);
+
+  const lowStockCount = stock.filter((row) => row.saldo <= row.minimum).length;
   const rows = useMemo(
-    () =>
-      store.stock
-        .map((s) => ({ s, p: store.productOf(s.productId)! }))
-        .filter(({ p }) => p && p.status === "Aktif")
-        .map(({ s, p }) => ({ p, saldo: s.saldo, minimum: s.minimum, low: s.saldo <= s.minimum }))
-        .filter(({ low }) => (filter === "Semua" ? true : filter === "Menipis" ? low : !low))
-        .filter(({ p }) => `${p.code} ${p.name} ${p.brand}`.toLowerCase().includes(q.toLowerCase())),
-    [store, q, filter],
+    () => stock.filter((row) => {
+      const low = row.saldo <= row.minimum;
+      return filter === "Semua" || (filter === "Menipis" ? low : !low);
+    }),
+    [stock, filter],
   );
 
-  const submitMin = (e: FormEvent) => {
-    e.preventDefault();
-    const v = Number(minVal);
-    if (!Number.isInteger(v) || v < 0) {
+  const submitMin = async (event: FormEvent) => {
+    event.preventDefault();
+    const minimum = Number(minVal);
+    if (!Number.isInteger(minimum) || minimum < 0 || minimum > 4294967295) {
       setMinError("Batas minimum harus bilangan bulat ≥ 0.");
       return;
     }
-    if (minFor) store.setMinimum(minFor, v);
-    setMinFor(null);
+    if (!minFor) return;
+
+    setSaving(true);
+    setMinError("");
+    try {
+      const updated = await adminInventoryApi.updateMinimum(Number(minFor.id), minimum);
+      setStock((current) => current.map((row) =>
+        row.id === minFor.id ? { ...row, saldo: Number(updated.jumlah_stok), minimum: Number(updated.stok_minimum) } : row,
+      ));
+      setMinFor(null);
+    } catch (requestError) {
+      setMinError(requestError instanceof ApiError ? requestError.message : "Batas minimum gagal disimpan.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -41,8 +93,17 @@ export default function AdminStokPage() {
       <PageHeader
         overline="PERSEDIAAN CABANG"
         title="Stok Cabang"
-        desc="Saldo, batas minimum, dan status tiap produk di Cabang Padang. Saldo hanya berubah lewat penerimaan atau penjualan — bukan edit manual."
+        desc="Saldo dan batas minimum tiap produk di cabang akun Anda. Saldo berubah melalui penerimaan atau transaksi penjualan."
       />
+
+      {error ? (
+        <div className="notice" role="alert">
+          {error}{" "}
+          <button className="btn btn-ghost" type="button" onClick={() => void loadStock()}>
+            Coba lagi
+          </button>
+        </div>
+      ) : null}
 
       <div className="toolbar">
         <SearchBox placeholder="Cari kode, nama, atau merek produk..." value={q} onChange={setQ} />
@@ -51,11 +112,11 @@ export default function AdminStokPage() {
             className="chip-select"
             aria-label="Filter Status Stok"
             value={filter}
-            onChange={(e) => setFilter(e.target.value as "Semua" | "Aman" | "Menipis")}
+            onChange={(event) => setFilter(event.target.value as "Semua" | "Aman" | "Menipis")}
           >
             <option value="Semua">Semua Status</option>
             <option value="Aman">Aman</option>
-            <option value="Menipis">Menipis ({store.lowStock.length})</option>
+            <option value="Menipis">Menipis ({lowStockCount})</option>
           </select>
         </div>
       </div>
@@ -73,78 +134,67 @@ export default function AdminStokPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ p, saldo, minimum, low }) => (
-              <tr key={p.id}>
-                <td>
-                  <div className="tt-num">{p.name}</div>
-                  <div className="tt-sub">
-                    {p.code} · {p.brand}
-                  </div>
-                </td>
-                <td>{p.type}</td>
-                <td className="tt-center tt-money">{saldo}</td>
-                <td className="tt-center tt-money">{minimum}</td>
-                <td className="tt-center">
-                  <StatusPill label={low ? "Stok Menipis" : "Aman"} />
-                </td>
-                <td className="tt-right">
-                  <span className="row-actions">
-                    <button
-                      className="link-action"
-                      onClick={() => {
-                        setMinFor(p.id);
-                        setMinVal(String(minimum));
-                        setMinError("");
-                      }}
-                    >
-                      <Settings2 size={14} />
-                      Atur Minimum
-                    </button>
-                    <Link className="link-action" to={`/admin/pengajuan?product=${p.id}`}>
-                      <FilePlus2 size={14} />
-                      Ajukan Stok
-                    </Link>
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={6}>
-                  <div className="empty-note">Tidak ada stok yang cocok dengan filter.</div>
-                </td>
-              </tr>
+            {loading ? (
+              <tr><td colSpan={6}><div className="empty-note">Memuat stok cabang...</div></td></tr>
+            ) : rows.map((row) => {
+              const low = row.saldo <= row.minimum;
+              return (
+                <tr key={row.id}>
+                  <td>
+                    <div className="tt-num">{row.name}</div>
+                    <div className="tt-sub">{row.code} · {row.brand}</div>
+                  </td>
+                  <td>{row.type}</td>
+                  <td className="tt-center tt-money">{row.saldo}</td>
+                  <td className="tt-center tt-money">{row.minimum}</td>
+                  <td className="tt-center"><StatusPill label={low ? "Stok Menipis" : "Aman"} /></td>
+                  <td className="tt-right">
+                    <span className="row-actions">
+                      <button
+                        className="link-action"
+                        onClick={() => {
+                          setMinFor(row);
+                          setMinVal(String(row.minimum));
+                          setMinError("");
+                        }}
+                      >
+                        <Settings2 size={14} />
+                        Atur Minimum
+                      </button>
+                      <Link className="link-action" to={`/admin/pengajuan?product=${row.id}`}>
+                        <FilePlus2 size={14} />
+                        Ajukan Stok
+                      </Link>
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+            {!loading && rows.length === 0 ? (
+              <tr><td colSpan={6}><div className="empty-note">Tidak ada stok yang cocok dengan filter.</div></td></tr>
             ) : null}
           </tbody>
         </table>
         <div className="table-foot">
-          <span className="foot-note">
-            {store.lowStock.length} produk menipis · saldo ≤ minimum
-          </span>
+          <span className="foot-note">{lowStockCount} produk menipis · saldo ≤ minimum</span>
         </div>
       </div>
 
       {minFor ? (
-        <div className="overlay" onClick={() => setMinFor(null)}>
-          <div className="confirm" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="overlay" onClick={() => !saving && setMinFor(null)}>
+          <div className="confirm" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
             <h2>Atur Batas Minimum</h2>
-            <p>{store.productOf(minFor)?.name} — label “Stok Menipis” muncul saat saldo ≤ minimum.</p>
+            <p>{minFor.name} — label “Stok Menipis” muncul saat saldo ≤ minimum.</p>
             <form onSubmit={submitMin} noValidate>
-              {minError ? (
-                <div className="form-error" role="alert">
-                  {minError}
-                </div>
-              ) : null}
+              {minError ? <div className="form-error" role="alert">{minError}</div> : null}
               <label className="afield">
                 <span>Batas minimum</span>
-                <input inputMode="numeric" value={minVal} onChange={(e) => setMinVal(e.target.value)} />
+                <input inputMode="numeric" value={minVal} onChange={(event) => setMinVal(event.target.value)} />
               </label>
               <div className="drawer-foot">
-                <button type="button" className="btn btn-ghost" onClick={() => setMinFor(null)}>
-                  Batal
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Simpan
+                <button type="button" className="btn btn-ghost" onClick={() => setMinFor(null)} disabled={saving}>Batal</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? "Menyimpan..." : "Simpan"}
                 </button>
               </div>
             </form>

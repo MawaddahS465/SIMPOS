@@ -11,7 +11,6 @@ import {
 import { authApi, ApiError, type AuthUser, type Role } from "../lib/api";
 import {
   LEGACY_SESSION_KEYS,
-  RoleMismatchError,
   isRole,
   sessionFromUser,
   type Session,
@@ -30,7 +29,7 @@ type AuthContextValue = {
   status: AuthStatus;
   user: AuthUser | null;
   session: Session | null;
-  signIn: (username: string, password: string, expectedRole?: Role) => Promise<AuthUser>;
+  signIn: (username: string, password: string) => Promise<AuthUser>;
   signOut: () => Promise<void>;
   refresh: () => Promise<AuthUser | null>;
 };
@@ -101,26 +100,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const signIn = useCallback(
-    async (username: string, password: string, expectedRole?: Role): Promise<AuthUser> => {
+    async (username: string, password: string): Promise<AuthUser> => {
       const response = await authApi.login(username, password);
       const nextUser = validUser(response);
 
       if (!nextUser) {
         throw new ApiError("Respons login tidak valid.", 500, response);
-      }
-
-      // Jangan pernah menaruh sesi role yang salah ke state aplikasi.
-      // Login yang valid tetapi dibuka dari halaman role lain langsung
-      // diakhiri di Backend, lalu pemanggil menampilkan pesan yang tepat.
-      if (expectedRole && nextUser.role !== expectedRole) {
-        try {
-          await authApi.logout();
-        } catch (error) {
-          console.error("Gagal mengakhiri sesi role yang tidak sesuai:", error);
-        }
-        setUser(null);
-        setStatus("unauthenticated");
-        throw new RoleMismatchError(nextUser);
       }
 
       setUser(nextUser);

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Boxes, Building2, CheckCircle2, ChevronRight, Pencil, Plus, X } from "lucide-react";
 import { useSharedStore, type Branch, type BranchStatus } from "../../store/sharedStore";
+import { ApiError, ownerManagementApi } from "../../lib/api";
 import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -38,6 +39,7 @@ export default function OwnerCabangPage() {
   const [form, setForm] = useState<BranchForm>(emptyForm);
   const [formError, setFormError] = useState("");
   const [notice, setNotice] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const rows = store.branches.map((b) => {
     const stock = store.stockForBranch(b.id);
@@ -98,16 +100,30 @@ export default function OwnerCabangPage() {
     setOpen(true);
   }
 
-  function submit(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
-    const res = store.upsertBranch({ ...form, id: editing?.id });
-    if (!res.ok) {
-      setFormError(res.msg);
-      return;
+    setSaving(true);
+    setFormError("");
+    try {
+      await ownerManagementApi.saveBranch({
+        name: form.name,
+        code: form.code,
+        city: form.city,
+        address: form.address,
+        phone: form.phone,
+        pic: form.pic,
+        status: form.status,
+        ...(editing ? { id: Number(editing.id) } : {}),
+      });
+      await store.refreshOwnerData();
+      setOpen(false);
+      setNotice(editing ? `Data ${form.name} diperbarui.` : `${form.name} ditambahkan.`);
+      setPage(1);
+    } catch (requestError) {
+      setFormError(requestError instanceof ApiError ? requestError.message : "Data cabang gagal disimpan.");
+    } finally {
+      setSaving(false);
     }
-    setOpen(false);
-    setNotice(res.msg);
-    setPage(1);
   }
 
   return (
@@ -236,10 +252,12 @@ export default function OwnerCabangPage() {
                 </td>
                 <td className="tt-right">
                   <span className="row-actions">
-                    <button type="button" className="link-action" onClick={() => openEdit(b)}>
-                      <Pencil size={14} />
-                      Edit
-                    </button>
+                    {b.type === "Cabang" ? (
+                      <button type="button" className="link-action" onClick={() => openEdit(b)}>
+                        <Pencil size={14} />
+                        Edit
+                      </button>
+                    ) : null}
                     <Link className="link-action" to={`/owner/cabang/${b.id}`}>
                       Detail
                       <ChevronRight size={15} />
@@ -285,7 +303,7 @@ export default function OwnerCabangPage() {
                   {editing ? `Perbarui profil ${editing.name}.` : "Cabang baru mulai tanpa saldo stok."}
                 </div>
               </div>
-              <button className="icon-pill" aria-label="Tutup" onClick={() => setOpen(false)}>
+              <button className="icon-pill" aria-label="Tutup" onClick={() => setOpen(false)} disabled={saving}>
                 <X size={18} />
               </button>
             </div>
@@ -360,11 +378,11 @@ export default function OwnerCabangPage() {
                 </select>
               </label>
               <div className="drawer-foot">
-                <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
+                <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)} disabled={saving}>
                   Batal
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {editing ? "Simpan Perubahan" : "Tambah Cabang"}
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? "Menyimpan..." : editing ? "Simpan Perubahan" : "Tambah Cabang"}
                 </button>
               </div>
             </form>

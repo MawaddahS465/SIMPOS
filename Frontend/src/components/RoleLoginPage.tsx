@@ -6,21 +6,17 @@ import { ApiError } from "../lib/api";
 import { assetUrl } from "../lib/assets";
 import { useAuth } from "../store/auth";
 import {
-  LOGIN_PATH,
   ROLE_HOME,
   ROLE_LABEL,
-  RoleMismatchError,
-  type Role,
 } from "../store/session";
 import "../styles/login.css";
 
 /**
- * Satu halaman login untuk Kasir, Admin Cabang, dan Pemilik.
- * Struktur dan tampilan sama; autentikasi memakai username/password dari
- * Backend, lalu pengguna diarahkan sesuai role yang dikembalikan API.
+ * Login bersama untuk semua peran. Backend menentukan role akun dan halaman
+ * mengarahkan pengguna ke dashboard yang sesuai setelah autentikasi berhasil.
  */
 
-export default function RoleLoginPage({ role }: { role: Role }) {
+export default function RoleLoginPage() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
   const [username, setUsername] = useState("");
@@ -47,16 +43,9 @@ export default function RoleLoginPage({ role }: { role: Role }) {
     setLoading(true);
 
     try {
-      const user = await signIn(username.trim(), password, role);
+      const user = await signIn(username.trim(), password);
       navigate(ROLE_HOME[user.role], { replace: true });
     } catch (err) {
-      if (err instanceof RoleMismatchError) {
-        setError(
-          `Akun ini terdaftar sebagai ${ROLE_LABEL[err.user.role]}. Masuk melalui halaman login ${ROLE_LABEL[err.user.role]} (${LOGIN_PATH[err.user.role]}).`,
-        );
-        return;
-      }
-
       setError(
         err instanceof ApiError
           ? err.message
@@ -69,7 +58,7 @@ export default function RoleLoginPage({ role }: { role: Role }) {
 
   return (
     <div className="page-bg auth">
-      <div className="auth-card" data-role={role}>
+      <div className="auth-card">
         <section className="auth-visual">
           <img src={assetUrl("assets/login-approved-visual.jpg")} alt="Koleksi kacamata Optik Mekar Jaya" />
           <div className="tint" />
@@ -96,7 +85,7 @@ export default function RoleLoginPage({ role }: { role: Role }) {
 
           <h2>Selamat Datang</h2>
           <p className="sub">
-            Silakan masuk untuk mengakses sistem Optik Mekar Jaya sebagai <b>{ROLE_LABEL[role]}</b>.
+            Silakan masuk untuk mengakses sistem Optik Mekar Jaya.
           </p>
 
           <form onSubmit={onSubmit} noValidate>

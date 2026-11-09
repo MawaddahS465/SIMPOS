@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Check, Pencil, Plus, Power, Settings as SettingsIcon, X } from "lucide-react";
 import { useSharedStore, type AppUser } from "../../store/sharedStore";
+import { ApiError, ownerManagementApi } from "../../lib/api";
 import { Avatar, Chip, PageHeader, SearchBox, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -17,7 +18,7 @@ export default function OwnerPengaturanPage() {
   // ---- form pengguna ----
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "kasir" as AppUser["role"] });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "kasir" as AppUser["role"], branchId: "" });
   const [formError, setFormError] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [confirmOn, setConfirmOn] = useState(false);
@@ -25,6 +26,7 @@ export default function OwnerPengaturanPage() {
   // ---- form toko & preferensi ----
   const [toko, setToko] = useState({ ...store.settings });
   const [tokoMsg, setTokoMsg] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const rows = store.appUsers.filter((u) =>
     `${u.name} ${u.email}`.toLowerCase().includes(q.toLowerCase()),
@@ -32,54 +34,74 @@ export default function OwnerPengaturanPage() {
 
   const startAdd = () => {
     setEditing(null);
-    setForm({ name: "", email: "", password: "", role: "kasir" });
+    setForm({ name: "", email: "", password: "", role: "kasir", branchId: store.branches.find((branch) => branch.type === "Cabang")?.id ?? "" });
     setFormError("");
     setOpen(true);
   };
 
   const startEdit = (u: AppUser) => {
     setEditing(u.id);
-    setForm({ name: u.name, email: u.email, password: "", role: u.role });
+    setForm({ name: u.name, email: u.email, password: "", role: u.role, branchId: u.branchId });
     setFormError("");
     setOpen(true);
   };
 
-  const submitUser = (e: FormEvent) => {
+  const submitUser = async (e: FormEvent) => {
     e.preventDefault();
-    const err = store.upsertUser({
-      id: editing ?? undefined,
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      role: form.role,
-      branchId: form.role === "pemilik" ? "all" : "cabang-padang",
-    });
-    if (err) {
-      setFormError(err);
-      return;
+    setSaving(true);
+    setFormError("");
+    try {
+      await ownerManagementApi.saveUser({
+        ...(editing ? { id: Number(editing) } : {}),
+        name: form.name,
+        username: form.email,
+        password: form.password,
+        role: form.role,
+        branchId: form.role === "pemilik" ? null : Number(form.branchId),
+      });
+      await store.refreshOwnerData();
+      setOpen(false);
+    } catch (requestError) {
+      setFormError(requestError instanceof ApiError ? requestError.message : "Data pengguna gagal disimpan.");
+    } finally {
+      setSaving(false);
     }
-    setOpen(false);
   };
 
-  const doStatus = () => {
+  const doStatus = async () => {
     if (!confirmId) return;
-    const err = store.setUserStatus(confirmId, confirmOn ? "Aktif" : "Nonaktif");
-    if (err) {
-      setFormError(err);
+    setSaving(true);
+    setFormError("");
+    try {
+      await ownerManagementApi.setUserStatus(Number(confirmId), confirmOn ? "aktif" : "nonaktif");
+      await store.refreshOwnerData();
+    } catch (requestError) {
+      setFormError(requestError instanceof ApiError ? requestError.message : "Status pengguna gagal diperbarui.");
       return;
+    } finally {
+      setSaving(false);
     }
     setConfirmId(null);
   };
 
-  const submitToko = (e: FormEvent, prefOnly: boolean) => {
+  const submitToko = async (e: FormEvent, prefOnly: boolean) => {
     e.preventDefault();
-    const err = store.saveSettings({
-      defaultMinimum: Number(toko.defaultMinimum),
-      storeName: toko.storeName,
-      storePhone: toko.storePhone,
-      storeAddress: toko.storeAddress,
-    });
-    setTokoMsg(err ?? (prefOnly ? "Preferensi tersimpan dan langsung berlaku." : "Data toko tersimpan."));
+    setSaving(true);
+    setTokoMsg("");
+    try {
+      await ownerManagementApi.saveSettings({
+        defaultMinimum: Number(toko.defaultMinimum),
+        storeName: toko.storeName,
+        storePhone: toko.storePhone,
+        storeAddress: toko.storeAddress,
+      });
+      await store.refreshOwnerData();
+      setTokoMsg(prefOnly ? "Preferensi tersimpan dan langsung berlaku." : "Data toko tersimpan.");
+    } catch (requestError) {
+      setTokoMsg(requestError instanceof ApiError ? requestError.message : "Pengaturan gagal disimpan.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -229,8 +251,8 @@ export default function OwnerPengaturanPage() {
               <input value={toko.storeAddress} onChange={(e) => setToko({ ...toko, storeAddress: e.target.value })} />
             </label>
             <div className="drawer-foot" style={{ justifyContent: "flex-start" }}>
-              <button type="submit" className="btn btn-primary">
-                Simpan Data Toko
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? "Menyimpan..." : "Simpan Data Toko"}
               </button>
             </div>
           </form>
@@ -260,8 +282,8 @@ export default function OwnerPengaturanPage() {
               />
             </label>
             <div className="drawer-foot" style={{ justifyContent: "flex-start" }}>
-              <button type="submit" className="btn btn-primary">
-                Simpan Preferensi
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? "Menyimpan..." : "Simpan Preferensi"}
               </button>
             </div>
           </form>
@@ -276,7 +298,7 @@ export default function OwnerPengaturanPage() {
                 <h2>{editing ? "Ubah Pengguna" : "Tambah Pengguna"}</h2>
                 <div className="section-desc">Akun pengguna dan akses sesuai peran.</div>
               </div>
-              <button className="icon-pill" aria-label="Tutup" onClick={() => setOpen(false)}>
+              <button className="icon-pill" aria-label="Tutup" onClick={() => setOpen(false)} disabled={saving}>
                 <X size={18} />
               </button>
             </div>
@@ -306,12 +328,23 @@ export default function OwnerPengaturanPage() {
                   <option value="pemilik">Pemilik — Seluruh Cabang</option>
                 </select>
               </label>
+              {form.role !== "pemilik" ? (
+                <label className="afield">
+                  <span>Cabang penempatan</span>
+                  <select value={form.branchId} onChange={(e) => setForm({ ...form, branchId: e.target.value })}>
+                    <option value="">Pilih cabang</option>
+                    {store.branches.filter((branch) => branch.type === "Cabang" && branch.status === "Aktif").map((branch) => (
+                      <option key={branch.id} value={branch.id}>{branch.name}</option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
               <div className="drawer-foot">
-                <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
+                <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)} disabled={saving}>
                   Batal
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  Simpan Pengguna
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? "Menyimpan..." : "Simpan Pengguna"}
                 </button>
               </div>
             </form>

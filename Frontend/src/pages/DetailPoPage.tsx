@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, ClipboardCheck, Glasses, ShoppingBag, TriangleAlert } from "lucide-react";
 import { type PoStatus } from "../data/mock";
-import { useSharedStore } from "../store/sharedStore";
 import { useCart } from "../context/CartContext";
+import { ApiError, kasirApi } from "../lib/api";
+import { mapApiPo, type KasirPo } from "../lib/po";
 import { Avatar, PageHeader, StatusPill, formatIDR } from "../components/ui";
+import type { Customer } from "../data/customers";
 import "../styles/pages.css";
 import "../styles/admin.css";
 
@@ -19,12 +21,43 @@ const FLOW_DESC: Record<PoStatus, string> = {
 
 export default function DetailPoPage() {
   const { id } = useParams();
-  const shared = useSharedStore();
   const cart = useCart();
   const navigate = useNavigate();
   const [pickError, setPickError] = useState<string | null>(null);
+  const [order, setOrder] = useState<KasirPo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
-  const order = shared.pos.find((o) => o.id === id);
+  useEffect(() => {
+    let active = true;
+    const orderId = Number(id);
+    if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+      setLoadError("Nomor PO tidak valid.");
+      setLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
+    kasirApi.order(orderId)
+      .then((result) => {
+        if (active) setOrder(mapApiPo(result.order, result.items, result.timeline));
+      })
+      .catch((error: unknown) => {
+        if (active) setLoadError(error instanceof ApiError ? error.message : "Detail PO gagal dimuat.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  if (loading) {
+    return <div className="page"><div className="empty-note">Memuat detail PO...</div></div>;
+  }
+
   if (!order) {
     return (
       <div className="page">
@@ -36,7 +69,7 @@ export default function DetailPoPage() {
           }
           overline="DETAIL PEMESANAN"
           title="PO Tidak Ditemukan"
-          desc={`Nomor PO "${id ?? "-"}" tidak ada di cabang ini. Periksa kembali daftar pemesanan.`}
+          desc={loadError || `Nomor PO "${id ?? "-"}" tidak ada di cabang ini. Periksa kembali daftar pemesanan.`}
           actions={
             <Link className="btn btn-ghost" to="/pemesanan">
               <ArrowLeft size={16} />
@@ -46,7 +79,7 @@ export default function DetailPoPage() {
         />
         <div className="notice" role="alert">
           <TriangleAlert size={16} />
-          PO tidak ditemukan atau sudah tidak tersedia.
+          {loadError || "PO tidak ditemukan atau sudah tidak tersedia."}
         </div>
       </div>
     );
@@ -54,58 +87,41 @@ export default function DetailPoPage() {
 
   const current = Math.max(0, FLOW.indexOf(order.status));
   const cancelled = order.status === "Dibatalkan";
-  const matchedCustomer = shared.customers.find((c) => c.name === order.customer);
   const resep = order.resepSnapshot;
-  const linkedTrx = order.linkedTrx
-    ? shared.transactions.find((t) => t.no === order.linkedTrx)
-    : undefined;
+  const linkedTrx = order.linkedTrx;
   const canPickup = order.status === "Sudah Datang" && !order.linkedTrx;
 
   const pickup = () => {
-    const missing: string[] = [];
-    const picked: Array<{ product: NonNullable<ReturnType<typeof shared.productForPOItem>>; qty: number }> = [];
-    for (const it of order.items) {
-      const product =
-        (it.productId ? shared.productOf(it.productId) : undefined) ??
-        (order.items.length === 1 && order.productId ? shared.productOf(order.productId) : undefined) ??
-        shared.productForPOItem(it.name);
-      if (!product) {
-        missing.push(it.name);
-        continue;
-      }
-      picked.push({ product, qty: it.qty });
-    }
-    if (missing.length) {
-      setPickError(`Produk tidak ditemukan di katalog: ${missing.join(", ")}. Hubungi Admin untuk melengkapi produk.`);
+    if (order.items.length === 0 || !order.customerId) {
+      setPickError("Data produk atau pelanggan pada PO tidak lengkap. Hubungi Admin Cabang.");
       return;
     }
-    const customer =
-      matchedCustomer ?? {
-        id: `po-${order.id}`,
-        code: order.number,
-        name: order.customer,
-        initials: order.initials,
-        phone: order.phone,
-        email: "",
-        hasResep: Boolean(order.resep),
-        poActive: 0,
-        branch: "Padang",
-      };
+    const customer: Customer = {
+      id: String(order.customerId),
+      code: `PLG-${String(order.customerId).padStart(4, "0")}`,
+      name: order.customer,
+      initials: order.initials,
+      phone: order.phone,
+      email: "",
+      hasResep: Boolean(order.resep),
+      poActive: 0,
+      branch: "Cabang",
+    };
     cart.clear();
     cart.setCustomer(customer);
-    for (const { product, qty } of picked) {
-      for (let i = 0; i < qty; i += 1) {
-        cart.add({
-          id: product.id,
-          name: product.name,
-          brand: product.brand,
-          category: product.type,
-          price: product.price,
-        });
-      }
+    for (const item of order.items) {
+      const productId = item.productId ?? "";
+      cart.add({
+        id: productId,
+        name: item.name,
+        brand: item.sub.split(" · ").slice(-1)[0] ?? "-",
+        category: item.sub.split(" · ")[0] ?? "Frame",
+        price: item.price ?? 0,
+      });
+      if (item.qty > 1) cart.setQty(productId, item.qty);
     }
     cart.setPoId(order.id);
-    navigate("/checkout");
+    navigate("/checkout?step=confirm");
   };
 
   return (
@@ -152,7 +168,7 @@ export default function DetailPoPage() {
       {linkedTrx ? (
         <div className="notice notice-ok" role="status">
           <Check size={16} />
-          PO ini diselesaikan oleh transaksi <b>{linkedTrx.no}</b> ({linkedTrx.date}, {linkedTrx.time}).
+          PO ini diselesaikan oleh transaksi <b>{linkedTrx}</b>.
           <Link className="link-action" to="/riwayat-transaksi">
             Lihat riwayat
           </Link>
@@ -218,7 +234,7 @@ export default function DetailPoPage() {
               <div className="cc-body">
                 <b>{order.customer}</b>
                 <div className="cc-meta">
-                  {matchedCustomer ? <span>{matchedCustomer.code}</span> : null}
+                  <span>PLG-{String(order.customerId).padStart(4, "0")}</span>
                   <span>{order.phone}</span>
                 </div>
               </div>

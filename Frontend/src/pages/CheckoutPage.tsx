@@ -24,9 +24,9 @@ import {
 import type { Customer } from "../data/customers";
 import type { PaymentMethod } from "../data/mock";
 import { useCart } from "../context/CartContext";
-import { useSharedStore } from "../store/sharedStore";
 import { useAuth } from "../store/auth";
 import { ApiError, kasirApi, type ApiCustomer, type ApiProduct, type ApiRecipe } from "../lib/api";
+import { mapApiPo, type KasirPo } from "../lib/po";
 import { Avatar, formatIDR } from "../components/ui";
 import "../styles/pages.css";
 
@@ -69,14 +69,13 @@ function ProductIcon({ category }: { category: string }) {
 
 export default function CheckoutPage() {
   const cart = useCart();
-  const shared = useSharedStore();
   const { session } = useAuth();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [query, setQuery] = useState("");
   const [warning, setWarning] = useState<string | null>(null);
   const [cashMode, setCashMode] = useState<"exact" | "manual">(() => {
-    const gross = Math.round((cart.subtotal - cart.discount) * 1.11);
+    const gross = cart.poId ? cart.subtotal : Math.round((cart.subtotal - cart.discount) * 1.11);
     return cart.cashInput.trim() !== "" && cart.cashPaid !== gross ? "manual" : "exact";
   });
   const [addOpen, setAddOpen] = useState(false);
@@ -85,15 +84,19 @@ export default function CheckoutPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<ApiProduct[]>([]);
   const [recipe, setRecipe] = useState<ApiRecipe | null>(null);
+  const [po, setPo] = useState<KasirPo | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const tax = useMemo(() => Math.round((cart.subtotal - cart.discount) * 0.11), [cart.subtotal, cart.discount]);
-  const grandTotal = cart.subtotal - cart.discount + tax;
+  const taxableSubtotal = cart.poId ? cart.subtotal : cart.subtotal - cart.discount;
+  const tax = useMemo(() => cart.poId ? 0 : Math.round((cart.subtotal - cart.discount) * 0.11), [cart.poId, cart.subtotal, cart.discount]);
+  const grandTotal = taxableSubtotal + tax;
   const cashShortfall = Math.max(0, grandTotal - cart.cashPaid);
   const cashChange = Math.max(0, cart.cashPaid - grandTotal);
 
   const rawStep = params.get("step");
-  const step: FlowStep = rawStep === "confirm" ? "confirm" : rawStep === "payment" ? "payment" : "customer";
+  const step: FlowStep = cart.poId
+    ? rawStep === "payment" ? "payment" : "confirm"
+    : rawStep === "confirm" ? "confirm" : rawStep === "payment" ? "payment" : "customer";
   const current = step === "customer" ? 2 : step === "confirm" ? 3 : 4;
 
   useEffect(() => {
@@ -142,6 +145,24 @@ export default function CheckoutPage() {
     };
   }, [cart.customer?.id]);
 
+  useEffect(() => {
+    if (!cart.poId) {
+      setPo(null);
+      return;
+    }
+    let active = true;
+    kasirApi.order(Number(cart.poId))
+      .then((result) => {
+        if (active) setPo(mapApiPo(result.order, result.items, result.timeline));
+      })
+      .catch((error: unknown) => {
+        if (active) setWarning(error instanceof Error ? error.message : "Data PO gagal dimuat.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [cart.poId]);
+
   // Uang pas selalu mengikuti total terbaru (misalnya setelah diskon diubah).
   useEffect(() => {
     if (cart.method === "Tunai" && cashMode === "exact") {
@@ -165,7 +186,6 @@ export default function CheckoutPage() {
     }
   }, [cart.receipt, cart.items.length, cart.customer, step, navigate, setParams]);
 
-  const po = cart.poId ? shared.pos.find((o) => o.id === cart.poId) : undefined;
   const customer = cart.customer;
 
   const results = customers.filter((c) =>
@@ -253,10 +273,6 @@ export default function CheckoutPage() {
       setWarning("Pilih pelanggan terlebih dahulu sebelum menyelesaikan transaksi.");
       return;
     }
-    if (cart.poId) {
-      setWarning("Pengambilan PO belum terhubung ke API database. Selesaikan PO melalui alur yang tersedia di Backend.");
-      return;
-    }
     if (cart.method === "Tunai") {
       if (cart.cashInput.trim() === "") {
         setWarning("Pilih Uang Pas atau masukkan jumlah uang tunai yang dibayar.");
@@ -273,7 +289,7 @@ export default function CheckoutPage() {
       return;
     }
     // Verifikasi stok dari katalog API sebelum menyimpan transaksi.
-    const kurang = cart.items
+    const kurang = cart.poId ? [] : cart.items
       .map((i) => ({ item: i, saldo: products.find((product) => String(product.id) === i.id)?.stok }))
       .filter((x) => x.saldo !== undefined && x.item.qty > (x.saldo as number));
     if (kurang.length > 0) {
@@ -285,6 +301,42 @@ export default function CheckoutPage() {
     setIsSaving(true);
     setWarning(null);
     try {
+      if (cart.poId) {
+        const completed = await kasirApi.completeOrder(
+          Number(cart.poId),
+          cart.method,
+          cart.method === "Tunai" ? cart.cashPaid : undefined,
+        );
+        const saved = await kasirApi.transaction(completed.transaction.id_transaksi);
+        const transaction = saved.transaction;
+        const dateTime = new Date(transaction.tanggal_transaksi.replace(" ", "T"));
+        cart.complete({
+          no: transaction.kode_transaksi,
+          date: dateTime.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+          time: dateTime.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":"),
+          items: saved.items.map((item) => ({
+            id: String(item.barang_id),
+            name: item.nama_barang,
+            brand: item.merek ?? "-",
+            category: item.jenis,
+            price: Number(item.harga),
+            qty: Number(item.jumlah),
+          })),
+          subtotal: saved.items.reduce((sum, item) => sum + Number(item.subtotal), 0),
+          discount: Number(transaction.diskon),
+          discountPercent: 0,
+          total: Number(transaction.total),
+          tax: Number(transaction.pajak),
+          paid: Number(saved.payment[0]?.jumlah_bayar ?? transaction.jumlah_bayar ?? transaction.total),
+          change: Math.max(0, Number(saved.payment[0]?.jumlah_bayar ?? transaction.jumlah_bayar ?? transaction.total) - Number(transaction.total)),
+          customer: cart.customer,
+          method: String(saved.payment[0]?.metode_pembayaran ?? transaction.metode_pembayaran ?? cart.method) as PaymentMethod,
+          poId: cart.poId,
+        });
+        navigate(`/transaksi-berhasil?id=${transaction.id_transaksi}`);
+        return;
+      }
+
       await kasirApi.clearCart();
       for (const item of cart.items) {
         await kasirApi.setCartItem(Number(item.id), item.qty);
@@ -334,7 +386,8 @@ export default function CheckoutPage() {
   const poNotice = po ? (
     <div className="notice notice-ok" role="status">
       <ClipboardList size={16} />
-      Transaksi ini menyelesaikan pengambilan <b>{po.number}</b> untuk {po.customer}.
+      Transaksi ini menyelesaikan pengambilan <b>{po?.number ?? `PO #${cart.poId}`}</b>
+      {po?.customer ? ` untuk ${po.customer}.` : "."}
       <button
         type="button"
         className="link-action"
@@ -484,9 +537,9 @@ export default function CheckoutPage() {
         <section className="co-card">
           <div className="section-head">
             <h2>Data Pelanggan</h2>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => go("customer")}>
-              Ubah
-            </button>
+            {!cart.poId ? (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => go("customer")}>Ubah</button>
+            ) : null}
           </div>
           <div className="cust-card">
             <Avatar initials={customer.initials} size={46} />
@@ -548,10 +601,12 @@ export default function CheckoutPage() {
         <section className="co-card">
           <div className="section-head">
             <h2>Produk Dipilih</h2>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate("/transaksi-baru")}>
-              <Plus size={15} />
-              Tambah Produk
-            </button>
+            {!cart.poId ? (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => navigate("/transaksi-baru")}>
+                <Plus size={15} />
+                Tambah Produk
+              </button>
+            ) : null}
           </div>
 
           {cart.items.length === 0 ? (
@@ -574,20 +629,18 @@ export default function CheckoutPage() {
                       </span>
                     </span>
                     <span className="qty-box">
-                      <button onClick={() => cart.setQty(i.id, i.qty - 1)} aria-label="Kurangi">
-                        <Minus size={14} />
-                      </button>
+                      {!cart.poId ? <button onClick={() => cart.setQty(i.id, i.qty - 1)} aria-label="Kurangi"><Minus size={14} /></button> : null}
                       <b>{i.qty}</b>
-                      <button onClick={() => cart.setQty(i.id, i.qty + 1)} aria-label="Tambah">
-                        <Plus size={14} />
-                      </button>
+                      {!cart.poId ? <button onClick={() => cart.setQty(i.id, i.qty + 1)} aria-label="Tambah"><Plus size={14} /></button> : null}
                     </span>
                     <span className="ci-price">{formatIDR(i.price * i.qty)}</span>
-                    <button className="ci-remove" onClick={() => cart.remove(i.id)} aria-label={`Hapus ${i.name}`}>
-                      <Trash2 size={16} />
-                    </button>
+                    {!cart.poId ? (
+                      <button className="ci-remove" onClick={() => cart.remove(i.id)} aria-label={`Hapus ${i.name}`}>
+                        <Trash2 size={16} />
+                      </button>
+                    ) : null}
                   </div>
-                  {kurangStok ? (
+                  {!cart.poId && kurangStok ? (
                     <div className="co-stock-warn">
                       <span>Stok cabang hanya tersedia {saldo} unit (diminta {i.qty} unit).</span>
                       <Link className="btn btn-ghost btn-sm" to={`/pemesanan?productId=${i.id}`}>
@@ -603,10 +656,12 @@ export default function CheckoutPage() {
         </section>
 
         <div className="co-flow-actions">
-          <button type="button" className="btn btn-ghost" onClick={() => go("customer")}>
-            <ArrowLeft size={16} />
-            Ubah Pelanggan
-          </button>
+          {!cart.poId ? (
+            <button type="button" className="btn btn-ghost" onClick={() => go("customer")}>
+              <ArrowLeft size={16} />
+              Ubah Pelanggan
+            </button>
+          ) : null}
           <button type="button" className="btn btn-primary" onClick={() => go("payment")}>
             Lanjut ke Ringkasan
             <ArrowRight size={16} />
@@ -629,9 +684,9 @@ export default function CheckoutPage() {
               {customer.name} · {customer.code}
             </div>
           </div>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => go("confirm")}>
-            Ubah Pesanan
-          </button>
+          {!cart.poId ? (
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => go("confirm")}>Ubah Pesanan</button>
+          ) : null}
         </div>
 
         <div>
@@ -661,16 +716,17 @@ export default function CheckoutPage() {
             <span className="sum-inline">
               <input
                 className="sum-input"
-                value={cart.discountInput}
+                value={cart.poId ? "0" : cart.discountInput}
                 onChange={(e) => cart.setDiscountPercent(e.target.value)}
                 inputMode="decimal"
                 aria-label="Diskon dalam persen"
+                disabled={Boolean(cart.poId)}
               />
-              <b>{formatIDR(cart.discount)}</b>
+              <b>{formatIDR(cart.poId ? 0 : cart.discount)}</b>
             </span>
           </div>
           <div className="sum-row">
-            <span>PPN (11%)</span>
+            <span>{cart.poId ? "Pajak pengambilan PO" : "PPN (11%)"}</span>
             <b>{formatIDR(tax)}</b>
           </div>
           <div className="sum-total">

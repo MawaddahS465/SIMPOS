@@ -33,6 +33,4 @@ if (-not $url) { Write-Host "Tunnel gagal - cek $tmp\cf.err"; exit 1 }
 Start-Sleep 5
 
 Write-Host ""
-Write-Host "Kasir  : $url/login"
-Write-Host "Admin  : $url/admin/login"
-Write-Host "Pemilik: $url/owner/login"
+Write-Host "Login  : $url/login (Kasir, Admin, atau Pemilik)"

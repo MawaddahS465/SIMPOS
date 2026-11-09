@@ -1,8 +1,20 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { PRODUCTS } from "../data/catalog";
 import { ORDERS, RESEP_RECORDS, TRANSACTIONS, type PoOrder, type PoStatus, type ResepRecord, type Transaction } from "../data/mock";
 import { CUSTOMERS, RESEP_MAP, type Customer } from "../data/customers";
 import { ADMIN_STORE_KEY, DEMO_ADMIN } from "../data/admin";
+import {
+  ownerManagementApi,
+  ownerStockFlowApi,
+  type OwnerBranchRow,
+  type OwnerMutationRow,
+  type OwnerOrderRow,
+  type OwnerReceiptRow,
+  type OwnerStockRow,
+  type OwnerTransactionRow,
+} from "../lib/api";
+import { mapApiPo } from "../lib/po";
+import { useAuth } from "./auth";
 
 /* ==========================================================================
    SHARED STORE — satu sumber data lintas role (Kasir + Admin Cabang).
@@ -147,12 +159,13 @@ export type Mutation = {
   productId: string;
   branchId: string;
   arah: "IN" | "OUT";
-  sumber: "Penerimaan" | "Penjualan" | "Pembatalan" | "Saldo Awal";
+  sumber: "Penerimaan" | "Penjualan" | "Pengambilan PO" | "Pembatalan" | "Saldo Awal";
   qty: number; // bertanda: + masuk, - keluar
   sebelum: number;
   sesudah: number;
   ref: string;
   actor: string;
+  traceId?: string;
 };
 
 export type AuditEntry = {
@@ -579,6 +592,9 @@ function load(): StoreShape {
 }
 
 type SharedStore = StoreShape & {
+  ownerDataStatus: "idle" | "loading" | "ready" | "error";
+  ownerDataError: string;
+  refreshOwnerData: () => Promise<void>;
   lowStock: Array<{ product: AdminProduct; saldo: number; minimum: number }>;
   productOf: (id: string) => AdminProduct | undefined;
   stockOf: (id: string) => StockRow | undefined;
@@ -670,8 +686,236 @@ const Ctx = createContext<SharedStore | null>(null);
 
 const PO_NEXT: Record<string, PoStatus> = { Dipesan: "Diproses", Diproses: "Sudah Datang", "Sudah Datang": "Selesai" };
 
+function ownerDateTime(value: string | null | undefined): string {
+  if (!value) return "-";
+  const parsed = new Date(value.replace(" ", "T"));
+  if (Number.isNaN(parsed.getTime())) return value;
+  return `${parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}, ${parsed
+    .toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+    .replace(".", ":")}`;
+}
+
+function ownerBranch(row: OwnerBranchRow): Branch {
+  return {
+    id: String(row.id),
+    name: row.nama_cabang,
+    type: row.type,
+    code: row.kode_cabang,
+    city: row.kota || "-",
+    address: row.alamat || "-",
+    phone: row.telepon || "-",
+    pic: row.penanggung_jawab || "-",
+    status: row.status === "aktif" ? "Aktif" : "Nonaktif",
+  };
+}
+
+function ownerTransaction(row: OwnerTransactionRow): Transaction {
+  const date = row.tanggal_transaksi.replace("T", " ").split(" ");
+  const parsed = new Date(row.tanggal_transaksi.replace(" ", "T"));
+  const status = row.status.toLowerCase();
+  const methods: Record<string, string> = {
+    tunai: "Tunai",
+    transfer: "Transfer Bank",
+    "transfer bank": "Transfer Bank",
+    kartu: "Kartu Debit/Kredit",
+    "kartu debit/kredit": "Kartu Debit/Kredit",
+    qris: "QRIS",
+  };
+  return {
+    id: String(row.id_transaksi),
+    date: Number.isNaN(parsed.getTime())
+      ? date[0]
+      : parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+    time: Number.isNaN(parsed.getTime())
+      ? ""
+      : parsed.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":"),
+    no: row.kode_transaksi,
+    customer: row.nama_pelanggan ?? "Pelanggan",
+    phone: row.no_hp ?? "-",
+    type: row.jenis.toLowerCase() === "pemesanan" ? "Pemesanan" : "Pembelian",
+    total: Number(row.total),
+    discount: Number(row.diskon),
+    tax: Number(row.pajak),
+    paid: row.jumlah_bayar === null ? undefined : Number(row.jumlah_bayar),
+    status: status === "dibatalkan" ? "Dibatalkan" : status === "pending" ? "Pending" : "Selesai",
+    branchId: String(row.cabang_id),
+    method: methods[(row.metode_pembayaran ?? "").toLowerCase()] ?? row.metode_pembayaran ?? "—",
+    products: row.items.map((item) => ({
+      id: String(item.id),
+      name: item.name,
+      brand: item.brand,
+      qty: item.qty,
+      price: item.price,
+    })),
+  };
+}
+
+function ownerMutation(row: OwnerMutationRow): Mutation {
+  const sources: Mutation["sumber"][] = ["Penerimaan", "Penjualan", "Pengambilan PO", "Pembatalan", "Saldo Awal"];
+  return {
+    id: `MUT-${String(row.id_mutasi).padStart(6, "0")}`,
+    at: ownerDateTime(row.created_at),
+    productId: String(row.barang_id),
+    branchId: String(row.cabang_id),
+    arah: row.arah,
+    sumber: sources.includes(row.sumber as Mutation["sumber"]) ? row.sumber as Mutation["sumber"] : "Saldo Awal",
+    qty: row.arah === "OUT" ? -Math.abs(row.jumlah) : Math.abs(row.jumlah),
+    sebelum: row.saldo_sebelum,
+    sesudah: row.saldo_sesudah,
+    ref: row.referensi,
+    actor: row.petugas ?? "Sistem",
+    traceId: row.receipt_id ? `RCV-${row.receipt_id}` : undefined,
+  };
+}
+
+function ownerReceipt(row: OwnerReceiptRow): ReceiptRecord {
+  return {
+    id: `RCV-${row.id_penerimaan}`,
+    distributionId: row.kode_alokasi,
+    productId: String(row.barang_id),
+    qty: row.jumlah,
+    at: ownerDateTime(row.created_at),
+    actor: row.admin_nama ?? "Admin Cabang",
+    branchId: String(row.cabang_id),
+    idempotencyKey: `receipt-${row.id_penerimaan}`,
+    note: row.catatan ?? "",
+    selisih: 0,
+  };
+}
+
 export function SharedProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<StoreShape>(load);
+  const [ownerDataStatus, setOwnerDataStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [ownerDataError, setOwnerDataError] = useState("");
+  const { session } = useAuth();
+
+  const refreshOwnerData = useCallback(async () => {
+    setOwnerDataStatus((current) => current === "ready" ? "ready" : "loading");
+    setOwnerDataError("");
+    try {
+      const [branchesRaw, stocksRaw, mutationsRaw, receiptsRaw, transactionsRaw, ordersRaw, usersRaw, settings, requestsRaw, allocationsRaw] = await Promise.all([
+        ownerManagementApi.branches(),
+        ownerManagementApi.stocks(),
+        ownerManagementApi.mutations(),
+        ownerManagementApi.receipts(),
+        ownerManagementApi.transactions(),
+        ownerManagementApi.orders(),
+        ownerManagementApi.users(),
+        ownerManagementApi.settings(),
+        ownerStockFlowApi.requests(),
+        ownerStockFlowApi.allocations(),
+      ]);
+
+      const branches = branchesRaw.map(ownerBranch);
+      const productsById = new Map<string, AdminProduct>();
+      const stocks: StockRow[] = [];
+      const centralStock: StockRow[] = [];
+      const branchStocks: Record<string, StockRow[]> = {};
+      for (const row of stocksRaw) {
+        const productId = String(row.barang_id);
+        if (!productsById.has(productId)) {
+          productsById.set(productId, {
+            id: productId,
+            code: row.kode_barang,
+            name: row.nama_barang,
+            brand: row.merek ?? "",
+            type: row.jenis as ProductType,
+            category: row.nama_kategori ?? row.jenis,
+            price: row.harga_jual,
+            status: row.status_produk === "aktif" ? "Aktif" : "Nonaktif",
+            branchId: String(row.branch_id),
+            updatedAt: "-",
+          });
+        }
+        const stockRow: StockRow = {
+          productId,
+          branchId: String(row.branch_id),
+          saldo: row.jumlah_stok,
+          minimum: row.stok_minimum,
+        };
+        if (row.branch_id === "pusat") centralStock.push(stockRow);
+        else if (String(row.branch_id) === String(branches.find((branch) => branch.type === "Cabang")?.id)) stocks.push(stockRow);
+        else (branchStocks[stockRow.branchId] ??= []).push(stockRow);
+      }
+
+      const requests: StockRequest[] = requestsRaw.map((row) => ({
+        id: String(row.id_pengajuan),
+        at: ownerDateTime(row.created_at),
+        actor: row.nama_pengaju,
+        branchId: String(row.cabang_id),
+        productId: String(row.barang_id),
+        qty: row.jumlah_diminta,
+        note: row.catatan ?? "",
+        status: row.status === "ditolak" ? "Ditolak" : "Diajukan",
+        rejectedReason: row.alasan_penolakan ?? undefined,
+      }));
+      const requestIdByCode = new Map(requestsRaw.map((row) => [row.kode_pengajuan, String(row.id_pengajuan)]));
+      const distributions: Distribution[] = allocationsRaw.map((row) => ({
+        id: row.kode_alokasi,
+        date: ownerDateTime(row.tanggal),
+        from: "Pusat",
+        branchId: String(row.cabang_id),
+        status: row.status,
+        requestId: row.kode_pengajuan ? requestIdByCode.get(row.kode_pengajuan) : undefined,
+        actor: row.nama_pemilik,
+        note: row.catatan ?? "",
+        lines: row.items.map((line) => ({
+          productId: String(line.barang_id),
+          qtyAlokasi: line.jumlah_dialokasikan,
+          qtyDiterima: line.jumlah_diterima,
+        })),
+      }));
+      const pos: SharedPO[] = ordersRaw.map((row: OwnerOrderRow) => ({
+        ...mapApiPo(row, row.items, row.timeline),
+        branchId: String(row.cabang_id),
+      }));
+      const users: AppUser[] = usersRaw.map((user) => ({
+        id: String(user.id),
+        name: user.nama,
+        email: user.username,
+        password: "",
+        role: user.role,
+        branchId: user.cabang_id === null ? "all" : String(user.cabang_id),
+        status: user.status === "aktif" ? "Aktif" : "Nonaktif",
+      }));
+      const notices: OwnerNotice[] = requestsRaw
+        .filter((request) => request.status === "diajukan" && Number(request.jumlah_dialokasikan) === 0)
+        .map((request) => ({
+          id: `request-${request.id_pengajuan}`,
+          at: ownerDateTime(request.created_at),
+          kind: "Pengajuan Stok",
+          refId: String(request.id_pengajuan),
+          summary: `${request.kode_barang} × ${request.jumlah_diminta} dari ${request.nama_cabang}`,
+        }));
+
+      setState((previous) => ({
+        ...previous,
+        branches,
+        products: [...productsById.values()],
+        stock: stocks,
+        branchStocks,
+        centralStock,
+        mutations: mutationsRaw.map(ownerMutation),
+        receipts: receiptsRaw.map(ownerReceipt),
+        transactions: transactionsRaw.map(ownerTransaction),
+        pos,
+        requests,
+        distributions,
+        notices,
+        appUsers: users,
+        settings,
+      }));
+      setOwnerDataStatus("ready");
+    } catch (error) {
+      setOwnerDataError(error instanceof Error ? error.message : "Data Pemilik gagal dimuat.");
+      setOwnerDataStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (session?.role === "pemilik") void refreshOwnerData();
+    else setOwnerDataStatus("idle");
+  }, [session?.id, session?.role, refreshOwnerData]);
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -727,6 +971,9 @@ export function SharedProvider({ children }: { children: ReactNode }) {
 
     return {
       ...state,
+      ownerDataStatus,
+      ownerDataError,
+      refreshOwnerData,
       lowStock,
       productOf,
       stockOf,
@@ -1534,7 +1781,7 @@ export function SharedProvider({ children }: { children: ReactNode }) {
         };
       },
     };
-  }, [state]);
+  }, [state, ownerDataStatus, ownerDataError, refreshOwnerData]);
 
   // Hook uji DEV (otomasi QA): ekspos aksi tulis agar idempotency/konkurensi
   // dapat diuji langsung. Tidak dipakai kode produksi.

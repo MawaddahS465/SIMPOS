@@ -1,31 +1,48 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Boxes, ClipboardList, FilePlus2, PackageCheck, Plus } from "lucide-react";
-import { DEMO_ADMIN } from "../../data/admin";
-import { useAdminStore } from "../../store/sharedStore";
+import { adminPoApi, ApiError, type AdminDashboardSummary } from "../../lib/api";
 import { PageHeader, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
 export default function AdminDashboardPage() {
-  const store = useAdminStore();
-  const poBaru = store.pos.filter((o) => o.status === "Dipesan");
-  const menunggu = store.distributions.filter((d) => d.status !== "Diterima");
+  const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadSummary = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      setSummary(await adminPoApi.dashboard());
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Ringkasan dashboard gagal dimuat.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadSummary();
+  }, [loadSummary]);
 
   const tindakLanjut = [
-    ...store.lowStock.slice(0, 3).map((s) => ({
-      key: s.product.id,
-      title: `${s.product.code} — ${s.product.name}`,
-      sub: `Stok ${s.saldo} / minimum ${s.minimum}`,
-      status: "Stok Menipis",
+    ...(summary?.lowStock ?? []).map((product) => ({
+      key: `stock-${product.id}`,
+      title: `${product.kode_barang} — ${product.nama_barang}`,
+      sub: `Stok ${product.stok} / minimum ${product.stok_minimum}`,
+      status: product.stok === 0 ? "Stok Habis" : "Stok Menipis",
       to: "/admin/stok",
-      aksi: "Atur minimum",
+      aksi: "Lihat stok",
     })),
-    ...poBaru.slice(0, 2).map((o) => ({
-      key: o.id,
-      title: `${o.number} — ${o.customer}`,
-      sub: o.productLabel,
+    ...(summary?.newOrders ?? []).map((order) => ({
+      key: `po-${order.id_po}`,
+      title: `${order.kode_po} — ${order.nama_pelanggan ?? "Pelanggan"}`,
+      sub: order.produk_label || "Detail produk tersedia di PO",
       status: "Dipesan",
-      to: `/admin/pemesanan/${o.id}`,
+      to: `/admin/pemesanan/${order.id_po}`,
       aksi: "Proses",
     })),
   ].slice(0, 5);
@@ -34,16 +51,25 @@ export default function AdminDashboardPage() {
     <div className="page dashboard-anim">
       <PageHeader
         overline="DASHBOARD ADMIN CABANG"
-        title={`Dashboard Admin Cabang`}
-        desc={`Ringkasan kebutuhan harian ${DEMO_ADMIN.branch}. Setiap angka menuju daftar sumbernya.`}
-        actions={<span className="branch-chip">{DEMO_ADMIN.branch}</span>}
+        title="Dashboard Admin Cabang"
+        desc={summary ? `Ringkasan operasional ${summary.branch}. Data diperbarui langsung dari server.` : "Ringkasan operasional cabang."}
+        actions={summary ? <span className="branch-chip">{summary.branch}</span> : null}
       />
+
+      {error ? (
+        <div className="notice" role="alert">
+          {error}{" "}
+          <button className="btn btn-ghost" type="button" onClick={() => void loadSummary()}>
+            Coba lagi
+          </button>
+        </div>
+      ) : null}
 
       <div className="stat-row">
         <Link to="/admin/stok" className="stat-link">
           <StatCard
             label="Stok Menipis"
-            value={String(store.lowStock.length)}
+            value={loading ? "—" : String(summary?.stats.lowStock ?? 0)}
             caption="Saldo ≤ batas minimum"
             icon={<Boxes size={22} />}
             tone="amber"
@@ -52,17 +78,17 @@ export default function AdminDashboardPage() {
         <Link to="/admin/pemesanan" className="stat-link">
           <StatCard
             label="PO Baru"
-            value={String(poBaru.length)}
+            value={loading ? "—" : String(summary?.stats.newOrders ?? 0)}
             caption="Menunggu diproses"
             icon={<ClipboardList size={22} />}
             tone="blue"
           />
         </Link>
-        <Link to="/admin/penerimaan" className="stat-link">
+        <Link to="/admin/pemesanan" className="stat-link">
           <StatCard
-            label="Menunggu Penerimaan"
-            value={String(menunggu.length)}
-            caption="Distribusi dari pusat"
+            label="PO Diproses"
+            value={loading ? "—" : String(summary?.stats.processingOrders ?? 0)}
+            caption="Sedang ditangani cabang"
             icon={<PackageCheck size={22} />}
             tone="violet"
           />
@@ -90,7 +116,7 @@ export default function AdminDashboardPage() {
         <div className="section-head">
           <div>
             <h2>Perlu Ditindaklanjuti</h2>
-            <div className="section-desc">Maksimal 5 baris prioritas cabang ini</div>
+            <div className="section-desc">Stok minimum dan PO baru pada cabang ini</div>
           </div>
           <Link className="link-action" to="/admin/stok">
             Lihat stok
@@ -98,23 +124,24 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
         <div className="todo-list">
-          {tindakLanjut.map((t) => (
-            <div key={t.key} className="todo-row">
-              <div className="todo-body">
-                <b>{t.title}</b>
-                <span>{t.sub}</span>
-              </div>
-              <StatusPill label={t.status} />
-              <span className="todo-aksi">{t.aksi}</span>
-            </div>
-          ))}
-          {tindakLanjut.length === 0 ? (
+          {loading ? <div className="empty-note">Memuat ringkasan cabang...</div> : null}
+          {!loading
+            ? tindakLanjut.map((item) => (
+                <Link key={item.key} to={item.to} className="todo-row">
+                  <div className="todo-body">
+                    <b>{item.title}</b>
+                    <span>{item.sub}</span>
+                  </div>
+                  <StatusPill label={item.status} />
+                  <span className="todo-aksi">{item.aksi}</span>
+                </Link>
+              ))
+            : null}
+          {!loading && !error && tindakLanjut.length === 0 ? (
             <div className="empty-note">Tidak ada tindakan mendesak hari ini.</div>
           ) : null}
         </div>
       </section>
-
-      <span className="foot-note">Seluruh data pada halaman ini adalah demo cabang {DEMO_ADMIN.branch}.</span>
     </div>
   );
 }

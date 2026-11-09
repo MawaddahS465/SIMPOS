@@ -1,114 +1,114 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { CheckCircle2, Clock, PackageCheck, TriangleAlert, Truck, X } from "lucide-react";
-import { DEMO_ADMIN } from "../../data/admin";
-import { useSharedStore } from "../../store/sharedStore";
+import { adminStockFlowApi, ApiError, type StockDistribution, type StockReceipt } from "../../lib/api";
 import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
+type DistributionFilter = "Semua" | "Menunggu Diterima" | "Diterima Sebagian" | "Diterima";
+
 export default function AdminPenerimaanPage() {
-  const store = useSharedStore();
-  const [q, setQ] = useState("");
-  const [filter, setFilter] = useState<"Semua" | "Menunggu Diterima" | "Diterima Sebagian" | "Diterima">("Semua");
-  const [qty, setQty] = useState<Record<string, string>>({});
-  const [confirm, setConfirm] = useState<{ distId: string; productId: string; qty: number } | null>(null);
+  const [distributions, setDistributions] = useState<StockDistribution[]>([]);
+  const [receipts, setReceipts] = useState<StockReceipt[]>([]);
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<DistributionFilter>("Semua");
+  const [quantities, setQuantities] = useState<Record<number, string>>({});
+  const [confirm, setConfirm] = useState<{ detailId: number; distribution: string; product: string; stock: number; remaining: number; quantity: number; idempotencyKey: string } | null>(null);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState<{ ok: boolean; message: string } | null>(null);
   const [confirmError, setConfirmError] = useState("");
-  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const dists = useMemo(
-    () =>
-      store.distributions
-        .filter((d) => (filter === "Semua" ? true : d.status === filter))
-        .filter((d) => {
-          const hay = `${d.id} ${d.from} ${d.lines
-            .map((l) => {
-              const p = store.productOf(l.productId);
-              return `${p?.code ?? ""} ${p?.name ?? ""}`;
-            })
-            .join(" ")}`.toLowerCase();
-          return hay.includes(q.toLowerCase());
-        }),
-    [store, q, filter],
-  );
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const data = await adminStockFlowApi.distributions();
+      setDistributions(data.distributions);
+      setReceipts(data.receipts);
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Data penerimaan gagal dimuat.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const menungguCount = store.distributions.filter((d) => d.status === "Menunggu Diterima").length;
-  const sebagianCount = store.distributions.filter((d) => d.status === "Diterima Sebagian").length;
-  const selesaiCount = store.distributions.filter((d) => d.status === "Diterima").length;
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
-  const openConfirm = (distId: string, productId: string, sisa: number) => {
-    const raw = (qty[`${distId}::${productId}`] ?? String(sisa)).trim();
-    const v = /^[0-9]+$/.test(raw) ? Number(raw) : NaN;
-    if (!Number.isInteger(v) || v <= 0) {
-      setResult({ ok: false, msg: "Isi jumlah diterima aktual (bilangan bulat > 0, tanpa titik/koma/minus) dahulu." });
+  const rows = useMemo(() => distributions
+    .filter((item) => filter === "Semua" || item.status === filter)
+    .filter((item) => {
+      const text = `${item.kode_alokasi} ${item.nama_pemilik} ${item.items.map((line) => `${line.kode_barang} ${line.nama_barang}`).join(" ")}`;
+      return text.toLowerCase().includes(query.trim().toLowerCase());
+    }), [distributions, filter, query]);
+
+  const waitingCount = distributions.filter((item) => item.status === "Menunggu Diterima").length;
+  const partialCount = distributions.filter((item) => item.status === "Diterima Sebagian").length;
+  const completeCount = distributions.filter((item) => item.status === "Diterima").length;
+
+  const openConfirm = (distribution: StockDistribution, line: StockDistribution["items"][number]) => {
+    const remaining = line.jumlah_dialokasikan - line.jumlah_diterima;
+    const raw = (quantities[line.id_detail_alokasi] ?? String(remaining)).trim();
+    const quantity = /^[0-9]+$/.test(raw) ? Number(raw) : NaN;
+    if (!Number.isSafeInteger(quantity) || quantity <= 0 || quantity > remaining) {
+      setNotice({ ok: false, message: `Jumlah harus bilangan bulat antara 1 sampai ${remaining}.` });
       return;
     }
-    setResult(null);
+    setNotice(null);
     setConfirmError("");
-    setConfirm({ distId, productId, qty: v });
+    setConfirm({
+      detailId: line.id_detail_alokasi,
+      distribution: distribution.kode_alokasi,
+      product: line.nama_barang,
+      stock: line.stok ?? 0,
+      remaining,
+      quantity,
+      idempotencyKey: globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    });
   };
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!confirm) return;
-    const r = store.confirmReceipt(confirm.distId, confirm.productId, confirm.qty, "");
-    setResult(r);
-    if (r.ok) {
-      setQty((prev) => {
-        const next = { ...prev };
-        delete next[`${confirm.distId}::${confirm.productId}`];
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!confirm || saving) return;
+    setSaving(true);
+    setConfirmError("");
+    try {
+      await adminStockFlowApi.receive(confirm.detailId, confirm.quantity, confirm.idempotencyKey);
+      setQuantities((current) => {
+        const next = { ...current };
+        delete next[confirm.detailId];
         return next;
       });
       setConfirm(null);
-      setConfirmError("");
-    } else {
-      setConfirmError(r.msg);
+      setNotice({ ok: true, message: `Penerimaan ${confirm.quantity} unit ${confirm.product} berhasil dicatat.` });
+      await loadData();
+    } catch (requestError) {
+      setConfirmError(requestError instanceof ApiError ? requestError.message : "Penerimaan gagal dicatat.");
+    } finally {
+      setSaving(false);
     }
   };
 
-  const cProduct = confirm ? store.productOf(confirm.productId) : undefined;
-  const cStock = confirm ? store.stockOf(confirm.productId) : undefined;
-
   return (
     <div className="page">
-      <PageHeader
-        overline="PERSEDIAAN — PENERIMAAN"
-        title="Penerimaan Barang"
-        desc={`Verifikasi dan catat barang pengiriman dari pusat yang diterima di ${DEMO_ADMIN.branch}.`}
-      />
+      <PageHeader overline="PERSEDIAAN — PENERIMAAN" title="Penerimaan Barang" desc="Verifikasi kiriman alokasi dari Pemilik. Saldo cabang bertambah setelah penerimaan dicatat." />
 
       <div className="stat-row">
-        <StatCard
-          label="Menunggu Diterima"
-          value={String(menungguCount)}
-          caption="Kiriman baru dari pusat"
-          icon={<Truck size={22} />}
-          tone="amber"
-        />
-        <StatCard
-          label="Diterima Sebagian"
-          value={String(sebagianCount)}
-          caption="Masih ada sisa item belum masuk"
-          icon={<Clock size={22} />}
-          tone="violet"
-        />
-        <StatCard
-          label="Selesai Diterima"
-          value={String(selesaiCount)}
-          caption="Seluruh alokasi telah diverifikasi"
-          icon={<PackageCheck size={22} />}
-          tone="green"
-        />
+        <StatCard label="Menunggu Diterima" value={String(waitingCount)} caption="Kiriman baru dari pusat" icon={<Truck size={22} />} tone="amber" />
+        <StatCard label="Diterima Sebagian" value={String(partialCount)} caption="Masih ada sisa item belum masuk" icon={<Clock size={22} />} tone="violet" />
+        <StatCard label="Selesai Diterima" value={String(completeCount)} caption="Seluruh alokasi telah diverifikasi" icon={<PackageCheck size={22} />} tone="green" />
       </div>
 
+      {error ? <div className="notice" role="alert">{error} <button className="btn btn-ghost" onClick={() => void loadData()}>Coba lagi</button></div> : null}
+      {notice ? <div className={notice.ok ? "notice notice-ok" : "notice"} role="status">{notice.ok ? <CheckCircle2 size={16} /> : <TriangleAlert size={16} />}{notice.message}</div> : null}
+
       <div className="toolbar">
-        <SearchBox placeholder="Cari ID distribusi, kode, atau nama produk..." value={q} onChange={setQ} />
-        <select
-          className="select-pill"
-          aria-label="Filter Status Penerimaan"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as "Semua" | "Menunggu Diterima" | "Diterima Sebagian" | "Diterima")}
-        >
+        <SearchBox placeholder="Cari ID alokasi, kode, atau nama produk..." value={query} onChange={setQuery} />
+        <select className="select-pill" aria-label="Filter Status Penerimaan" value={filter} onChange={(event) => setFilter(event.target.value as DistributionFilter)}>
           <option value="Semua">Semua Status</option>
           <option value="Menunggu Diterima">Menunggu Diterima</option>
           <option value="Diterima Sebagian">Diterima Sebagian</option>
@@ -116,166 +116,78 @@ export default function AdminPenerimaanPage() {
         </select>
       </div>
 
-      {result ? (
-        <div className={result.ok ? "notice notice-ok" : "notice"} role="status">
-          {result.ok ? <CheckCircle2 size={16} /> : <TriangleAlert size={16} />}
-          {result.msg}
-        </div>
-      ) : null}
-
-      {dists.map((d) => {
-        const totalAlokasi = d.lines.reduce((a, l) => a + l.qtyAlokasi, 0);
-        const totalDiterima = d.lines.reduce((a, l) => a + l.qtyDiterima, 0);
-        return (
-        <section key={d.id} className="panel" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {loading ? <div className="panel empty-note">Memuat distribusi...</div> : null}
+      {!loading ? rows.map((distribution) => (
+        <section key={distribution.id_alokasi} className="panel" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div className="section-head">
             <div>
-              <h2>
-                {d.id} <span className="tt-sub" style={{ display: "inline" }}>· {d.date} · dari {d.from}</span>
-              </h2>
-              <div className="section-desc">
-                {d.lines.length} produk · dikirim {totalAlokasi} unit · diterima {totalDiterima} unit
-              </div>
+              <h2>{distribution.kode_alokasi} <span className="tt-sub" style={{ display: "inline" }}>· {distribution.tanggal} · dari Pemilik</span></h2>
+              <div className="section-desc">{distribution.items.length} produk · dikirim {distribution.jumlah_dialokasikan} unit · diterima {distribution.jumlah_diterima} unit · {distribution.nama_pemilik}</div>
             </div>
-            <div className="section-action">
-              <StatusPill label={d.status} />
-            </div>
+            <StatusPill label={distribution.status} />
           </div>
-          {d.lines.map((l) => {
-            const p = store.productOf(l.productId);
-            const s = store.stockOf(l.productId);
-            const sisa = l.qtyAlokasi - l.qtyDiterima;
-            const key = `${d.id}::${l.productId}`;
-            const done = sisa <= 0;
-            const inputVal = qty[key] ?? String(sisa);
+          {distribution.items.map((line) => {
+            const remaining = line.jumlah_dialokasikan - line.jumlah_diterima;
             return (
-              <div key={key} className="recv-line">
-                <div className="recv-body">
-                  <b>{p?.name}</b>
-                  <span>
-                    {p?.code} · {p?.type} · stok cabang: {s?.saldo ?? 0} unit
-                  </span>
-                </div>
-                <div className="recv-alloc">
-                  <span>Dikirim Pusat</span>
-                  <b>{l.qtyAlokasi}</b>
-                </div>
-                <div className="recv-alloc">
-                  <span>Sudah Diterima</span>
-                  <b>{l.qtyDiterima}</b>
-                </div>
-                {done ? (
-                  <StatusPill label="Diterima" dot={false} />
-                ) : (
+              <div key={line.id_detail_alokasi} className="recv-line">
+                <div className="recv-body"><b>{line.nama_barang}</b><span>{line.kode_barang} · {line.jenis} · stok cabang: {line.stok ?? 0} unit</span></div>
+                <div className="recv-alloc"><span>Dikirim</span><b>{line.jumlah_dialokasikan}</b></div>
+                <div className="recv-alloc"><span>Diterima</span><b>{line.jumlah_diterima}</b></div>
+                {remaining <= 0 ? <StatusPill label="Diterima" dot={false} /> : (
                   <span className="recv-input">
                     <input
                       inputMode="numeric"
-                      aria-label={`Jumlah diterima ${p?.name}`}
-                      title={`Maksimal ${sisa} unit`}
-                      placeholder={`maks ${sisa}`}
-                      value={inputVal}
-                      onChange={(e) => setQty((prev) => ({ ...prev, [key]: e.target.value }))}
+                      aria-label={`Jumlah diterima ${line.nama_barang}`}
+                      title={`Maksimal ${remaining} unit`}
+                      value={quantities[line.id_detail_alokasi] ?? String(remaining)}
+                      onChange={(event) => setQuantities((current) => ({ ...current, [line.id_detail_alokasi]: event.target.value }))}
                     />
-                    <button className="btn btn-primary btn-sm" onClick={() => openConfirm(d.id, l.productId, sisa)}>
-                      <PackageCheck size={15} />
-                      Konfirmasi
-                    </button>
+                    <button className="btn btn-primary btn-sm" onClick={() => openConfirm(distribution, line)}><PackageCheck size={15} />Konfirmasi</button>
                   </span>
                 )}
               </div>
             );
           })}
         </section>
-        );
-      })}
-      {dists.length === 0 ? <div className="panel empty-note">Tidak ada distribusi yang cocok.</div> : null}
+      )) : null}
+      {!loading && rows.length === 0 ? <div className="panel empty-note">Tidak ada distribusi yang cocok.</div> : null}
 
       <section className="section-block">
-        <div className="section-head">
-          <div>
-            <h2>Riwayat Konfirmasi</h2>
-            <div className="section-desc">Daftar penerimaan barang dari pusat yang telah dikonfirmasi</div>
-          </div>
-        </div>
+        <div className="section-head"><div><h2>Riwayat Konfirmasi</h2><div className="section-desc">Penerimaan barang yang sudah dicatat</div></div></div>
         <div className="table-wrap">
           <table className="tt">
-            <thead>
-              <tr>
-                <th>ID / WAKTU</th>
-                <th>DISTRIBUSI</th>
-                <th>PRODUK</th>
-                <th className="tt-right">QTY</th>
-                <th>AKTOR</th>
-              </tr>
-            </thead>
+            <thead><tr><th>ID / WAKTU</th><th>DISTRIBUSI</th><th>PRODUK</th><th className="tt-right">QTY</th><th>AKTOR</th></tr></thead>
             <tbody>
-              {store.receipts.map((r) => (
-                <tr key={r.id}>
-                  <td>
-                    <div className="tt-num">{r.id}</div>
-                    <div className="tt-sub">{r.at}</div>
-                  </td>
-                  <td>{r.distributionId}</td>
-                  <td>{store.productOf(r.productId)?.name}</td>
-                  <td className="tt-right tt-money">+{r.qty}</td>
-                  <td>{r.actor}</td>
+              {receipts.map((receipt) => (
+                <tr key={receipt.id_penerimaan}>
+                  <td><div className="tt-num">RCV-{receipt.id_penerimaan}</div><div className="tt-sub">{receipt.created_at}</div></td>
+                  <td>{receipt.kode_alokasi}</td><td>{receipt.nama_barang} · {receipt.kode_barang}</td>
+                  <td className="tt-right tt-money">+{receipt.jumlah}</td><td>{receipt.admin_nama}</td>
                 </tr>
               ))}
-              {store.receipts.length === 0 ? (
-                <tr>
-                  <td colSpan={5}>
-                    <div className="empty-note">
-                      Belum ada penerimaan tercatat. Konfirmasi dari daftar di atas — hasilnya tampil di sini dan
-                      di <Link className="link-action" to="/admin/mutasi">Riwayat Mutasi</Link>.
-                    </div>
-                  </td>
-                </tr>
-              ) : null}
+              {receipts.length === 0 ? <tr><td colSpan={5}><div className="empty-note">Belum ada penerimaan tercatat. Setelah dikonfirmasi, catatan juga tampil di <Link className="link-action" to="/admin/mutasi">Riwayat Mutasi</Link>.</div></td></tr> : null}
             </tbody>
           </table>
         </div>
       </section>
 
-      {confirm && cProduct && cStock ? (
-        <div className="overlay" onClick={() => setConfirm(null)}>
-          <div className="confirm" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-            <div className="drawer-head" style={{ padding: 0 }}>
-              <h2>Konfirmasi Penerimaan</h2>
-              <button className="icon-pill" aria-label="Tutup" onClick={() => setConfirm(null)}>
-                <X size={18} />
-              </button>
-            </div>
+      {confirm ? (
+        <div className="overlay" onClick={() => !saving && setConfirm(null)}>
+          <div className="confirm" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="drawer-head" style={{ padding: 0 }}><h2>Konfirmasi Penerimaan</h2><button className="icon-pill" aria-label="Tutup" onClick={() => setConfirm(null)} disabled={saving}><X size={18} /></button></div>
             <div className="detail-rows">
-              <div className="detail-row">
-                <span>Produk</span>
-                <b>{cProduct.name}</b>
-              </div>
-              <div className="detail-row">
-                <span>Stok sebelum</span>
-                <b>{cStock.saldo}</b>
-              </div>
-              <div className="detail-row">
-                <span>Qty diterima</span>
-                <b>+{confirm.qty}</b>
-              </div>
-              <div className="detail-row">
-                <span>Stok sesudah</span>
-                <b>{cStock.saldo + confirm.qty}</b>
-              </div>
+              <div className="detail-row"><span>Distribusi</span><b>{confirm.distribution}</b></div>
+              <div className="detail-row"><span>Produk</span><b>{confirm.product}</b></div>
+              <div className="detail-row"><span>Stok sebelum</span><b>{confirm.stock}</b></div>
+              <div className="detail-row"><span>Qty diterima</span><b>+{confirm.quantity}</b></div>
+              <div className="detail-row"><span>Stok sesudah</span><b>{confirm.stock + confirm.quantity}</b></div>
+              <div className="detail-row"><span>Sisa alokasi</span><b>{confirm.remaining - confirm.quantity}</b></div>
             </div>
             <form onSubmit={submit}>
-              {confirmError ? (
-                <div className="form-error" role="alert">
-                  {confirmError}
-                </div>
-              ) : null}
+              {confirmError ? <div className="form-error" role="alert">{confirmError}</div> : null}
               <div className="drawer-foot">
-                <button type="button" className="btn btn-ghost" onClick={() => setConfirm(null)}>
-                  Batal
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Ya, Catat Penerimaan
-                </button>
+                <button type="button" className="btn btn-ghost" onClick={() => setConfirm(null)} disabled={saving}>Batal</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? "Menyimpan..." : "Ya, Catat Penerimaan"}</button>
               </div>
             </form>
           </div>
