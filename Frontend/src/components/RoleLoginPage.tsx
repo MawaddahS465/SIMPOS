@@ -16,12 +16,15 @@ import "../styles/login.css";
  * mengarahkan pengguna ke dashboard yang sesuai setelah autentikasi berhasil.
  */
 
+/** Username yang diingat saat "Ingat saya" dicentang. Password tidak disimpan. */
+const REMEMBER_KEY = "simpos.ingatUsername";
+
 export default function RoleLoginPage() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
-  const [username, setUsername] = useState("");
+  const [username, setUsername] = useState(() => localStorage.getItem(REMEMBER_KEY) ?? "");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(true);
+  const [remember, setRemember] = useState(() => localStorage.getItem(REMEMBER_KEY) !== null);
   const [showPass, setShowPass] = useState(false);
   const [capsOn, setCapsOn] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -44,6 +47,10 @@ export default function RoleLoginPage() {
 
     try {
       const user = await signIn(username.trim(), password);
+      // "Ingat saya" hanya mengingat username agar tidak mengetik ulang.
+      // Sesi tetap wajib login baru setelah browser ditutup.
+      if (remember) localStorage.setItem(REMEMBER_KEY, username.trim());
+      else localStorage.removeItem(REMEMBER_KEY);
       navigate(ROLE_HOME[user.role], { replace: true });
     } catch (err) {
       setError(

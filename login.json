@@ -1,0 +1,1775 @@
+{
+    "title": "CodeIgniter\\HTTP\\Exceptions\\HTTPException",
+    "type": "CodeIgniter\\HTTP\\Exceptions\\HTTPException",
+    "code": 500,
+    "message": "Failed to parse JSON string. Error: Syntax error",
+    "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\HTTP\\IncomingRequest.php",
+    "line": 410,
+    "trace": [
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\HTTP\\IncomingRequest.php",
+            "line": 410,
+            "function": "forInvalidJSON",
+            "class": "CodeIgniter\\HTTP\\Exceptions\\HTTPException",
+            "type": "::",
+            "args": [
+                "Syntax error"
+            ]
+        },
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Controllers\\Api\\AuthApi.php",
+            "line": 50,
+            "function": "getJSON",
+            "class": "CodeIgniter\\HTTP\\IncomingRequest",
+            "type": "->",
+            "args": [
+                true
+            ]
+        },
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\CodeIgniter.php",
+            "line": 974,
+            "function": "login",
+            "class": "App\\Controllers\\Api\\AuthApi",
+            "type": "->",
+            "args": []
+        },
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\CodeIgniter.php",
+            "line": 520,
+            "function": "runController",
+            "class": "CodeIgniter\\CodeIgniter",
+            "type": "->",
+            "args": [
+                {
+                    "helpers": [
+                        "ui",
+                        "form",
+                        "url"
+                    ],
+                    "request": {
+                        "protocolVersion": "1.1",
+                        "validProtocolVersions": [
+                            "1.0",
+                            "1.1",
+                            "2.0",
+                            "3.0"
+                        ],
+                        "body": "%7Busername%3Akasir1%2Cpassword%3A123%7D=",
+                        "headers": {
+                            "Content-Type": {
+                                "name": "Content-Type",
+                                "value": "application/json"
+                            },
+                            "Host": {
+                                "name": "Host",
+                                "value": "127.0.0.1:8080"
+                            },
+                            "User-Agent": {
+                                "name": "User-Agent",
+                                "value": "curl/8.21.0"
+                            },
+                            "Accept": {
+                                "name": "Accept",
+                                "value": "*/*"
+                            },
+                            "Cookie": {
+                                "name": "Cookie",
+                                "value": "csrf_cookie_name=b0d4413229f3ee50aa3095852a4b9dc5; ci_session=a0aa3db7aba39bca77e8057bdaeb6033"
+                            },
+                            "X-Csrf-Token": {
+                                "name": "X-Csrf-Token",
+                                "value": "b0d4413229f3ee50aa3095852a4b9dc5"
+                            },
+                            "Content-Length": {
+                                "name": "Content-Length",
+                                "value": "30"
+                            }
+                        },
+                        "headerMap": {
+                            "content-type": "Content-Type",
+                            "host": "Host",
+                            "user-agent": "User-Agent",
+                            "accept": "Accept",
+                            "cookie": "Cookie",
+                            "x-csrf-token": "X-Csrf-Token",
+                            "content-length": "Content-Length"
+                        },
+                        "method": "POST",
+                        "uri": {
+                            "uriString": null,
+                            "baseURL": {
+                                "uriString": null,
+                                "baseURL": null,
+                                "segments": [],
+                                "scheme": "http",
+                                "user": null,
+                                "password": null,
+                                "host": "127.0.0.1",
+                                "port": 8080,
+                                "path": "/",
+                                "fragment": "",
+                                "query": [],
+                                "defaultPorts": {
+                                    "http": 80,
+                                    "https": 443,
+                                    "ftp": 21,
+                                    "sftp": 22
+                                },
+                                "showPassword": false,
+                                "silent": false,
+                                "rawQueryString": false
+                            },
+                            "segments": [
+                                "api",
+                                "login"
+                            ],
+                            "scheme": "http",
+                            "user": null,
+                            "password": null,
+                            "host": "127.0.0.1",
+                            "port": 8080,
+                            "path": "/api/login",
+                            "fragment": "",
+                            "query": [],
+                            "defaultPorts": {
+                                "http": 80,
+                                "https": 443,
+                                "ftp": 21,
+                                "sftp": 22
+                            },
+                            "showPassword": false,
+                            "silent": false,
+                            "rawQueryString": false,
+                            "basePathWithoutIndexPage": "/",
+                            "indexPage": "",
+                            "baseSegments": [],
+                            "routePath": "api/login"
+                        },
+                        "config": {
+                            "baseURL": "http://127.0.0.1:8080/",
+                            "allowedHostnames": [],
+                            "indexPage": "",
+                            "uriProtocol": "REQUEST_URI",
+                            "permittedURIChars": "a-z 0-9~%.:_\\-",
+                            "defaultLocale": "en",
+                            "negotiateLocale": false,
+                            "supportedLocales": [
+                                "en"
+                            ],
+                            "appTimezone": "Asia/Jakarta",
+                            "charset": "UTF-8",
+                            "forceGlobalSecureRequests": false,
+                            "proxyIPs": [],
+                            "CSPEnabled": false
+                        },
+                        "ipAddress": "",
+                        "globals": {
+                            "server": {
+                                "DOCUMENT_ROOT": "C:\\xampp\\htdocs\\Simpos\\Backend\\public",
+                                "REMOTE_ADDR": "127.0.0.1",
+                                "REMOTE_PORT": "64788",
+                                "SERVER_SOFTWARE": "PHP 8.2.30 Development Server",
+                                "SERVER_PROTOCOL": "HTTP/1.1",
+                                "SERVER_NAME": "127.0.0.1",
+                                "SERVER_PORT": "8080",
+                                "REQUEST_URI": "/api/login",
+                                "REQUEST_METHOD": "POST",
+                                "SCRIPT_NAME": "/index.php",
+                                "SCRIPT_FILENAME": "C:\\xampp\\htdocs\\Simpos\\Backend\\public\\index.php",
+                                "PATH_INFO": "/api/login",
+                                "PHP_SELF": "/index.php/api/login",
+                                "HTTP_HOST": "127.0.0.1:8080",
+                                "HTTP_USER_AGENT": "curl/8.21.0",
+                                "HTTP_ACCEPT": "*/*",
+                                "HTTP_COOKIE": "csrf_cookie_name=b0d4413229f3ee50aa3095852a4b9dc5; ci_session=a0aa3db7aba39bca77e8057bdaeb6033",
+                                "CONTENT_TYPE": "application/json",
+                                "HTTP_CONTENT_TYPE": "application/json",
+                                "HTTP_X_CSRF_TOKEN": "b0d4413229f3ee50aa3095852a4b9dc5",
+                                "CONTENT_LENGTH": "30",
+                                "HTTP_CONTENT_LENGTH": "30",
+                                "REQUEST_TIME_FLOAT": 1794136490.473644,
+                                "REQUEST_TIME": 1794136490,
+                                "CI_ENVIRONMENT": "development",
+                                "app.baseURL": "http://127.0.0.1:8080/",
+                                "app.indexPage": "",
+                                "app.appTimezone": "Asia/Jakarta",
+                                "database.default.hostname": "localhost",
+                                "database.default.database": "dbsimpos",
+                                "database.default.username": "root",
+                                "database.default.password": "",
+                                "database.default.DBDriver": "MySQLi",
+                                "database.default.DBPrefix": "",
+                                "database.default.port": "3306",
+                                "QUERY_STRING": ""
+                            },
+                            "post": [],
+                            "cookie": {
+                                "csrf_cookie_name": "b0d4413229f3ee50aa3095852a4b9dc5",
+                                "ci_session": "a0aa3db7aba39bca77e8057bdaeb6033"
+                            }
+                        },
+                        "path": "api/login",
+                        "files": null,
+                        "negotiator": null,
+                        "defaultLocale": "en",
+                        "locale": "en",
+                        "validLocales": [
+                            "en"
+                        ],
+                        "oldInput": [],
+                        "userAgent": {
+                            "agent": "curl/8.21.0",
+                            "isBrowser": false,
+                            "isRobot": false,
+                            "isMobile": false,
+                            "config": {
+                                "platforms": {
+                                    "windows nt 10.0": "Windows 10",
+                                    "windows nt 6.3": "Windows 8.1",
+                                    "windows nt 6.2": "Windows 8",
+                                    "windows nt 6.1": "Windows 7",
+                                    "windows nt 6.0": "Windows Vista",
+                                    "windows nt 5.2": "Windows 2003",
+                                    "windows nt 5.1": "Windows XP",
+                                    "windows nt 5.0": "Windows 2000",
+                                    "windows nt 4.0": "Windows NT 4.0",
+                                    "winnt4.0": "Windows NT 4.0",
+                                    "winnt 4.0": "Windows NT",
+                                    "winnt": "Windows NT",
+                                    "windows 98": "Windows 98",
+                                    "win98": "Windows 98",
+                                    "windows 95": "Windows 95",
+                                    "win95": "Windows 95",
+                                    "windows phone": "Windows Phone",
+                                    "windows": "Unknown Windows OS",
+                                    "android": "Android",
+                                    "blackberry": "BlackBerry",
+                                    "iphone": "iOS",
+                                    "ipad": "iOS",
+                                    "ipod": "iOS",
+                                    "os x": "Mac OS X",
+                                    "ppc mac": "Power PC Mac",
+                                    "freebsd": "FreeBSD",
+                                    "ppc": "Macintosh",
+                                    "linux": "Linux",
+                                    "debian": "Debian",
+                                    "sunos": "Sun Solaris",
+                                    "beos": "BeOS",
+                                    "apachebench": "ApacheBench",
+                                    "aix": "AIX",
+                                    "irix": "Irix",
+                                    "osf": "DEC OSF",
+                                    "hp-ux": "HP-UX",
+                                    "netbsd": "NetBSD",
+                                    "bsdi": "BSDi",
+                                    "openbsd": "OpenBSD",
+                                    "gnu": "GNU/Linux",
+                                    "unix": "Unknown Unix OS",
+                                    "symbian": "Symbian OS"
+                                },
+                                "browsers": {
+                                    "OPR": "Opera",
+                                    "Flock": "Flock",
+                                    "Edge": "Spartan",
+                                    "Edg": "Edge",
+                                    "Chrome": "Chrome",
+                                    "Opera.*?Version": "Opera",
+                                    "Opera": "Opera",
+                                    "MSIE": "Internet Explorer",
+                                    "Internet Explorer": "Internet Explorer",
+                                    "Trident.* rv": "Internet Explorer",
+                                    "Shiira": "Shiira",
+                                    "Firefox": "Firefox",
+                                    "Chimera": "Chimera",
+                                    "Phoenix": "Phoenix",
+                                    "Firebird": "Firebird",
+                                    "Camino": "Camino",
+                                    "Netscape": "Netscape",
+                                    "OmniWeb": "OmniWeb",
+                                    "Safari": "Safari",
+                                    "Mozilla": "Mozilla",
+                                    "Konqueror": "Konqueror",
+                                    "icab": "iCab",
+                                    "Lynx": "Lynx",
+                                    "Links": "Links",
+                                    "hotjava": "HotJava",
+                                    "amaya": "Amaya",
+                                    "IBrowse": "IBrowse",
+                                    "Maxthon": "Maxthon",
+                                    "Ubuntu": "Ubuntu Web Browser",
+                                    "Vivaldi": "Vivaldi"
+                                },
+                                "mobiles": {
+                                    "mobileexplorer": "Mobile Explorer",
+                                    "palmsource": "Palm",
+                                    "palmscape": "Palmscape",
+                                    "motorola": "Motorola",
+                                    "nokia": "Nokia",
+                                    "palm": "Palm",
+                                    "iphone": "Apple iPhone",
+                                    "ipad": "iPad",
+                                    "ipod": "Apple iPod Touch",
+                                    "sony": "Sony Ericsson",
+                                    "ericsson": "Sony Ericsson",
+                                    "blackberry": "BlackBerry",
+                                    "cocoon": "O2 Cocoon",
+                                    "blazer": "Treo",
+                                    "lg": "LG",
+                                    "amoi": "Amoi",
+                                    "xda": "XDA",
+                                    "mda": "MDA",
+                                    "vario": "Vario",
+                                    "htc": "HTC",
+                                    "samsung": "Samsung",
+                                    "sharp": "Sharp",
+                                    "sie-": "Siemens",
+                                    "alcatel": "Alcatel",
+                                    "benq": "BenQ",
+                                    "ipaq": "HP iPaq",
+                                    "mot-": "Motorola",
+                                    "playstation portable": "PlayStation Portable",
+                                    "playstation 3": "PlayStation 3",
+                                    "playstation vita": "PlayStation Vita",
+                                    "hiptop": "Danger Hiptop",
+                                    "nec-": "NEC",
+                                    "panasonic": "Panasonic",
+                                    "philips": "Philips",
+                                    "sagem": "Sagem",
+                                    "sanyo": "Sanyo",
+                                    "spv": "SPV",
+                                    "zte": "ZTE",
+                                    "sendo": "Sendo",
+                                    "nintendo dsi": "Nintendo DSi",
+                                    "nintendo ds": "Nintendo DS",
+                                    "nintendo 3ds": "Nintendo 3DS",
+                                    "wii": "Nintendo Wii",
+                                    "open web": "Open Web",
+                                    "openweb": "OpenWeb",
+                                    "android": "Android",
+                                    "symbian": "Symbian",
+                                    "SymbianOS": "SymbianOS",
+                                    "elaine": "Palm",
+                                    "series60": "Symbian S60",
+                                    "windows ce": "Windows CE",
+                                    "obigo": "Obigo",
+                                    "netfront": "Netfront Browser",
+                                    "openwave": "Openwave Browser",
+                                    "mobilexplorer": "Mobile Explorer",
+                                    "operamini": "Opera Mini",
+                                    "opera mini": "Opera Mini",
+                                    "opera mobi": "Opera Mobile",
+                                    "fennec": "Firefox Mobile",
+                                    "digital paths": "Digital Paths",
+                                    "avantgo": "AvantGo",
+                                    "xiino": "Xiino",
+                                    "novarra": "Novarra Transcoder",
+                                    "vodafone": "Vodafone",
+                                    "docomo": "NTT DoCoMo",
+                                    "o2": "O2",
+                                    "mobile": "Generic Mobile",
+                                    "wireless": "Generic Mobile",
+                                    "j2me": "Generic Mobile",
+                                    "midp": "Generic Mobile",
+                                    "cldc": "Generic Mobile",
+                                    "up.link": "Generic Mobile",
+                                    "up.browser": "Generic Mobile",
+                                    "smartphone": "Generic Mobile",
+                                    "cellphone": "Generic Mobile"
+                                },
+                                "robots": {
+                                    "googlebot": "Googlebot",
+                                    "google-pagerenderer": "Google Page Renderer",
+                                    "google-read-aloud": "Google Read Aloud",
+                                    "google-safety": "Google Safety Bot",
+                                    "msnbot": "MSNBot",
+                                    "baiduspider": "Baiduspider",
+                                    "bingbot": "Bing",
+                                    "bingpreview": "BingPreview",
+                                    "slurp": "Inktomi Slurp",
+                                    "yahoo": "Yahoo",
+                                    "ask jeeves": "Ask Jeeves",
+                                    "fastcrawler": "FastCrawler",
+                                    "infoseek": "InfoSeek Robot 1.0",
+                                    "lycos": "Lycos",
+                                    "yandex": "YandexBot",
+                                    "mediapartners-google": "MediaPartners Google",
+                                    "CRAZYWEBCRAWLER": "Crazy Webcrawler",
+                                    "adsbot-google": "AdsBot Google",
+                                    "feedfetcher-google": "Feedfetcher Google",
+                                    "curious george": "Curious George",
+                                    "ia_archiver": "Alexa Crawler",
+                                    "MJ12bot": "Majestic-12",
+                                    "Uptimebot": "Uptimebot",
+                                    "duckduckbot": "DuckDuckBot",
+                                    "sogou": "Sogou Spider",
+                                    "exabot": "Exabot",
+                                    "bot": "Generic Bot",
+                                    "crawler": "Generic Crawler",
+                                    "spider": "Generic Spider"
+                                }
+                            },
+                            "platform": "Unknown Platform",
+                            "browser": "",
+                            "version": "",
+                            "mobile": "",
+                            "robot": "",
+                            "referrer": null
+                        }
+                    },
+                    "response": {
+                        "protocolVersion": "1.1",
+                        "validProtocolVersions": [
+                            "1.0",
+                            "1.1",
+                            "2.0",
+                            "3.0"
+                        ],
+                        "body": null,
+                        "headers": {
+                            "Cache-Control": {
+                                "name": "Cache-Control",
+                                "value": [
+                                    "no-store",
+                                    "max-age=0",
+                                    "no-cache"
+                                ]
+                            },
+                            "Content-Type": {
+                                "name": "Content-Type",
+                                "value": "text/html; charset=UTF-8"
+                            }
+                        },
+                        "headerMap": {
+                            "cache-control": "Cache-Control",
+                            "content-type": "Content-Type"
+                        },
+                        "reason": "Internal Server Error",
+                        "statusCode": 500,
+                        "pretend": false,
+                        "CSP": {
+                            "directives": {
+                                "base-uri": "baseURI",
+                                "child-src": "childSrc",
+                                "connect-src": "connectSrc",
+                                "default-src": "defaultSrc",
+                                "font-src": "fontSrc",
+                                "form-action": "formAction",
+                                "frame-ancestors": "frameAncestors",
+                                "frame-src": "frameSrc",
+                                "img-src": "imageSrc",
+                                "media-src": "mediaSrc",
+                                "object-src": "objectSrc",
+                                "plugin-types": "pluginTypes",
+                                "script-src": "scriptSrc",
+                                "style-src": "styleSrc",
+                                "sandbox": "sandbox",
+                                "manifest-src": "manifestSrc",
+                                "script-src-elem": "scriptSrcElem",
+                                "script-src-attr": "scriptSrcAttr",
+                                "style-src-elem": "styleSrcElem",
+                                "style-src-attr": "styleSrcAttr",
+                                "worker-src": "workerSrc",
+                                "report-uri": "reportURI",
+                                "report-to": "reportTo"
+                            },
+                            "baseURI": null,
+                            "childSrc": "self",
+                            "connectSrc": "self",
+                            "defaultSrc": null,
+                            "fontSrc": null,
+                            "formAction": "self",
+                            "frameAncestors": null,
+                            "frameSrc": null,
+                            "imageSrc": "self",
+                            "mediaSrc": null,
+                            "objectSrc": "self",
+                            "pluginTypes": null,
+                            "scriptSrc": {
+                                "self": false
+                            },
+                            "styleSrc": {
+                                "self": false
+                            },
+                            "sandbox": null,
+                            "reportURI": null,
+                            "reportTo": null,
+                            "manifestSrc": null,
+                            "scriptSrcElem": "self",
+                            "scriptSrcAttr": "self",
+                            "styleSrcElem": "self",
+                            "styleSrcAttr": "self",
+                            "workerSrc": [],
+                            "upgradeInsecureRequests": false,
+                            "reportOnly": false,
+                            "validSources": [
+                                "self",
+                                "none",
+                                "unsafe-inline",
+                                "unsafe-eval",
+                                "strict-dynamic",
+                                "unsafe-hashes",
+                                "report-sample",
+                                "unsafe-allow-redirects",
+                                "wasm-unsafe-eval",
+                                "trusted-types-eval",
+                                "report-sha256",
+                                "report-sha384",
+                                "report-sha512"
+                            ],
+                            "nonces": [],
+                            "styleNonce": null,
+                            "scriptNonce": null,
+                            "styleNonceTag": "",
+                            "scriptNonceTag": "",
+                            "autoNonce": true,
+                            "tempHeaders": [],
+                            "reportOnlyHeaders": [],
+                            "CSPEnabled": false,
+                            "reportingEndpoints": []
+                        },
+                        "cookieStore": {
+                            "cookies": {
+                                "csrf_cookie_name;/;": {
+                                    "prefix": "",
+                                    "name": "csrf_cookie_name",
+                                    "value": "a61649e2684273747cc22d1542edf867",
+                                    "expires": 1794143690,
+                                    "path": "/",
+                                    "domain": "",
+                                    "secure": true,
+                                    "httponly": true,
+                                    "samesite": "Lax",
+                                    "raw": false
+                                }
+                            }
+                        },
+                        "bodyFormat": "html"
+                    },
+                    "logger": {
+                        "logLevels": {
+                            "emergency": 1,
+                            "alert": 2,
+                            "critical": 3,
+                            "error": 4,
+                            "warning": 5,
+                            "notice": 6,
+                            "info": 7,
+                            "debug": 8
+                        },
+                        "loggableLevels": [
+                            "emergency",
+                            "alert",
+                            "critical",
+                            "error",
+                            "warning",
+                            "notice",
+                            "info",
+                            "debug"
+                        ],
+                        "filePermissions": 420,
+                        "dateFormat": "Y-m-d H:i:s",
+                        "fileExt": null,
+                        "handlers": {
+                            "CodeIgniter\\Log\\Handlers\\FileHandler": {
+                                "handles": [
+                                    "critical",
+                                    "alert",
+                                    "emergency",
+                                    "debug",
+                                    "error",
+                                    "info",
+                                    "notice",
+                                    "warning"
+                                ],
+                                "dateFormat": "Y-m-d H:i:s",
+                                "path": "C:\\xampp\\htdocs\\Simpos\\Backend\\writable\\logs/",
+                                "fileExtension": "log",
+                                "filePermissions": 420
+                            }
+                        },
+                        "handlerConfig": {
+                            "CodeIgniter\\Log\\Handlers\\FileHandler": {
+                                "handles": [
+                                    "critical",
+                                    "alert",
+                                    "emergency",
+                                    "debug",
+                                    "error",
+                                    "info",
+                                    "notice",
+                                    "warning"
+                                ],
+                                "fileExtension": "",
+                                "filePermissions": 420,
+                                "path": ""
+                            }
+                        },
+                        "logCache": [
+                            {
+                                "level": "info",
+                                "msg": "CSRF token verified."
+                            },
+                            {
+                                "level": "critical",
+                                "msg": "CodeIgniter\\HTTP\\Exceptions\\HTTPException: Failed to parse JSON string. Error: Syntax error\n[Method: POST, Route: api/login]\nin SYSTEMPATH\\HTTP\\IncomingRequest.php on line 410.\n 1 SYSTEMPATH\\HTTP\\IncomingRequest.php(410): CodeIgniter\\HTTP\\Exceptions\\HTTPException::forInvalidJSON('Syntax error')\n 2 APPPATH\\Controllers\\Api\\AuthApi.php(50): CodeIgniter\\HTTP\\IncomingRequest->getJSON(true)\n 3 SYSTEMPATH\\CodeIgniter.php(974): App\\Controllers\\Api\\AuthApi->login()\n 4 SYSTEMPATH\\CodeIgniter.php(520): CodeIgniter\\CodeIgniter->runController(Object(App\\Controllers\\Api\\AuthApi))\n 5 SYSTEMPATH\\CodeIgniter.php(363): CodeIgniter\\CodeIgniter->handleRequest(null, Object(Config\\Cache), false)\n 6 SYSTEMPATH\\Boot.php(417): CodeIgniter\\CodeIgniter->run()\n 7 SYSTEMPATH\\Boot.php(68): CodeIgniter\\Boot::runCodeIgniter(Object(CodeIgniter\\CodeIgniter))\n 8 FCPATH\\index.php(59): CodeIgniter\\Boot::bootWeb(Object(Config\\Paths))\n 9 SYSTEMPATH\\rewrite.php(44): require_once('C:\\\\xampp\\\\htdocs\\\\Simpos\\\\Backend\\\\public\\\\index.php')"
+                            }
+                        ],
+                        "cacheLogs": true
+                    },
+                    "forceHTTPS": 0,
+                    "validator": null
+                }
+            ]
+        },
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\CodeIgniter.php",
+            "line": 363,
+            "function": "handleRequest",
+            "class": "CodeIgniter\\CodeIgniter",
+            "type": "->",
+            "args": [
+                null,
+                {
+                    "handler": "file",
+                    "backupHandler": "dummy",
+                    "prefix": "",
+                    "ttl": 60,
+                    "reservedCharacters": "{}()/\\@:",
+                    "file": {
+                        "storePath": "C:\\xampp\\htdocs\\Simpos\\Backend\\writable\\cache/",
+                        "mode": 416
+                    },
+                    "memcached": {
+                        "host": "127.0.0.1",
+                        "port": 11211,
+                        "weight": 1,
+                        "raw": false
+                    },
+                    "redis": {
+                        "host": "127.0.0.1",
+                        "password": null,
+                        "port": 6379,
+                        "timeout": 0,
+                        "async": false,
+                        "persistent": false,
+                        "database": 0
+                    },
+                    "validHandlers": {
+                        "apcu": "CodeIgniter\\Cache\\Handlers\\ApcuHandler",
+                        "dummy": "CodeIgniter\\Cache\\Handlers\\DummyHandler",
+                        "file": "CodeIgniter\\Cache\\Handlers\\FileHandler",
+                        "memcached": "CodeIgniter\\Cache\\Handlers\\MemcachedHandler",
+                        "predis": "CodeIgniter\\Cache\\Handlers\\PredisHandler",
+                        "redis": "CodeIgniter\\Cache\\Handlers\\RedisHandler",
+                        "wincache": "CodeIgniter\\Cache\\Handlers\\WincacheHandler"
+                    },
+                    "cacheQueryString": false,
+                    "cacheStatusCodes": []
+                },
+                false
+            ]
+        },
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\Boot.php",
+            "line": 417,
+            "function": "run",
+            "class": "CodeIgniter\\CodeIgniter",
+            "type": "->",
+            "args": []
+        },
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\Boot.php",
+            "line": 68,
+            "function": "runCodeIgniter",
+            "class": "CodeIgniter\\Boot",
+            "type": "::",
+            "args": [
+                {
+                    "startTime": 1794136490.536465,
+                    "totalTime": null,
+                    "config": "[Config\\App Object *RECURSION*]",
+                    "benchmark": {
+                        "timers": {
+                            "total_execution": {
+                                "start": 1794136490.536465,
+                                "end": null
+                            },
+                            "bootstrap": {
+                                "start": 1794136490.542336,
+                                "end": 1794136490.560707
+                            },
+                            "required_before_filters": {
+                                "start": 1794136490.560709,
+                                "end": 1794136490.565907
+                            },
+                            "routing": {
+                                "start": 1794136490.565913,
+                                "end": 1794136490.569402
+                            },
+                            "before_filters": {
+                                "start": 1794136490.569726,
+                                "end": 1794136490.576011
+                            },
+                            "controller": {
+                                "start": 1794136490.576016,
+                                "end": null
+                            },
+                            "controller_constructor": {
+                                "start": 1794136490.576018,
+                                "end": 1794136490.579947
+                            },
+                            "route_attributes_before": {
+                                "start": 1794136490.576037,
+                                "end": 1794136490.576041
+                            }
+                        }
+                    },
+                    "request": "[CodeIgniter\\HTTP\\IncomingRequest Object *RECURSION*]",
+                    "response": "[CodeIgniter\\HTTP\\Response Object *RECURSION*]",
+                    "router": {
+                        "collection": {
+                            "defaultNamespace": "App\\Controllers\\",
+                            "defaultController": "Home",
+                            "defaultMethod": "index",
+                            "defaultPlaceholder": "any",
+                            "translateURIDashes": false,
+                            "autoRoute": false,
+                            "override404": null,
+                            "routeFiles": [
+                                "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Config\\Routes.php"
+                            ],
+                            "placeholders": {
+                                "any": ".*",
+                                "segment": "[^/]+",
+                                "alphanum": "[a-zA-Z0-9]+",
+                                "num": "[0-9]+",
+                                "alpha": "[a-zA-Z]+",
+                                "hash": "[^/]+"
+                            },
+                            "routes": {
+                                "*": [],
+                                "OPTIONS": [],
+                                "GET": {
+                                    "__hot-reload": {
+                                        "name": "__hot-reload",
+                                        "handler": "[Closure]",
+                                        "from": "__hot-reload"
+                                    },
+                                    "api/me": {
+                                        "name": "api/me",
+                                        "handler": "\\App\\Controllers\\Api\\AuthApi::me",
+                                        "from": "api/me"
+                                    },
+                                    "api/kasir/katalog": {
+                                        "name": "api/kasir/katalog",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::catalog",
+                                        "from": "api/kasir/katalog"
+                                    },
+                                    "api/kasir/pelanggan": {
+                                        "name": "api/kasir/pelanggan",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::customers",
+                                        "from": "api/kasir/pelanggan"
+                                    },
+                                    "api/kasir/resep": {
+                                        "name": "api/kasir/resep",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::recipes",
+                                        "from": "api/kasir/resep"
+                                    },
+                                    "api/kasir/keranjang": {
+                                        "name": "api/kasir/keranjang",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::cart",
+                                        "from": "api/kasir/keranjang"
+                                    },
+                                    "api/kasir/transaksi": {
+                                        "name": "api/kasir/transaksi",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::transactions",
+                                        "from": "api/kasir/transaksi"
+                                    },
+                                    "api/kasir/transaksi/([0-9]+)": {
+                                        "name": "api/kasir/transaksi/([0-9]+)",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::transaction/$1",
+                                        "from": "api/kasir/transaksi/(:num)"
+                                    },
+                                    "api/kasir/pemesanan": {
+                                        "name": "api/kasir/pemesanan",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::orders",
+                                        "from": "api/kasir/pemesanan"
+                                    },
+                                    "api/kasir/pemesanan/([0-9]+)": {
+                                        "name": "api/kasir/pemesanan/([0-9]+)",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::order/$1",
+                                        "from": "api/kasir/pemesanan/(:num)"
+                                    },
+                                    "api/kasir/pembayaran": {
+                                        "name": "api/kasir/pembayaran",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::payments",
+                                        "from": "api/kasir/pembayaran"
+                                    },
+                                    "/": {
+                                        "name": "/",
+                                        "handler": "[Closure]",
+                                        "from": "/"
+                                    },
+                                    "login": {
+                                        "name": "login",
+                                        "handler": "\\App\\Controllers\\Auth::login",
+                                        "from": "login"
+                                    },
+                                    "admin/login": {
+                                        "name": "admin/login",
+                                        "handler": "[Closure]",
+                                        "from": "admin/login"
+                                    },
+                                    "owner/login": {
+                                        "name": "owner/login",
+                                        "handler": "[Closure]",
+                                        "from": "owner/login"
+                                    },
+                                    "dashboard": {
+                                        "name": "dashboard",
+                                        "handler": "\\App\\Controllers\\Dashboard::index",
+                                        "from": "dashboard"
+                                    },
+                                    "kasir/dashboard": {
+                                        "name": "kasir/dashboard",
+                                        "handler": "\\App\\Controllers\\Kasir\\Dashboard::index",
+                                        "from": "kasir/dashboard"
+                                    },
+                                    "kasir/transaksi": {
+                                        "name": "kasir/transaksi",
+                                        "handler": "\\App\\Controllers\\Kasir\\Transaksi::index",
+                                        "from": "kasir/transaksi"
+                                    },
+                                    "kasir/checkout": {
+                                        "name": "kasir/checkout",
+                                        "handler": "\\App\\Controllers\\Kasir\\Transaksi::checkout",
+                                        "from": "kasir/checkout"
+                                    },
+                                    "kasir/transaksi/berhasil/([0-9]+)": {
+                                        "name": "kasir/transaksi/berhasil/([0-9]+)",
+                                        "handler": "\\App\\Controllers\\Kasir\\Transaksi::berhasil/$1",
+                                        "from": "kasir/transaksi/berhasil/(:num)"
+                                    },
+                                    "kasir/pemesanan": {
+                                        "name": "kasir/pemesanan",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pemesanan::index",
+                                        "from": "kasir/pemesanan"
+                                    },
+                                    "kasir/notifikasi": {
+                                        "name": "kasir/notifikasi",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pemesanan::notifikasi",
+                                        "from": "kasir/notifikasi"
+                                    },
+                                    "kasir/pemesanan/([0-9]+)/pengambilan": {
+                                        "name": "kasir/pemesanan/([0-9]+)/pengambilan",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pemesanan::pengambilan/$1",
+                                        "from": "kasir/pemesanan/(:num)/pengambilan"
+                                    },
+                                    "kasir/pemesanan/([0-9]+)": {
+                                        "name": "kasir/pemesanan/([0-9]+)",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pemesanan::detail/$1",
+                                        "from": "kasir/pemesanan/(:num)"
+                                    },
+                                    "kasir/riwayat": {
+                                        "name": "kasir/riwayat",
+                                        "handler": "\\App\\Controllers\\Kasir\\Riwayat::index",
+                                        "from": "kasir/riwayat"
+                                    },
+                                    "kasir/riwayat/([0-9]+)": {
+                                        "name": "kasir/riwayat/([0-9]+)",
+                                        "handler": "\\App\\Controllers\\Kasir\\Riwayat::detail/$1",
+                                        "from": "kasir/riwayat/(:num)"
+                                    },
+                                    "kasir/pelanggan": {
+                                        "name": "kasir/pelanggan",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pelanggan::index",
+                                        "from": "kasir/pelanggan"
+                                    },
+                                    "kasir/resep": {
+                                        "name": "kasir/resep",
+                                        "handler": "\\App\\Controllers\\Kasir\\Resep::index",
+                                        "from": "kasir/resep"
+                                    },
+                                    "kasir/pembayaran": {
+                                        "name": "kasir/pembayaran",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pembayaran::index",
+                                        "from": "kasir/pembayaran"
+                                    },
+                                    "kategori": {
+                                        "name": "kategori",
+                                        "handler": "\\App\\Controllers\\Master\\Kategori::index",
+                                        "from": "kategori"
+                                    },
+                                    "kategori/baru": {
+                                        "name": "kategori/baru",
+                                        "handler": "\\App\\Controllers\\Master\\Kategori::create",
+                                        "from": "kategori/baru"
+                                    },
+                                    "kategori/([0-9]+)/edit": {
+                                        "name": "kategori/([0-9]+)/edit",
+                                        "handler": "\\App\\Controllers\\Master\\Kategori::edit/$1",
+                                        "from": "kategori/(:num)/edit"
+                                    },
+                                    "app": {
+                                        "name": "app",
+                                        "handler": "\\App\\Controllers\\Spa::index",
+                                        "from": "app"
+                                    },
+                                    "app/(.*)": {
+                                        "name": "app/(.*)",
+                                        "handler": "\\App\\Controllers\\Spa::index",
+                                        "from": "app/(:any)"
+                                    }
+                                },
+                                "HEAD": [],
+                                "POST": {
+                                    "api/login": {
+                                        "name": "api/login",
+                                        "handler": "\\App\\Controllers\\Api\\AuthApi::login",
+                                        "from": "api/login"
+                                    },
+                                    "api/logout": {
+                                        "name": "api/logout",
+                                        "handler": "\\App\\Controllers\\Api\\AuthApi::logout",
+                                        "from": "api/logout"
+                                    },
+                                    "api/kasir/pelanggan": {
+                                        "name": "api/kasir/pelanggan",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::createCustomer",
+                                        "from": "api/kasir/pelanggan"
+                                    },
+                                    "api/kasir/pelanggan/([0-9]+)": {
+                                        "name": "api/kasir/pelanggan/([0-9]+)",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::updateCustomer/$1",
+                                        "from": "api/kasir/pelanggan/(:num)"
+                                    },
+                                    "api/kasir/resep": {
+                                        "name": "api/kasir/resep",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::createRecipe",
+                                        "from": "api/kasir/resep"
+                                    },
+                                    "api/kasir/resep/([0-9]+)": {
+                                        "name": "api/kasir/resep/([0-9]+)",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::updateRecipe/$1",
+                                        "from": "api/kasir/resep/(:num)"
+                                    },
+                                    "api/kasir/keranjang/item": {
+                                        "name": "api/kasir/keranjang/item",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::setCartItem",
+                                        "from": "api/kasir/keranjang/item"
+                                    },
+                                    "api/kasir/keranjang/pelanggan": {
+                                        "name": "api/kasir/keranjang/pelanggan",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::selectCartCustomer",
+                                        "from": "api/kasir/keranjang/pelanggan"
+                                    },
+                                    "api/kasir/keranjang/kosongkan": {
+                                        "name": "api/kasir/keranjang/kosongkan",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::clearCart",
+                                        "from": "api/kasir/keranjang/kosongkan"
+                                    },
+                                    "api/kasir/checkout": {
+                                        "name": "api/kasir/checkout",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::checkout",
+                                        "from": "api/kasir/checkout"
+                                    },
+                                    "api/kasir/pemesanan": {
+                                        "name": "api/kasir/pemesanan",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::createOrder",
+                                        "from": "api/kasir/pemesanan"
+                                    },
+                                    "api/kasir/pemesanan/([0-9]+)/pengambilan": {
+                                        "name": "api/kasir/pemesanan/([0-9]+)/pengambilan",
+                                        "handler": "\\App\\Controllers\\Api\\KasirApi::completeOrder/$1",
+                                        "from": "api/kasir/pemesanan/(:num)/pengambilan"
+                                    },
+                                    "login": {
+                                        "name": "login",
+                                        "handler": "\\App\\Controllers\\Auth::prosesLogin",
+                                        "from": "login"
+                                    },
+                                    "admin/login": {
+                                        "name": "admin/login",
+                                        "handler": "\\App\\Controllers\\Auth::prosesLogin",
+                                        "from": "admin/login"
+                                    },
+                                    "owner/login": {
+                                        "name": "owner/login",
+                                        "handler": "\\App\\Controllers\\Auth::prosesLogin",
+                                        "from": "owner/login"
+                                    },
+                                    "logout": {
+                                        "name": "logout",
+                                        "handler": "\\App\\Controllers\\Auth::logout",
+                                        "from": "logout"
+                                    },
+                                    "kasir/transaksi/tambah": {
+                                        "name": "kasir/transaksi/tambah",
+                                        "handler": "\\App\\Controllers\\Kasir\\Transaksi::tambah",
+                                        "from": "kasir/transaksi/tambah"
+                                    },
+                                    "kasir/transaksi/qty": {
+                                        "name": "kasir/transaksi/qty",
+                                        "handler": "\\App\\Controllers\\Kasir\\Transaksi::ubahQty",
+                                        "from": "kasir/transaksi/qty"
+                                    },
+                                    "kasir/transaksi/hapus": {
+                                        "name": "kasir/transaksi/hapus",
+                                        "handler": "\\App\\Controllers\\Kasir\\Transaksi::hapus",
+                                        "from": "kasir/transaksi/hapus"
+                                    },
+                                    "kasir/checkout/pelanggan": {
+                                        "name": "kasir/checkout/pelanggan",
+                                        "handler": "\\App\\Controllers\\Kasir\\Transaksi::pilihPelanggan",
+                                        "from": "kasir/checkout/pelanggan"
+                                    },
+                                    "kasir/checkout/selesai": {
+                                        "name": "kasir/checkout/selesai",
+                                        "handler": "\\App\\Controllers\\Kasir\\Transaksi::selesaikan",
+                                        "from": "kasir/checkout/selesai"
+                                    },
+                                    "kasir/pemesanan": {
+                                        "name": "kasir/pemesanan",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pemesanan::simpan",
+                                        "from": "kasir/pemesanan"
+                                    },
+                                    "kasir/pemesanan/([0-9]+)/pengambilan": {
+                                        "name": "kasir/pemesanan/([0-9]+)/pengambilan",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pemesanan::selesaikanPengambilan/$1",
+                                        "from": "kasir/pemesanan/(:num)/pengambilan"
+                                    },
+                                    "kasir/pelanggan": {
+                                        "name": "kasir/pelanggan",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pelanggan::simpan",
+                                        "from": "kasir/pelanggan"
+                                    },
+                                    "kasir/pelanggan/ubah": {
+                                        "name": "kasir/pelanggan/ubah",
+                                        "handler": "\\App\\Controllers\\Kasir\\Pelanggan::ubah",
+                                        "from": "kasir/pelanggan/ubah"
+                                    },
+                                    "kasir/resep": {
+                                        "name": "kasir/resep",
+                                        "handler": "\\App\\Controllers\\Kasir\\Resep::simpan",
+                                        "from": "kasir/resep"
+                                    },
+                                    "kategori": {
+                                        "name": "kategori",
+                                        "handler": "\\App\\Controllers\\Master\\Kategori::store",
+                                        "from": "kategori"
+                                    },
+                                    "kategori/([0-9]+)": {
+                                        "name": "kategori/([0-9]+)",
+                                        "handler": "\\App\\Controllers\\Master\\Kategori::update/$1",
+                                        "from": "kategori/(:num)"
+                                    },
+                                    "kategori/([0-9]+)/hapus": {
+                                        "name": "kategori/([0-9]+)/hapus",
+                                        "handler": "\\App\\Controllers\\Master\\Kategori::delete/$1",
+                                        "from": "kategori/(:num)/hapus"
+                                    }
+                                },
+                                "PATCH": [],
+                                "PUT": [],
+                                "DELETE": [],
+                                "TRACE": [],
+                                "CONNECT": [],
+                                "CLI": []
+                            },
+                            "routesNames": {
+                                "*": [],
+                                "OPTIONS": [],
+                                "GET": {
+                                    "__hot-reload": "__hot-reload",
+                                    "api/me": "api/me",
+                                    "api/kasir/katalog": "api/kasir/katalog",
+                                    "api/kasir/pelanggan": "api/kasir/pelanggan",
+                                    "api/kasir/resep": "api/kasir/resep",
+                                    "api/kasir/keranjang": "api/kasir/keranjang",
+                                    "api/kasir/transaksi": "api/kasir/transaksi",
+                                    "api/kasir/transaksi/([0-9]+)": "api/kasir/transaksi/([0-9]+)",
+                                    "api/kasir/pemesanan": "api/kasir/pemesanan",
+                                    "api/kasir/pemesanan/([0-9]+)": "api/kasir/pemesanan/([0-9]+)",
+                                    "api/kasir/pembayaran": "api/kasir/pembayaran",
+                                    "/": "/",
+                                    "login": "login",
+                                    "admin/login": "admin/login",
+                                    "owner/login": "owner/login",
+                                    "dashboard": "dashboard",
+                                    "kasir/dashboard": "kasir/dashboard",
+                                    "kasir/transaksi": "kasir/transaksi",
+                                    "kasir/checkout": "kasir/checkout",
+                                    "kasir/transaksi/berhasil/([0-9]+)": "kasir/transaksi/berhasil/([0-9]+)",
+                                    "kasir/pemesanan": "kasir/pemesanan",
+                                    "kasir/notifikasi": "kasir/notifikasi",
+                                    "kasir/pemesanan/([0-9]+)/pengambilan": "kasir/pemesanan/([0-9]+)/pengambilan",
+                                    "kasir/pemesanan/([0-9]+)": "kasir/pemesanan/([0-9]+)",
+                                    "kasir/riwayat": "kasir/riwayat",
+                                    "kasir/riwayat/([0-9]+)": "kasir/riwayat/([0-9]+)",
+                                    "kasir/pelanggan": "kasir/pelanggan",
+                                    "kasir/resep": "kasir/resep",
+                                    "kasir/pembayaran": "kasir/pembayaran",
+                                    "kategori": "kategori",
+                                    "kategori/baru": "kategori/baru",
+                                    "kategori/([0-9]+)/edit": "kategori/([0-9]+)/edit",
+                                    "app": "app",
+                                    "app/(.*)": "app/(.*)"
+                                },
+                                "HEAD": [],
+                                "POST": {
+                                    "api/login": "api/login",
+                                    "api/logout": "api/logout",
+                                    "api/kasir/pelanggan": "api/kasir/pelanggan",
+                                    "api/kasir/pelanggan/([0-9]+)": "api/kasir/pelanggan/([0-9]+)",
+                                    "api/kasir/resep": "api/kasir/resep",
+                                    "api/kasir/resep/([0-9]+)": "api/kasir/resep/([0-9]+)",
+                                    "api/kasir/keranjang/item": "api/kasir/keranjang/item",
+                                    "api/kasir/keranjang/pelanggan": "api/kasir/keranjang/pelanggan",
+                                    "api/kasir/keranjang/kosongkan": "api/kasir/keranjang/kosongkan",
+                                    "api/kasir/checkout": "api/kasir/checkout",
+                                    "api/kasir/pemesanan": "api/kasir/pemesanan",
+                                    "api/kasir/pemesanan/([0-9]+)/pengambilan": "api/kasir/pemesanan/([0-9]+)/pengambilan",
+                                    "login": "login",
+                                    "admin/login": "admin/login",
+                                    "owner/login": "owner/login",
+                                    "logout": "logout",
+                                    "kasir/transaksi/tambah": "kasir/transaksi/tambah",
+                                    "kasir/transaksi/qty": "kasir/transaksi/qty",
+                                    "kasir/transaksi/hapus": "kasir/transaksi/hapus",
+                                    "kasir/checkout/pelanggan": "kasir/checkout/pelanggan",
+                                    "kasir/checkout/selesai": "kasir/checkout/selesai",
+                                    "kasir/pemesanan": "kasir/pemesanan",
+                                    "kasir/pemesanan/([0-9]+)/pengambilan": "kasir/pemesanan/([0-9]+)/pengambilan",
+                                    "kasir/pelanggan": "kasir/pelanggan",
+                                    "kasir/pelanggan/ubah": "kasir/pelanggan/ubah",
+                                    "kasir/resep": "kasir/resep",
+                                    "kategori": "kategori",
+                                    "kategori/([0-9]+)": "kategori/([0-9]+)",
+                                    "kategori/([0-9]+)/hapus": "kategori/([0-9]+)/hapus"
+                                },
+                                "PATCH": [],
+                                "PUT": [],
+                                "DELETE": [],
+                                "TRACE": [],
+                                "CONNECT": [],
+                                "CLI": []
+                            },
+                            "routesOptions": {
+                                "GET": {
+                                    "__hot-reload": [],
+                                    "api/me": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf"
+                                        ]
+                                    },
+                                    "api/kasir/katalog": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/pelanggan": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/resep": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/keranjang": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/transaksi": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/transaksi/([0-9]+)": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/pemesanan": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/pemesanan/([0-9]+)": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/pembayaran": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "/": [],
+                                    "login": [],
+                                    "admin/login": [],
+                                    "owner/login": [],
+                                    "dashboard": {
+                                        "filter": [
+                                            "auth"
+                                        ]
+                                    },
+                                    "kasir/dashboard": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/transaksi": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/checkout": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/transaksi/berhasil/([0-9]+)": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pemesanan": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/notifikasi": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pemesanan/([0-9]+)/pengambilan": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pemesanan/([0-9]+)": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/riwayat": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/riwayat/([0-9]+)": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pelanggan": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/resep": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pembayaran": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kategori": {
+                                        "filter": [
+                                            "auth",
+                                            "role:admin,pemilik"
+                                        ]
+                                    },
+                                    "kategori/baru": {
+                                        "filter": [
+                                            "auth",
+                                            "role:admin,pemilik"
+                                        ]
+                                    },
+                                    "kategori/([0-9]+)/edit": {
+                                        "filter": [
+                                            "auth",
+                                            "role:admin,pemilik"
+                                        ]
+                                    },
+                                    "app": [],
+                                    "app/(.*)": []
+                                },
+                                "POST": {
+                                    "api/login": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf"
+                                        ]
+                                    },
+                                    "api/logout": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf"
+                                        ]
+                                    },
+                                    "api/kasir/pelanggan": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/pelanggan/([0-9]+)": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/resep": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/resep/([0-9]+)": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/keranjang/item": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/keranjang/pelanggan": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/keranjang/kosongkan": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/checkout": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/pemesanan": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "api/kasir/pemesanan/([0-9]+)/pengambilan": {
+                                        "namespace": "App\\Controllers\\Api",
+                                        "filter": [
+                                            "api-csrf",
+                                            "api-role:kasir"
+                                        ]
+                                    },
+                                    "login": [],
+                                    "admin/login": [],
+                                    "owner/login": [],
+                                    "logout": [],
+                                    "kasir/transaksi/tambah": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/transaksi/qty": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/transaksi/hapus": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/checkout/pelanggan": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/checkout/selesai": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pemesanan": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pemesanan/([0-9]+)/pengambilan": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pelanggan": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/pelanggan/ubah": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kasir/resep": {
+                                        "filter": [
+                                            "auth",
+                                            "role:kasir"
+                                        ]
+                                    },
+                                    "kategori": {
+                                        "filter": [
+                                            "auth",
+                                            "role:admin,pemilik"
+                                        ]
+                                    },
+                                    "kategori/([0-9]+)": {
+                                        "filter": [
+                                            "auth",
+                                            "role:admin,pemilik"
+                                        ]
+                                    },
+                                    "kategori/([0-9]+)/hapus": {
+                                        "filter": [
+                                            "auth",
+                                            "role:admin,pemilik"
+                                        ]
+                                    }
+                                }
+                            },
+                            "HTTPVerb": "POST",
+                            "defaultHTTPMethods": [
+                                "GET",
+                                "HEAD",
+                                "POST",
+                                "PATCH",
+                                "PUT",
+                                "DELETE",
+                                "OPTIONS",
+                                "TRACE",
+                                "CONNECT",
+                                "CLI"
+                            ],
+                            "group": null,
+                            "currentSubdomain": null,
+                            "currentOptions": null,
+                            "didDiscover": true,
+                            "fileLocator": {
+                                "autoloader": {
+                                    "prefixes": {
+                                        "CodeIgniter": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\"
+                                        ],
+                                        "Config": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Config\\"
+                                        ],
+                                        "App": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\"
+                                        ],
+                                        "Symfony\\Polyfill\\Php84": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/polyfill-php84\\"
+                                        ],
+                                        "Symfony\\Polyfill\\Php81": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/polyfill-php81\\"
+                                        ],
+                                        "Symfony\\Polyfill\\Php80": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/polyfill-php80\\"
+                                        ],
+                                        "Symfony\\Polyfill\\Mbstring": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/polyfill-mbstring\\"
+                                        ],
+                                        "Symfony\\Polyfill\\Intl\\Normalizer": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/polyfill-intl-normalizer\\"
+                                        ],
+                                        "Symfony\\Polyfill\\Intl\\Grapheme": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/polyfill-intl-grapheme\\"
+                                        ],
+                                        "Symfony\\Polyfill\\Ctype": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/polyfill-ctype\\"
+                                        ],
+                                        "Symfony\\Contracts\\Service": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/service-contracts\\"
+                                        ],
+                                        "Symfony\\Contracts\\EventDispatcher": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/event-dispatcher-contracts\\"
+                                        ],
+                                        "Symfony\\Component\\String": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/string\\"
+                                        ],
+                                        "Symfony\\Component\\Stopwatch": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/stopwatch\\"
+                                        ],
+                                        "Symfony\\Component\\Process": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/process\\"
+                                        ],
+                                        "Symfony\\Component\\OptionsResolver": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/options-resolver\\"
+                                        ],
+                                        "Symfony\\Component\\Finder": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/finder\\"
+                                        ],
+                                        "Symfony\\Component\\Filesystem": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/filesystem\\"
+                                        ],
+                                        "Symfony\\Component\\EventDispatcher": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/event-dispatcher\\"
+                                        ],
+                                        "Symfony\\Component\\Console": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../symfony/console\\"
+                                        ],
+                                        "React\\Stream": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../react/stream/src\\"
+                                        ],
+                                        "React\\Socket": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../react/socket/src\\"
+                                        ],
+                                        "React\\Promise": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../react/promise/src\\"
+                                        ],
+                                        "React\\EventLoop": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../react/event-loop/src\\"
+                                        ],
+                                        "React\\Dns": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../react/dns/src\\"
+                                        ],
+                                        "React\\ChildProcess": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../react/child-process/src\\"
+                                        ],
+                                        "React\\Cache": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../react/cache/src\\"
+                                        ],
+                                        "Psr\\Log": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../psr/log/src\\"
+                                        ],
+                                        "Psr\\Http\\Message": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../psr/http-message/src\\"
+                                        ],
+                                        "Psr\\EventDispatcher": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../psr/event-dispatcher/src\\"
+                                        ],
+                                        "Psr\\Container": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../psr/container/src\\"
+                                        ],
+                                        "Predis": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../predis/predis/src\\"
+                                        ],
+                                        "PhpParser": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../nikic/php-parser/lib/PhpParser\\"
+                                        ],
+                                        "PhpCsFixer": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../friendsofphp/php-cs-fixer/src\\"
+                                        ],
+                                        "Nexus\\CsConfig": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../nexusphp/cs-config/src\\"
+                                        ],
+                                        "Laminas\\Escaper": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../laminas/laminas-escaper/src\\"
+                                        ],
+                                        "Kint": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../kint-php/kint/src\\"
+                                        ],
+                                        "Fidry\\CpuCoreCounter": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../fidry/cpu-core-counter/src\\"
+                                        ],
+                                        "Faker": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../fakerphp/faker/src/Faker\\"
+                                        ],
+                                        "Evenement": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../evenement/evenement/src\\"
+                                        ],
+                                        "Ergebnis\\AgentDetector": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../ergebnis/agent-detector/src\\"
+                                        ],
+                                        "DeepCopy": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../myclabs/deep-copy/src/DeepCopy\\"
+                                        ],
+                                        "CodeIgniter\\CodingStandard": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../codeigniter/coding-standard/src\\"
+                                        ],
+                                        "Clue\\React\\NDJson": [
+                                            "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor\\composer/../clue/ndjson-react/src\\"
+                                        ]
+                                    },
+                                    "classmap": {
+                                        "Psr\\Log\\AbstractLogger": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/PSR/Log/AbstractLogger.php",
+                                        "Psr\\Log\\InvalidArgumentException": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/PSR/Log/InvalidArgumentException.php",
+                                        "Psr\\Log\\LoggerAwareInterface": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/PSR/Log/LoggerAwareInterface.php",
+                                        "Psr\\Log\\LoggerAwareTrait": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/PSR/Log/LoggerAwareTrait.php",
+                                        "Psr\\Log\\LoggerInterface": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/PSR/Log/LoggerInterface.php",
+                                        "Psr\\Log\\LoggerTrait": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/PSR/Log/LoggerTrait.php",
+                                        "Psr\\Log\\LogLevel": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/PSR/Log/LogLevel.php",
+                                        "Psr\\Log\\NullLogger": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/PSR/Log/NullLogger.php",
+                                        "Laminas\\Escaper\\Exception\\ExceptionInterface": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/Escaper/Exception/ExceptionInterface.php",
+                                        "Laminas\\Escaper\\Exception\\InvalidArgumentException": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/Escaper/Exception/InvalidArgumentException.php",
+                                        "Laminas\\Escaper\\Exception\\RuntimeException": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/Escaper/Exception/RuntimeException.php",
+                                        "Laminas\\Escaper\\EscaperInterface": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/Escaper/EscaperInterface.php",
+                                        "Laminas\\Escaper\\Escaper": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\ThirdParty/Escaper/Escaper.php"
+                                    },
+                                    "files": [],
+                                    "helpers": [
+                                        "url",
+                                        "auth"
+                                    ],
+                                    "registeredClosures": [
+                                        "[Closure]",
+                                        "[Closure]"
+                                    ],
+                                    "composerPath": "C:\\xampp\\htdocs\\Simpos\\Backend\\vendor/autoload.php"
+                                },
+                                "invalidClassnames": []
+                            },
+                            "moduleConfig": {
+                                "enabled": true,
+                                "discoverInComposer": true,
+                                "aliases": [
+                                    "events",
+                                    "filters",
+                                    "registrars",
+                                    "routes",
+                                    "services"
+                                ],
+                                "composerPackages": []
+                            },
+                            "prioritize": false,
+                            "prioritizeDetected": false,
+                            "httpHost": "127.0.0.1:8080",
+                            "useSupportedLocalesOnly": false
+                        },
+                        "directory": null,
+                        "controller": "\\App\\Controllers\\Api\\AuthApi",
+                        "method": "login",
+                        "params": [],
+                        "indexPage": "index.php",
+                        "translateURIDashes": false,
+                        "matchedRoute": [
+                            "api/login",
+                            "\\App\\Controllers\\Api\\AuthApi::login"
+                        ],
+                        "matchedRouteOptions": {
+                            "namespace": "App\\Controllers\\Api",
+                            "filter": [
+                                "api-csrf"
+                            ]
+                        },
+                        "detectedLocale": null,
+                        "filtersInfo": [
+                            "api-csrf"
+                        ],
+                        "autoRouter": null,
+                        "routeAttributes": {
+                            "class": [],
+                            "method": []
+                        },
+                        "permittedURIChars": "a-z 0-9~%.:_\\-"
+                    },
+                    "controller": "\\App\\Controllers\\Api\\AuthApi",
+                    "method": "login",
+                    "output": null,
+                    "context": "web",
+                    "enableFilters": true,
+                    "returnResponse": false,
+                    "bufferLevel": 1,
+                    "pageCache": {
+                        "cacheQueryString": false,
+                        "ttl": 0,
+                        "cache": {
+                            "prefix": "",
+                            "path": "C:\\xampp\\htdocs\\Simpos\\Backend\\writable\\cache/",
+                            "mode": 416
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\public\\index.php",
+            "line": 59,
+            "function": "bootWeb",
+            "class": "CodeIgniter\\Boot",
+            "type": "::",
+            "args": [
+                {
+                    "systemDirectory": "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Config/../../system",
+                    "appDirectory": "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Config/..",
+                    "writableDirectory": "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Config/../../writable",
+                    "testsDirectory": "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Config/../../tests",
+                    "viewDirectory": "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Config/../Views",
+                    "envDirectory": "C:\\xampp\\htdocs\\Simpos\\Backend\\app\\Config/../../"
+                }
+            ]
+        },
+        {
+            "file": "C:\\xampp\\htdocs\\Simpos\\Backend\\system\\rewrite.php",
+            "line": 44,
+            "args": [
+                "C:\\xampp\\htdocs\\Simpos\\Backend\\public\\index.php"
+            ],
+            "function": "require_once"
+        }
+    ]
+}

@@ -137,7 +137,7 @@ class AdminInventoryApi extends BaseController
         $builder = db_connect()->table('barang b')
             ->select('b.id, b.kode_barang, b.nama_barang, b.jenis, b.merek, b.harga_jual, b.status, k.nama_kategori')
             ->join('kategori_barang k', 'k.id = b.kategori_id', 'left')
-            ->where('LOWER(b.jenis)', strtolower($type), false);
+            ->where('LOWER(b.jenis)', strtolower($type));
 
         if ($status !== '') {
             $builder->where('b.status', $status);
