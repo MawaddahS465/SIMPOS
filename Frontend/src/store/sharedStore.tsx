@@ -569,7 +569,9 @@ function load(): StoreShape {
           }
           /* Riwayat demo tambahan (id H*) untuk grafik periode sebelumnya — hanya menambah. */
           const known = new Set(parsed.transactions.map((t) => t.id));
-          const history = TRANSACTIONS.filter((t) => t.id.startsWith("H") && !known.has(t.id));
+          const history = TRANSACTIONS.filter(
+            (t) => (t.id.startsWith("H") || t.id.startsWith("R")) && !known.has(t.id),
+          );
           if (history.length) parsed.transactions = [...parsed.transactions, ...history];
         }
         /* Backfill produk untuk PO lama agar bisa diproses sebagai transaksi pengambilan. */

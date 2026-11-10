@@ -42,8 +42,7 @@ Autentikasi memakai username/password dari database Backend, bukan akun demo fro
 | Admin Cabang | `/login` | `admin1` | `123` |
 | Pemilik | `/login` | `pemilik` | `123` |
 
-Semua peran menggunakan satu halaman login. Setelah berhasil, Backend
-menentukan role akun dan Frontend mengarahkan pengguna ke dashboard yang sesuai.
+Satu halaman `/login` dipakai untuk ketiga peran; setelah autentikasi pengguna diarahkan otomatis ke dashboard sesuai role.
 
 ## Peta halaman
 

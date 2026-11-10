@@ -1,5 +1,5 @@
-import RoleLoginPage from "../../components/RoleLoginPage";
+import { Navigate } from "react-router-dom";
 
 export default function AdminLoginPage() {
-  return <RoleLoginPage />;
+  return <Navigate to="/login" replace />;
 }

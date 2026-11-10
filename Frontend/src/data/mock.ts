@@ -161,6 +161,27 @@ export const TRANSACTIONS: Transaction[] = [
     type: "Pembelian", method: "Tunai", paid: 500_000, change: 0, total: 500_000, status: "Selesai",
     products: [{ name: "Cleaning Kit", brand: "Makar Eyewear", qty: 1, price: 90_000 }, { name: "Paket Case & Lap", brand: "Optik Mekar Jaya", qty: 1, price: 150_000 }],
   },
+  /* Transaksi demo terbaru agar ringkasan 90 hari di Dashboard Pemilik tidak kosong. */
+  {
+    id: "R1", no: "TRX-20261109-010", date: "09 Nov 2026", time: "10:15", customer: "Rian Pratama", phone: "085277129011",
+    type: "Pembelian", method: "QRIS", total: 1_450_000, status: "Selesai",
+    products: [{ name: "Frame AirFlex", brand: "Excellence", qty: 1, price: 800_000 }, { name: "Lensa Single Vision", brand: "Essilor", qty: 1, price: 650_000 }],
+  },
+  {
+    id: "R2", no: "TRX-20261108-011", date: "08 Nov 2026", time: "14:40", customer: "Siti Maulida", phone: "081234567890",
+    type: "Pembelian", method: "Tunai", paid: 900_000, change: 0, total: 900_000, status: "Selesai",
+    products: [{ name: "Lensa Blue Control", brand: "Hoya", qty: 1, price: 900_000 }],
+  },
+  {
+    id: "R3", no: "TRX-20261107-012", date: "07 Nov 2026", time: "11:05", customer: "Andi Saputra", phone: "089612345678",
+    type: "Pemesanan", method: "Transfer Bank", total: 1_750_000, status: "Selesai",
+    products: [{ name: "Lensa Progressive", brand: "Zeiss", qty: 1, price: 950_000 }, { name: "Frame AirFlex", brand: "Excellence", qty: 1, price: 800_000 }],
+  },
+  {
+    id: "R4", no: "TRX-20261106-013", date: "06 Nov 2026", time: "16:20", customer: "Nadia Amelia", phone: "082166778899",
+    type: "Pembelian", method: "Kartu Debit/Kredit", total: 1_350_000, status: "Selesai",
+    products: [{ name: "3Clear Black Round", brand: "Makar Eyewear", qty: 1, price: 450_000 }, { name: "Lensa Blue Control", brand: "Hoya", qty: 1, price: 900_000 }],
+  },
   /* Riwayat lebih lama — dipakai grafik "periode sebelumnya" di Dashboard Pemilik.
      Additif: di-backfill ke localStorage lama lewat id H*, tidak menimpa data pengguna. */
   {
