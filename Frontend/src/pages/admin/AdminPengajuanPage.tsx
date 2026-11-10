@@ -122,7 +122,6 @@ export default function AdminPengajuanPage() {
       <PageHeader
         overline="PERSEDIAAN — PENGAJUAN"
         title="Pengajuan Stok"
-        desc="Ajukan kebutuhan stok ke Pemilik dan pantau jumlah yang dialokasikan hingga diterima."
         actions={<button className="btn btn-primary" onClick={start}><FilePlus2 size={16} />Ajukan Stok</button>}
       />
 
@@ -166,7 +165,6 @@ export default function AdminPengajuanPage() {
             {!loading && requests.length === 0 ? <tr><td colSpan={8}><div className="empty-note">Tidak ada pengajuan yang cocok.</div></td></tr> : null}
           </tbody>
         </table>
-        <div className="table-foot"><span className="foot-note">Menampilkan {requests.length} pengajuan</span></div>
       </div>
 
       {open ? (

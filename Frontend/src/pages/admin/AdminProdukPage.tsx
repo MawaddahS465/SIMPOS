@@ -159,11 +159,6 @@ export default function AdminProdukPage({ type }: Props) {
       <PageHeader
         overline={type === "Frame" ? "MASTER PRODUK — FRAME" : "MASTER PRODUK — LENSA"}
         title={type === "Frame" ? "Katalog Frame" : "Katalog Lensa"}
-        desc={
-          type === "Frame"
-            ? "Kelola master frame: kategori, harga jual, dan status."
-            : "Kelola master lensa: kategori, harga jual, dan status."
-        }
         actions={
           <button className="btn btn-primary" onClick={startAdd}>
             <Plus size={16} />

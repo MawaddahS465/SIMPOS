@@ -4,7 +4,6 @@ import { ChevronRight, ClipboardList, PackageCheck, PackagePlus } from "lucide-r
 import type { PoStatus } from "../../data/mock";
 import { adminPoApi, ApiError } from "../../lib/api";
 import { mapApiPo } from "../../lib/po";
-import { useAuth } from "../../store/auth";
 import { Avatar, PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -12,7 +11,6 @@ import "../../styles/admin.css";
 const FILTERS: Array<"Semua" | PoStatus> = ["Semua", "Dipesan", "Diproses", "Sudah Datang", "Selesai", "Dibatalkan"];
 
 export default function AdminPemesananPage() {
-  const { session } = useAuth();
   const [filter, setFilter] = useState<"Semua" | PoStatus>("Semua");
   const [query, setQuery] = useState("");
   const [orders, setOrders] = useState<ReturnType<typeof mapApiPo>[]>([]);
@@ -56,7 +54,6 @@ export default function AdminPemesananPage() {
       <PageHeader
         overline="OPERASIONAL — PEMESANAN"
         title="Pemesanan (PO)"
-        desc={`Antrean PO dari Kasir ${session?.branch ?? "cabang"}. ${baru} PO baru menunggu diproses.`}
       />
 
       <div className="stat-row">
@@ -70,7 +67,6 @@ export default function AdminPemesananPage() {
         <div className="section-head">
           <div>
             <h2>Daftar Pemesanan</h2>
-            <div className="section-desc">Informasi pesanan pelanggan dan status terbaru</div>
           </div>
         </div>
 
@@ -154,9 +150,6 @@ export default function AdminPemesananPage() {
               ) : null}
             </tbody>
           </table>
-          <div className="table-foot">
-            <span className="foot-note">Menampilkan {rows.length} pesanan</span>
-          </div>
         </div>
       </section>
     </div>
