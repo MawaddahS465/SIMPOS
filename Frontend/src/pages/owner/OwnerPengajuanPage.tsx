@@ -76,7 +76,7 @@ export default function OwnerPengajuanPage() {
 
   return (
     <div className="page">
-      <PageHeader overline="KEPUTUSAN — PERSETUJUAN PENGAJUAN" title="Persetujuan Pengajuan" desc="Tinjau permintaan stok dari cabang. Alokasi dilakukan pada stok pusat yang tersedia; saldo pusat saat ini dimulai dari 0." />
+      <PageHeader overline="KEPUTUSAN — PERSETUJUAN PENGAJUAN" title="Persetujuan Pengajuan" />
       <div className="stat-row" style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
         <StatCard label="Menunggu Tinjauan" value={String(waiting)} caption="Belum mendapat alokasi" icon={<Clock size={22} />} tone="amber" />
         <StatCard label="Sedang Dialokasikan" value={String(inProgress)} caption="Sebagian atau menunggu diterima" icon={<Truck size={22} />} tone="blue" />

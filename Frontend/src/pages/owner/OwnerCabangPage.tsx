@@ -131,7 +131,6 @@ export default function OwnerCabangPage() {
       <PageHeader
         overline="MONITORING — CABANG"
         title="Monitoring Cabang"
-        desc="Kelola profil lokasi dan pantau stok, transaksi, PO, serta pengajuan."
         actions={
           <button className="btn btn-primary" onClick={openAdd}>
             <Plus size={16} />
