@@ -76,6 +76,7 @@ $routes->post('produk/(:num)/aktifkan', 'AdminInventoryApi::activateProduct/$1')
         $routes->post('pengguna/(:num)/status', 'OwnerManagementApi::userStatus/$1');
         $routes->get('pengaturan', 'OwnerManagementApi::settings');
         $routes->post('pengaturan', 'OwnerManagementApi::saveSettings');
+        $routes->post('pengaturan/password', 'OwnerManagementApi::changePassword');
         $routes->get('pengajuan-stok', 'OwnerStockFlowApi::requests');
         $routes->post('pengajuan-stok/(:num)/tolak', 'OwnerStockFlowApi::rejectRequest/$1');
         $routes->get('alokasi-stok/opsi', 'OwnerStockFlowApi::allocationOptions');
@@ -85,12 +86,19 @@ $routes->post('produk/(:num)/aktifkan', 'AdminInventoryApi::activateProduct/$1')
 });
 
 // Backend hanya menyediakan API dan frontend React hasil build.
-$routes->get('/', static fn () => redirect()->to('/app/login'));
+// Build Vite memakai base /app/, sehingga alias /login diarahkan ke /app/login.
+// Redirect memakai Location relatif agar tetap benar saat diakses lewat tunnel.
+$appLoginRedirect = static fn () => service('response')
+    ->setStatusCode(302)
+    ->setHeader('Location', '/app/login');
 
-// Halaman login React: boleh diakses tanpa login.
+$routes->get('/', $appLoginRedirect);
+$routes->get('login', $appLoginRedirect);
 $routes->get('app/login', 'Spa::index');
-$routes->get('app/admin/login', static fn () => redirect()->to('/app/login'));
-$routes->get('app/owner/login', static fn () => redirect()->to('/app/login'));
+$routes->get('admin/login', $appLoginRedirect);
+$routes->get('owner/login', $appLoginRedirect);
+$routes->get('app/admin/login', $appLoginRedirect);
+$routes->get('app/owner/login', $appLoginRedirect);
 
 // Aplikasi React: wajib login.
 $routes->group('app', ['filter' => 'auth'], static function ($routes): void {

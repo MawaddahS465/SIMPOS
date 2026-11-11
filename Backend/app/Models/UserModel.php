@@ -12,6 +12,8 @@ class UserModel extends Model
     protected $allowedFields = [
         'nama',
         'username',
+        'email',
+        'phone',
         'password',
         'role',
         'cabang_id',
