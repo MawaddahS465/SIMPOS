@@ -62,7 +62,6 @@ export default function OwnerStokPage() {
   const totalUnits = baseRows.reduce((a, { s }) => a + s.saldo, 0);
   const lowCount = baseRows.filter(({ s }) => s.saldo > 0 && s.saldo <= s.minimum).length;
   const outCount = baseRows.filter(({ s }) => s.saldo <= 0).length;
-  const locBranch = store.branches.find((b) => b.id === loc);
   const showLocation = loc === "all";
 
   return (
@@ -70,11 +69,6 @@ export default function OwnerStokPage() {
       <PageHeader
         overline="MONITORING — STOK"
         title="Monitoring Stok"
-        desc={
-          locBranch
-            ? `Saldo dan status persediaan ${locBranch.name}.`
-            : "Pantau saldo, minimum, dan status persediaan di seluruh lokasi."
-        }
       />
 
       <div className="stat-row">

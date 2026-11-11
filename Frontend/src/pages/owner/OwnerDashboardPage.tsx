@@ -95,10 +95,6 @@ function inWindow(at: Date, from: Date | null, to: Date | null) {
   return from !== null && to !== null && at >= from && at <= to;
 }
 
-function shortDate(d: Date) {
-  return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
-}
-
 function DeltaBadge({
   current,
   previous,
@@ -165,11 +161,6 @@ export default function OwnerDashboardPage() {
   const previousTotal = previousTx.reduce((a, t) => a + t.total, 0);
   const count = periodTx.length;
   const average = count > 0 ? Math.round(total / count) : 0;
-
-  const rangeText =
-    period === "all" || !range.from || !range.to
-      ? "Semua transaksi"
-      : `${shortDate(range.from)} – ${shortDate(range.to)}`;
 
   const requestRows = useMemo(
     () =>
@@ -286,7 +277,6 @@ export default function OwnerDashboardPage() {
       <PageHeader
         overline="DASHBOARD PEMILIK"
         title="Dashboard Pemilik"
-        desc={`Ringkasan penjualan, stok, dan keputusan pengajuan (${rangeText}).`}
         actions={
           <div className="dash-toolbar-filters">
             <select
