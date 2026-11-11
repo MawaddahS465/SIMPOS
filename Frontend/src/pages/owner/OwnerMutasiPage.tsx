@@ -7,7 +7,7 @@ import "../../styles/pages.css";
 import "../../styles/admin.css";
 
 const BULAN: Record<string, number> = {
-  Jan: 0, Feb: 1, Mar: 2, Apr: 2, Mei: 4, Jun: 5, Jul: 6, Agu: 7, Sep: 8, Okt: 9, Nov: 10, Des: 11,
+  Jan: 0, Feb: 1, Mar: 2, Apr: 3, Mei: 4, Jun: 5, Jul: 6, Agu: 7, Sep: 8, Okt: 9, Nov: 10, Des: 11,
 };
 
 function parseAt(at: string): number {
