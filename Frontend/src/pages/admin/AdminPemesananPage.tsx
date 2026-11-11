@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ChevronRight, ClipboardList, PackageCheck, PackagePlus } from "lucide-react";
 import type { PoStatus } from "../../data/mock";
@@ -6,6 +6,7 @@ import { adminPoApi, ApiError } from "../../lib/api";
 import { mapApiPo } from "../../lib/po";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { Avatar, PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
+import AdminPagination from "../../components/AdminPagination";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -32,39 +33,17 @@ export default function AdminPemesananPage() {
   const [filter, setFilter] = useState<Filter>(() => filterFromParam(params.get("status")));
   const [query, setQuery] = useState("");
   const [orders, setOrders] = useState<ReturnType<typeof mapApiPo>[]>([]);
-  const [stats, setStats] = useState({ baru: 0, diproses: 0, datang: 0 });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const debouncedQuery = useDebouncedValue(query);
-
-  useEffect(() => {
-    let active = true;
-    adminPoApi.orders()
-      .then((rows) => {
-        if (!active) return;
-        const all = rows.map((order) => mapApiPo(order));
-        setStats({
-          baru: all.filter((o) => o.status === "Dipesan").length,
-          diproses: all.filter((o) => o.status === "Diproses").length,
-          datang: all.filter((o) => o.status === "Sudah Datang").length,
-        });
-      })
-      .catch(() => {
-        /* Statistik tidak menghalangi daftar PO dimuat. */
-      });
-    return () => {
-      active = false;
-    };
-  }, [reloadKey]);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError("");
-    const status = filter === "Semua" ? "" : FILTER_TO_API[filter];
-    adminPoApi.orders(status, debouncedQuery)
+    adminPoApi.orders()
       .then((rows) => {
         if (active) setOrders(rows.map((order) => mapApiPo(order)));
       })
@@ -77,7 +56,31 @@ export default function AdminPemesananPage() {
     return () => {
       active = false;
     };
-  }, [filter, debouncedQuery, reloadKey]);
+  }, [reloadKey]);
+
+  const debouncedQuery = useDebouncedValue(query);
+  const rows = useMemo(() => {
+    const normalizedQuery = debouncedQuery.trim().toLowerCase();
+    return orders.filter((order) => {
+      const matchesStatus = filter === "Semua" || order.status === filter;
+      const searchable = `${order.number} ${order.customer} ${order.phone} ${order.productLabel}`.toLowerCase();
+      return matchesStatus && (!normalizedQuery || searchable.includes(normalizedQuery));
+    });
+  }, [orders, filter, debouncedQuery]);
+  const stats = useMemo(() => ({
+    baru: orders.filter((order) => order.status === "Dipesan").length,
+    diproses: orders.filter((order) => order.status === "Diproses").length,
+    datang: orders.filter((order) => order.status === "Sudah Datang").length,
+  }), [orders]);
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const visibleRows = rows.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, debouncedQuery]);
+  useEffect(() => {
+    setPage((current) => Math.min(current, pageCount));
+  }, [pageCount]);
 
   const changeFilter = (value: Filter) => {
     setFilter(value);
@@ -89,7 +92,6 @@ export default function AdminPemesananPage() {
     }, { replace: true });
   };
 
-  const rows = orders;
   const { baru, diproses, datang } = stats;
 
   return (
@@ -100,9 +102,9 @@ export default function AdminPemesananPage() {
       />
 
       <div className="stat-row">
-        <StatCard label="Pesanan Baru" value={String(baru)} caption="Menunggu pemrosesan admin" icon={<PackagePlus size={22} />} tone="violet" />
-        <StatCard label="Sedang Diproses" value={String(diproses)} caption="Dalam penanganan cabang" icon={<ClipboardList size={22} />} tone="amber" />
-        <StatCard label="Sudah Datang" value={String(datang)} caption="Siap diambil pelanggan" icon={<PackageCheck size={22} />} tone="green" />
+        <StatCard label="Pesanan Baru" value={loading || error ? "—" : String(baru)} caption="Menunggu pemrosesan admin" icon={<PackagePlus size={22} />} tone="violet" />
+        <StatCard label="Sedang Diproses" value={loading || error ? "—" : String(diproses)} caption="Dalam penanganan cabang" icon={<ClipboardList size={22} />} tone="amber" />
+        <StatCard label="Sudah Datang" value={loading || error ? "—" : String(datang)} caption="Siap diambil pelanggan" icon={<PackageCheck size={22} />} tone="green" />
       </div>
       {error ? (
         <div className="notice" role="alert">
@@ -152,7 +154,7 @@ export default function AdminPemesananPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={5}><div className="empty-note">Memuat daftar PO...</div></td></tr>
-              ) : rows.map((o) => (
+              ) : visibleRows.map((o) => (
                 <tr key={o.id}>
                   <td>
                     <div className="tt-num">{o.number}</div>
@@ -200,6 +202,13 @@ export default function AdminPemesananPage() {
               ) : null}
             </tbody>
           </table>
+          <AdminPagination
+            page={page}
+            pageSize={pageSize}
+            total={rows.length}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </div>
       </section>
     </div>

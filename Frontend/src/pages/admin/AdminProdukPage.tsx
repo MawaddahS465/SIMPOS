@@ -4,6 +4,7 @@ import { Pencil, Plus, Power, X } from "lucide-react";
 import { adminInventoryApi, ApiError, type AdminCatalogProduct } from "../../lib/api";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { PageHeader, SearchBox, StatusPill, formatIDR } from "../../components/ui";
+import AdminPagination from "../../components/AdminPagination";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -40,6 +41,8 @@ export default function AdminProdukPage({ type }: Props) {
   const [form, setForm] = useState(empty);
   const [formError, setFormError] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -67,7 +70,15 @@ export default function AdminProdukPage({ type }: Props) {
     void loadProducts();
   }, [loadProducts]);
 
-  const rows = products;
+  const pageCount = Math.max(1, Math.ceil(products.length / pageSize));
+  const rows = products.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [type, status, debouncedQ]);
+  useEffect(() => {
+    setPage((current) => Math.min(current, pageCount));
+  }, [pageCount]);
 
   const startAdd = () => {
     setEditing(null);
@@ -240,13 +251,19 @@ export default function AdminProdukPage({ type }: Props) {
                 </td>
               </tr>
             ))}
-            {!loading && rows.length === 0 ? (
+            {!loading && products.length === 0 ? (
               <tr><td colSpan={4}><div className="empty-note">Tidak ada produk yang cocok. Tambahkan produk baru.</div></td></tr>
             ) : null}
           </tbody>
         </table>
         <div className="table-foot">
-          <span className="foot-note">Menampilkan {rows.length} produk {type.toLowerCase()}</span>
+          <AdminPagination
+            page={page}
+            pageSize={pageSize}
+            total={products.length}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </div>
       </div>
 

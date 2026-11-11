@@ -4,6 +4,7 @@ import { CheckCircle2, Clock, PackageCheck, TriangleAlert, Truck, X } from "luci
 import { adminStockFlowApi, ApiError, type StockDistribution, type StockReceipt } from "../../lib/api";
 import { formatDateTime } from "../../lib/po";
 import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
+import AdminPagination from "../../components/AdminPagination";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -19,6 +20,9 @@ export default function AdminPenerimaanPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState<{ ok: boolean; message: string } | null>(null);
   const [confirmError, setConfirmError] = useState("");
+  const [distributionPage, setDistributionPage] = useState(1);
+  const [receiptPage, setReceiptPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -46,6 +50,19 @@ export default function AdminPenerimaanPage() {
       const text = `${item.kode_alokasi} ${item.nama_pemilik} ${item.items.map((line) => `${line.kode_barang} ${line.nama_barang}`).join(" ")}`;
       return text.toLowerCase().includes(query.trim().toLowerCase());
     }), [distributions, filter, query]);
+  const distributionPageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const visibleDistributions = rows.slice((distributionPage - 1) * pageSize, distributionPage * pageSize);
+  const visibleReceipts = receipts.slice((receiptPage - 1) * pageSize, receiptPage * pageSize);
+
+  useEffect(() => {
+    setDistributionPage(1);
+  }, [filter, query]);
+  useEffect(() => {
+    setDistributionPage((current) => Math.min(current, distributionPageCount));
+  }, [distributionPageCount]);
+  useEffect(() => {
+    setReceiptPage((current) => Math.min(current, Math.max(1, Math.ceil(receipts.length / pageSize))));
+  }, [receipts.length, pageSize]);
 
   const waitingCount = distributions.filter((item) => item.status === "Menunggu Diterima").length;
   const partialCount = distributions.filter((item) => item.status === "Diterima Sebagian").length;
@@ -99,9 +116,9 @@ export default function AdminPenerimaanPage() {
       <PageHeader overline="PERSEDIAAN — PENERIMAAN" title="Penerimaan Barang" />
 
       <div className="stat-row">
-        <StatCard label="Menunggu Diterima" value={String(waitingCount)} caption="Kiriman baru dari pusat" icon={<Truck size={22} />} tone="amber" />
-        <StatCard label="Diterima Sebagian" value={String(partialCount)} caption="Masih ada sisa item belum masuk" icon={<Clock size={22} />} tone="violet" />
-        <StatCard label="Selesai Diterima" value={String(completeCount)} caption="Seluruh alokasi telah diverifikasi" icon={<PackageCheck size={22} />} tone="green" />
+        <StatCard label="Menunggu Diterima" value={loading || error ? "—" : String(waitingCount)} caption="Kiriman baru dari pusat" icon={<Truck size={22} />} tone="amber" />
+        <StatCard label="Diterima Sebagian" value={loading || error ? "—" : String(partialCount)} caption="Masih ada sisa item belum masuk" icon={<Clock size={22} />} tone="violet" />
+        <StatCard label="Selesai Diterima" value={loading || error ? "—" : String(completeCount)} caption="Seluruh alokasi telah diverifikasi" icon={<PackageCheck size={22} />} tone="green" />
       </div>
 
       {error ? <div className="notice" role="alert">{error} <button className="btn btn-ghost" onClick={() => void loadData()}>Coba lagi</button></div> : null}
@@ -118,7 +135,7 @@ export default function AdminPenerimaanPage() {
       </div>
 
       {loading ? <div className="panel empty-note">Memuat distribusi...</div> : null}
-      {!loading ? rows.map((distribution) => (
+      {!loading ? visibleDistributions.map((distribution) => (
         <section key={distribution.id_alokasi} className="panel" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div className="section-head">
             <div>
@@ -152,6 +169,19 @@ export default function AdminPenerimaanPage() {
         </section>
       )) : null}
       {!loading && rows.length === 0 ? <div className="panel empty-note">Tidak ada distribusi yang cocok.</div> : null}
+      {!loading ? (
+        <AdminPagination
+          page={distributionPage}
+          pageSize={pageSize}
+          total={rows.length}
+          onPageChange={setDistributionPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setDistributionPage(1);
+            setReceiptPage(1);
+          }}
+        />
+      ) : null}
 
       <section className="section-block">
         <div className="section-head"><div><h2>Riwayat Konfirmasi</h2></div></div>
@@ -159,7 +189,7 @@ export default function AdminPenerimaanPage() {
           <table className="tt">
             <thead><tr><th>ID / WAKTU</th><th>DISTRIBUSI</th><th>PRODUK</th><th className="tt-right">QTY</th><th>AKTOR</th></tr></thead>
             <tbody>
-              {receipts.map((receipt) => (
+              {visibleReceipts.map((receipt) => (
                 <tr key={receipt.id_penerimaan}>
                   <td><div className="tt-num">RCV-{receipt.id_penerimaan}</div><div className="tt-sub">{formatDateTime(receipt.created_at)}</div></td>
                   <td>{receipt.kode_alokasi}</td><td>{receipt.nama_barang} · {receipt.kode_barang}</td>
@@ -169,6 +199,17 @@ export default function AdminPenerimaanPage() {
               {receipts.length === 0 ? <tr><td colSpan={5}><div className="empty-note">Belum ada penerimaan tercatat. Setelah dikonfirmasi, catatan juga tampil di <Link className="link-action" to="/admin/mutasi">Riwayat Mutasi</Link>.</div></td></tr> : null}
             </tbody>
           </table>
+          <AdminPagination
+            page={receiptPage}
+            pageSize={pageSize}
+            total={receipts.length}
+            onPageChange={setReceiptPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setDistributionPage(1);
+              setReceiptPage(1);
+            }}
+          />
         </div>
       </section>
 

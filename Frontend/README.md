@@ -48,7 +48,7 @@ Satu halaman `/login` dipakai untuk ketiga peran; setelah autentikasi pengguna d
 
 **Kasir** — `/dashboard`, `/transaksi-baru`, `/checkout`, `/transaksi-berhasil`, `/pemesanan`, `/riwayat-transaksi`, `/pelanggan`, `/resep-mata`, `/pembayaran`
 
-**Admin Cabang** — `/admin/dashboard`, `/admin/produk/frame`, `/admin/produk/lensa`, `/admin/stok`, `/admin/penerimaan`, `/admin/distribusi`, `/admin/pengajuan`, `/admin/pemesanan`, `/admin/mutasi`
+**Admin Cabang** — `/admin/dashboard`, `/admin/produk/frame`, `/admin/produk/lensa`, `/admin/stok`, `/admin/penerimaan`, `/admin/pengajuan`, `/admin/pemesanan`, `/admin/pemesanan/:id`, `/admin/mutasi`
 
 **Pemilik** — `/owner/dashboard`, `/owner/cabang`, `/owner/stok`, `/owner/pengajuan`, `/owner/alokasi`, `/owner/mutasi`, `/owner/transaksi`, `/owner/pemesanan`, `/owner/laporan`, `/owner/pengaturan`
 
@@ -70,13 +70,15 @@ figma-kit-export/ paket desain untuk Figma (screenshot + plugin importer)
 ## Integrasi data
 
 - Login, cek session (`GET /api/me`), dan logout (`POST /api/logout`) memakai Backend.
-- Katalog/stok, pelanggan, resep, checkout, catatan pembayaran, dan riwayat transaksi
-  Kasir menggunakan endpoint `/api/kasir/*` dan database Backend.
-- Keranjang dan preferensi tampilan masih sementara di sisi browser; Backend memvalidasi
-  stok, menghitung PPN, dan menyimpan transaksi sebelum halaman sukses ditampilkan.
-- PO (termasuk pengambilan PO), halaman `/pembayaran`, serta Dashboard, Admin Cabang,
-  dan Pemilik masih menggunakan store demo/localStorage. Modul-modul itu belum menjadi
-  sumber data MySQL dan tidak boleh dianggap sinkron dengan Backend sampai endpoint
-  dan tabel terkait diintegrasikan.
-- Data localStorage lama tidak otomatis dipindahkan ke MySQL. Perubahan data lokal lama
-  tidak muncul di database; ekspor/backup dulu sebelum membersihkan penyimpanan browser.
+- Katalog/stok, pelanggan, resep, checkout, pembayaran, riwayat transaksi, dan PO Kasir
+  menggunakan endpoint `/api/kasir/*` dan database Backend. Total checkout dihitung
+  dari subtotal setelah diskon; pajak tidak ditambahkan.
+- Halaman Admin Cabang menggunakan endpoint `/api/admin/*` untuk dashboard, katalog,
+  stok, pengajuan, penerimaan, mutasi, notifikasi, dan alur status PO.
+- Halaman Pemilik menggunakan endpoint `/api/owner/*` untuk cabang, stok, pengajuan,
+  alokasi, penerimaan, mutasi, transaksi, PO, pengguna, dan pengaturan.
+- Halaman `/pembayaran` mengarah ke riwayat transaksi. Preferensi tampilan dan status
+  baca notifikasi disimpan lokal di browser; data bisnis Admin dan Pemilik di halaman
+  yang terhubung di atas bersumber dari Backend.
+- Data prototipe/localStorage lama tidak otomatis dimigrasikan ke MySQL. Periksa dan
+  ekspor data lama sebelum membersihkan penyimpanan browser.
