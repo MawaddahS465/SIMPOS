@@ -93,7 +93,6 @@ export default function AdminStokPage() {
       <PageHeader
         overline="PERSEDIAAN CABANG"
         title="Stok Cabang"
-        desc="Saldo dan batas minimum tiap produk di cabang akun Anda. Saldo berubah melalui penerimaan atau transaksi penjualan."
       />
 
       {error ? (
@@ -175,9 +174,6 @@ export default function AdminStokPage() {
             ) : null}
           </tbody>
         </table>
-        <div className="table-foot">
-          <span className="foot-note">{lowStockCount} produk menipis · saldo ≤ minimum</span>
-        </div>
       </div>
 
       {minFor ? (

@@ -52,7 +52,6 @@ export default function AdminDashboardPage() {
       <PageHeader
         overline="DASHBOARD ADMIN CABANG"
         title="Dashboard Admin Cabang"
-        desc={summary ? `Ringkasan operasional ${summary.branch}. Data diperbarui langsung dari server.` : "Ringkasan operasional cabang."}
         actions={summary ? <span className="branch-chip">{summary.branch}</span> : null}
       />
 

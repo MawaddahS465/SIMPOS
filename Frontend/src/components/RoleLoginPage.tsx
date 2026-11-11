@@ -5,15 +5,13 @@ import MRLogo from "./MRLogo";
 import { ApiError } from "../lib/api";
 import { assetUrl } from "../lib/assets";
 import { useAuth } from "../store/auth";
-import {
-  ROLE_HOME,
-  ROLE_LABEL,
-} from "../store/session";
+import { ROLE_HOME } from "../store/session";
 import "../styles/login.css";
 
 /**
- * Login bersama untuk semua peran. Backend menentukan role akun dan halaman
- * mengarahkan pengguna ke dashboard yang sesuai setelah autentikasi berhasil.
+ * Satu halaman login untuk Kasir, Admin Cabang, dan Pemilik.
+ * Autentikasi memakai username/password dari Backend, lalu pengguna
+ * diarahkan sesuai role yang dikembalikan API.
  */
 
 /** Username yang diingat saat "Ingat saya" dicentang. Password tidak disimpan. */
@@ -92,7 +90,7 @@ export default function RoleLoginPage() {
 
           <h2>Selamat Datang</h2>
           <p className="sub">
-            Silakan masuk untuk mengakses sistem Optik Mekar Jaya.
+            Silakan masuk untuk mengakses sistem Optik Mekar Jaya sebagai Kasir, Admin Cabang, atau Pemilik.
           </p>
 
           <form onSubmit={onSubmit} noValidate>

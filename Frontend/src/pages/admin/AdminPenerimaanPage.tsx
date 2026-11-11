@@ -95,7 +95,7 @@ export default function AdminPenerimaanPage() {
 
   return (
     <div className="page">
-      <PageHeader overline="PERSEDIAAN — PENERIMAAN" title="Penerimaan Barang" desc="Verifikasi kiriman alokasi dari Pemilik. Saldo cabang bertambah setelah penerimaan dicatat." />
+      <PageHeader overline="PERSEDIAAN — PENERIMAAN" title="Penerimaan Barang" />
 
       <div className="stat-row">
         <StatCard label="Menunggu Diterima" value={String(waitingCount)} caption="Kiriman baru dari pusat" icon={<Truck size={22} />} tone="amber" />
@@ -153,7 +153,7 @@ export default function AdminPenerimaanPage() {
       {!loading && rows.length === 0 ? <div className="panel empty-note">Tidak ada distribusi yang cocok.</div> : null}
 
       <section className="section-block">
-        <div className="section-head"><div><h2>Riwayat Konfirmasi</h2><div className="section-desc">Penerimaan barang yang sudah dicatat</div></div></div>
+        <div className="section-head"><div><h2>Riwayat Konfirmasi</h2></div></div>
         <div className="table-wrap">
           <table className="tt">
             <thead><tr><th>ID / WAKTU</th><th>DISTRIBUSI</th><th>PRODUK</th><th className="tt-right">QTY</th><th>AKTOR</th></tr></thead>

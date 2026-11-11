@@ -36,7 +36,7 @@ export default function AdminMutasiPage() {
 
   return (
     <div className="page">
-      <PageHeader overline="PERSEDIAAN — MUTASI" title="Riwayat Mutasi" desc="Catatan stok masuk dan keluar dari penerimaan barang, penjualan kasir, dan pengambilan PO." />
+      <PageHeader overline="PERSEDIAAN — MUTASI" title="Riwayat Mutasi" />
       <div className="stat-row">
         <StatCard label="Total Barang Masuk" value={`+${totalIn}`} caption="Penerimaan barang cabang" icon={<ArrowDownLeft size={22} />} tone="green" />
         <StatCard label="Total Barang Keluar" value={String(totalOut)} caption="Penjualan dan pengambilan PO" icon={<ArrowUpRight size={22} />} tone="amber" />
