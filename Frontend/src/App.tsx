@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import TransaksiBaruPage from "./pages/TransaksiBaruPage";
@@ -73,10 +73,12 @@ function GuestOnly({ children }: { children: ReactNode }) {
 
 function AppRoutes() {
   const { status } = useAuth();
+  const { pathname } = useLocation();
+  const isOwnerSettingsPreview = pathname === "/preview/owner/pengaturan";
 
   // Tunggu GET /api/me selesai sebelum merender route agar tidak berkedip
   // dari halaman login ke dashboard (atau sebaliknya).
-  if (status === "checking") return <AuthBootScreen />;
+  if (status === "checking" && !isOwnerSettingsPreview) return <AuthBootScreen />;
 
   return (
     <Routes>
@@ -87,6 +89,14 @@ function AppRoutes() {
           <GuestOnly>
             <LoginPage />
           </GuestOnly>
+        }
+      />
+      <Route
+        path="/preview/owner/pengaturan"
+        element={
+          <OwnerLayout preview>
+            <OwnerPengaturanPage previewOnly />
+          </OwnerLayout>
         }
       />
       <Route element={<KasirGuard />}>

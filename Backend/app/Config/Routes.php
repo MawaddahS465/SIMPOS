@@ -95,6 +95,7 @@ $appLoginRedirect = static fn () => service('response')
 $routes->get('/', $appLoginRedirect);
 $routes->get('login', $appLoginRedirect);
 $routes->get('app/login', 'Spa::index');
+$routes->get('app/preview/owner/pengaturan', 'Spa::index');
 $routes->get('admin/login', $appLoginRedirect);
 $routes->get('owner/login', $appLoginRedirect);
 $routes->get('app/admin/login', $appLoginRedirect);
