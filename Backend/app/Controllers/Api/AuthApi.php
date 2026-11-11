@@ -11,7 +11,7 @@ use CodeIgniter\HTTP\Exceptions\HTTPException;
 class AuthApi extends BaseController
 {
     /**
-     * @return array{id: int, name: string, username: string, role: string, branchId: int|null, branchName: string|null}
+     * @return array{id: int, name: string, username: string, email: string, phone: string, role: string, branchId: int|null, branchName: string|null}
      */
     private function publicUser(array $user, Role $role): array
     {
@@ -28,11 +28,13 @@ class AuthApi extends BaseController
         }
 
         return [
-            'id'         => (int) $user['id'],
-            'name'       => (string) $user['nama'],
-            'username'   => (string) $user['username'],
-            'role'       => $role->value,
-            'branchId'   => $branchId,
+            'id'       => (int) $user['id'],
+            'name'     => (string) $user['nama'],
+            'username' => (string) $user['username'],
+            'email'    => (string) ($user['email'] ?? ''),
+            'phone'    => (string) ($user['phone'] ?? ''),
+            'role'     => $role->value,
+            'branchId' => $branchId,
             'branchName' => $branchName,
         ];
     }

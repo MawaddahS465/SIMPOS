@@ -37,6 +37,7 @@ export type Branch = {
   city: string;
   address: string;
   phone: string;
+  email?: string;
   pic: string;
   status: BranchStatus;
 };
@@ -180,8 +181,10 @@ export type AuditEntry = {
 export type AppUser = {
   id: string;
   name: string;
+  username?: string;
   email: string;
-  password: string; // demo frontend — bukan hash produksi
+  phone?: string;
+  password: string; // demo frontend - bukan hash produksi
   role: "kasir" | "admin" | "pemilik";
   branchId: string; // 'all' untuk pemilik
   status: "Aktif" | "Nonaktif";
@@ -192,6 +195,8 @@ export type AppSettings = {
   storeName: string;
   storePhone: string;
   storeAddress: string;
+  storeEmail?: string;
+  storePic?: string;
 };
 
 type StoreShape = {
@@ -706,6 +711,7 @@ function ownerBranch(row: OwnerBranchRow): Branch {
     city: row.kota || "-",
     address: row.alamat || "-",
     phone: row.telepon || "-",
+    email: row.email || "",
     pic: row.penanggung_jawab || "-",
     status: row.status === "aktif" ? "Aktif" : "Nonaktif",
   };
@@ -874,7 +880,9 @@ export function SharedProvider({ children }: { children: ReactNode }) {
       const users: AppUser[] = usersRaw.map((user) => ({
         id: String(user.id),
         name: user.nama,
-        email: user.username,
+        username: user.username,
+        email: user.email ?? "",
+        phone: user.phone ?? "",
         password: "",
         role: user.role,
         branchId: user.cabang_id === null ? "all" : String(user.cabang_id),
@@ -1766,7 +1774,7 @@ export function SharedProvider({ children }: { children: ReactNode }) {
 
       authenticate: (email, password) => {
         const u = state.appUsers.find(
-          (x) => x.email.toLowerCase() === email.trim().toLowerCase() && x.password === password && x.status === "Aktif",
+          (x) => (x.username ?? x.email).toLowerCase() === email.trim().toLowerCase() && x.password === password && x.status === "Aktif",
         );
         if (!u) return null;
         const initials = u.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();

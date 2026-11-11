@@ -38,7 +38,7 @@ class OwnerManagementApi extends BaseController
     private function branchRows(): array
     {
         $branches = db_connect()->table('cabang')
-            ->select('id, kode_cabang, nama_cabang, kota, alamat, telepon, penanggung_jawab, status')
+            ->select('id, kode_cabang, nama_cabang, kota, alamat, telepon, email, penanggung_jawab, status')
             ->where('deleted_at', null)
             ->orderBy('nama_cabang', 'ASC')
             ->get()
@@ -51,6 +51,7 @@ class OwnerManagementApi extends BaseController
             'kota' => $branch['kota'] ?? '',
             'alamat' => $branch['alamat'] ?? '',
             'telepon' => $branch['telepon'] ?? '',
+            'email' => $branch['email'] ?? '',
             'penanggung_jawab' => $branch['penanggung_jawab'] ?? '',
             'status' => $branch['status'],
         ], $branches);
@@ -67,6 +68,7 @@ class OwnerManagementApi extends BaseController
             'kota' => '',
             'alamat' => '',
             'telepon' => '',
+            'email' => '',
             'penanggung_jawab' => '',
             'status' => 'aktif',
             'type' => 'Pusat',
@@ -111,19 +113,28 @@ class OwnerManagementApi extends BaseController
         $phone = trim($data['phone']);
         $pic = trim($data['pic']);
         $status = strtolower(trim($data['status']));
+        $email = array_key_exists('email', $data) ? trim((string) $data['email']) : null;
         if (mb_strlen($name) < 2 || mb_strlen($name) > 100 || ! preg_match('/^[A-Z0-9]{2,8}$/', $code)
             || mb_strlen($city) < 2 || mb_strlen($city) > 100 || mb_strlen($address) < 3 || mb_strlen($address) > 1000
             || mb_strlen($phone) > 20 || mb_strlen($pic) < 2 || mb_strlen($pic) > 100
+            || ($email !== null && mb_strlen($email) > 150)
+            || ($email !== null && $email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL))
             || ! in_array($status, ['aktif', 'nonaktif'], true)) {
-            return $this->failure(422, 'Nama, kode, lokasi, kontak, atau status cabang tidak valid.');
+            return $this->failure(422, 'Nama, kode, lokasi, kontak, email, atau status cabang tidak valid.');
         }
 
         $db = db_connect();
-        $builder = $db->table('cabang')->where('deleted_at', null);
+        $duplicateSql = 'SELECT COUNT(*) AS total FROM cabang WHERE deleted_at IS NULL';
+        $duplicateParams = [];
         if ($id !== null) {
-            $builder->where('id !=', $id);
+            $duplicateSql .= ' AND id != ?';
+            $duplicateParams[] = $id;
         }
-        if ($builder->groupStart()->where('kode_cabang', $code)->orWhere('LOWER(nama_cabang)', mb_strtolower($name), false)->groupEnd()->countAllResults() > 0) {
+        $duplicateSql .= ' AND (kode_cabang = ? OR LOWER(nama_cabang) = ?)';
+        $duplicateParams[] = $code;
+        $duplicateParams[] = mb_strtolower($name);
+        $duplicate = (int) ($db->query($duplicateSql, $duplicateParams)->getRowArray()['total'] ?? 0);
+        if ($duplicate > 0) {
             return $this->failure(409, 'Kode atau nama cabang sudah digunakan.');
         }
 
@@ -137,6 +148,9 @@ class OwnerManagementApi extends BaseController
             'status' => $status,
             'updated_at' => date('Y-m-d H:i:s'),
         ];
+        if ($email !== null) {
+            $record['email'] = $email !== '' ? $email : null;
+        }
         if ($id === null) {
             $record['created_at'] = date('Y-m-d H:i:s');
             $db->table('cabang')->insert($record);
@@ -343,7 +357,7 @@ class OwnerManagementApi extends BaseController
 
     public function users(): ResponseInterface
     {
-        $users = (new UserModel())->select('id, nama, username, role, cabang_id, status')
+        $users = (new UserModel())->select('id, nama, username, email, phone, role, cabang_id, status')
             ->orderBy('nama', 'ASC')
             ->findAll();
 
@@ -351,6 +365,8 @@ class OwnerManagementApi extends BaseController
             'id' => (int) $user['id'],
             'nama' => $user['nama'],
             'username' => $user['username'],
+            'email' => $user['email'] ?? '',
+            'phone' => $user['phone'] ?? '',
             'role' => $user['role'],
             'cabang_id' => $user['cabang_id'] === null ? null : (int) $user['cabang_id'],
             'status' => $user['status'],
@@ -368,16 +384,24 @@ class OwnerManagementApi extends BaseController
         $password = $data['password'] ?? '';
         $role = $data['role'] ?? null;
         $branchId = $data['branchId'] ?? null;
-        if (! is_string($name) || ! is_string($username) || ! is_string($password) || ! is_string($role)) {
+        $email = array_key_exists('email', $data) ? $data['email'] : null;
+        $phone = array_key_exists('phone', $data) ? $data['phone'] : null;
+        if (! is_string($name) || ! is_string($username) || ! is_string($password) || ! is_string($role)
+            || ($email !== null && ! is_string($email)) || ($phone !== null && ! is_string($phone))) {
             return $this->failure(422, 'Data pengguna tidak valid.');
         }
         $name = trim($name);
         $username = trim($username);
+        $email = $email === null ? null : trim($email);
+        $phone = $phone === null ? null : trim($phone);
         if (mb_strlen($name) < 2 || mb_strlen($name) > 100 || mb_strlen($username) < 2 || mb_strlen($username) > 50
             || ! in_array($role, ['kasir', 'admin', 'pemilik'], true)
+            || ($email !== null && mb_strlen($email) > 150)
+            || ($email !== null && $email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL))
+            || ($phone !== null && mb_strlen($phone) > 30)
             || ($id === null && mb_strlen($password) < 6)
             || ($password !== '' && mb_strlen($password) < 6)) {
-            return $this->failure(422, 'Nama, username, role, atau password tidak memenuhi ketentuan.');
+            return $this->failure(422, 'Nama, username, email, telepon, role, atau password tidak memenuhi ketentuan.');
         }
         $cabangId = null;
         if ($role !== 'pemilik') {
@@ -393,6 +417,12 @@ class OwnerManagementApi extends BaseController
             return $this->failure(409, 'Username sudah digunakan.');
         }
         $fields = ['nama' => $name, 'username' => $username, 'role' => $role, 'cabang_id' => $cabangId];
+        if ($email !== null) {
+            $fields['email'] = $email !== '' ? $email : null;
+        }
+        if ($phone !== null) {
+            $fields['phone'] = $phone !== '' ? $phone : null;
+        }
         if ($password !== '') {
             $fields['password'] = $password;
         }
@@ -438,6 +468,43 @@ class OwnerManagementApi extends BaseController
         return $this->success(['updated' => true]);
     }
 
+    public function changePassword(): ResponseInterface
+    {
+        $data = $this->input();
+        if ($data === null
+            || ! is_string($data['currentPassword'] ?? null)
+            || ! is_string($data['newPassword'] ?? null)) {
+            return $this->failure(422, 'Kata sandi saat ini dan kata sandi baru wajib diisi.');
+        }
+
+        $current = $data['currentPassword'];
+        $new = $data['newPassword'];
+        if (mb_strlen($new) < 8) {
+            return $this->failure(422, 'Kata sandi baru minimal 8 karakter.');
+        }
+        if ($current === $new) {
+            return $this->failure(422, 'Kata sandi baru harus berbeda dari kata sandi saat ini.');
+        }
+
+        $model = new UserModel();
+        $userId = (int) session()->get('user_id');
+        $user = $model->find($userId);
+        if ($user === null) {
+            return $this->failure(404, 'Akun Pemilik tidak ditemukan.');
+        }
+
+        $stored = (string) $user['password'];
+        $valid = password_verify($current, $stored) || hash_equals($stored, $current);
+        if (! $valid) {
+            return $this->failure(422, 'Kata sandi saat ini salah.');
+        }
+        if (! $model->update($userId, ['password' => $new])) {
+            return $this->failure(500, 'Kata sandi gagal diperbarui.');
+        }
+
+        return $this->success(['updated' => true]);
+    }
+
     public function settings(): ResponseInterface
     {
         $rows = db_connect()->table('app_settings')->get()->getResultArray();
@@ -448,6 +515,8 @@ class OwnerManagementApi extends BaseController
             'storeName' => $values['storeName'] ?? 'Optik Mekar Jaya',
             'storePhone' => $values['storePhone'] ?? '',
             'storeAddress' => $values['storeAddress'] ?? '',
+            'storeEmail' => $values['storeEmail'] ?? '',
+            'storePic' => $values['storePic'] ?? '',
         ]);
     }
 
@@ -459,10 +528,15 @@ class OwnerManagementApi extends BaseController
             return $this->failure(400, 'Data pengaturan tidak valid.');
         }
         $minimum = filter_var($data['defaultMinimum'] ?? null, FILTER_VALIDATE_INT);
+        $storeEmail = is_string($data['storeEmail'] ?? null) ? trim($data['storeEmail']) : '';
+        $storePic = is_string($data['storePic'] ?? null) ? trim($data['storePic']) : '';
         if ($minimum === false || $minimum < 0 || $minimum > 4294967295
             || mb_strlen(trim($data['storeName'])) < 2 || mb_strlen($data['storeName']) > 150
-            || mb_strlen($data['storePhone']) > 30 || mb_strlen($data['storeAddress']) > 1000) {
-            return $this->failure(422, 'Nama toko, kontak, alamat, atau batas minimum tidak valid.');
+            || mb_strlen($data['storePhone']) > 30 || mb_strlen($data['storeAddress']) > 1000
+            || mb_strlen($storeEmail) > 150
+            || ($storeEmail !== '' && ! filter_var($storeEmail, FILTER_VALIDATE_EMAIL))
+            || mb_strlen($storePic) > 100) {
+            return $this->failure(422, 'Nama toko, kontak, email, penanggung jawab, alamat, atau batas minimum tidak valid.');
         }
         $db = db_connect();
         $now = date('Y-m-d H:i:s');
@@ -471,6 +545,8 @@ class OwnerManagementApi extends BaseController
             'storeName' => trim($data['storeName']),
             'storePhone' => trim($data['storePhone']),
             'storeAddress' => trim($data['storeAddress']),
+            'storeEmail' => $storeEmail,
+            'storePic' => $storePic,
         ] as $key => $value) {
             $db->table('app_settings')->replace(['setting_key' => $key, 'setting_value' => $value, 'updated_at' => $now]);
         }
