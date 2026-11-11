@@ -56,7 +56,6 @@ export default function OwnerTransaksiPage() {
       <PageHeader
         overline="PENGAWASAN — TRANSAKSI"
         title="Monitoring Transaksi"
-        desc="Transaksi Kasir dari seluruh cabang. Hanya transaksi Selesai yang dihitung sebagai penjualan."
       />
 
       <div className="toolbar">

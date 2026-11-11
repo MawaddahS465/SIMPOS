@@ -173,7 +173,6 @@ export default function OwnerLaporanPage() {
       <PageHeader
         overline="PENGAWASAN — LAPORAN"
         title="Laporan Operasional"
-        desc="Rekap transaksi, stok, pemesanan, dan aktivitas barang seluruh cabang. Filter berdasarkan cabang, jenis produk, dan periode, lalu ekspor ke Excel atau PDF."
       />
 
       <div className="toolbar">

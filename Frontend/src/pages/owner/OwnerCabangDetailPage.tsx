@@ -16,7 +16,6 @@ export default function OwnerCabangDetailPage() {
         <PageHeader
           overline="MONITORING - DETAIL CABANG"
           title="Cabang tidak ditemukan"
-          desc="Cabang yang Anda buka tidak tersedia."
           actions={
             <Link className="btn btn-ghost" to="/owner/cabang">
               <ArrowLeft size={16} />
@@ -51,11 +50,6 @@ export default function OwnerCabangDetailPage() {
         }
         overline="MONITORING - DETAIL LOKASI"
         title={branch.name}
-        desc={
-          isPusat
-            ? "Gudang pusat: sumber stok dan distribusi untuk seluruh cabang."
-            : "Profil dan ringkasan operasional cabang ritel."
-        }
         actions={
           <>
             <Link className="btn btn-ghost" to="/owner/cabang">

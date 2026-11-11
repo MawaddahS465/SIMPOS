@@ -48,7 +48,6 @@ export default function OwnerPOPage() {
       <PageHeader
         overline="PENGAWASAN — PEMESANAN"
         title="Monitoring PO"
-        desc="Seluruh PO dari Kasir di semua cabang. Perubahan status oleh Admin tampil otomatis."
       />
 
       <div className="toolbar">
