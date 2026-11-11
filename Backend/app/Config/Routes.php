@@ -48,6 +48,7 @@ $routes->group('api', [
         $routes->post('produk', 'AdminInventoryApi::createProduct');
         $routes->post('produk/(:num)', 'AdminInventoryApi::updateProduct/$1');
         $routes->post('produk/(:num)/nonaktifkan', 'AdminInventoryApi::deactivateProduct/$1');
+$routes->post('produk/(:num)/aktifkan', 'AdminInventoryApi::activateProduct/$1');
         $routes->get('stok', 'AdminInventoryApi::stocks');
         $routes->post('stok/(:num)/minimum', 'AdminInventoryApi::updateMinimum/$1');
         $routes->get('pengajuan-stok', 'AdminStockFlowApi::requests');

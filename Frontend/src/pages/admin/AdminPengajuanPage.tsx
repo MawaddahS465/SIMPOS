@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, Clock, FilePlus2, FileText, X } from "lucide-react";
 import { adminInventoryApi, adminStockFlowApi, ApiError, type AdminStockRow, type StockRequestRow } from "../../lib/api";
+import { formatDateTime } from "../../lib/po";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { requestStateLabel, type RequestState } from "../../store/requestStatus";
 import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
@@ -34,6 +36,8 @@ export default function AdminPengajuanPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const debouncedQuery = useDebouncedValue(query);
+
   const loadProducts = useCallback(async () => {
     try {
       const rows = await adminInventoryApi.stocks();
@@ -48,13 +52,13 @@ export default function AdminPengajuanPage() {
     setLoading(true);
     setError("");
     try {
-      setRequests(await adminStockFlowApi.requests(filter === "Semua" ? "" : filter, query.trim()));
+      setRequests(await adminStockFlowApi.requests(filter === "Semua" ? "" : filter, debouncedQuery.trim()));
     } catch (requestError) {
       setError(requestError instanceof ApiError ? requestError.message : "Daftar pengajuan gagal dimuat.");
     } finally {
       setLoading(false);
     }
-  }, [filter, query]);
+  }, [filter, debouncedQuery]);
 
   useEffect(() => {
     void loadProducts();
@@ -69,7 +73,14 @@ export default function AdminPengajuanPage() {
     const isNew = params.get("new") === "1";
     if (!deepLinkProduct && !isNew) return;
     if (products.length === 0) return;
-    const selected = products.find((item) => String(item.id) === deepLinkProduct) ?? products[0];
+    const selected = deepLinkProduct
+      ? products.find((item) => String(item.id) === deepLinkProduct)
+      : products[0];
+    if (!selected) {
+      setError("Produk tersebut bukan Frame/Lensa sehingga tidak bisa diajukan.");
+      setParams({}, { replace: true });
+      return;
+    }
     setProductId(String(selected.id));
     setQuantity("");
     setNote("");
@@ -79,7 +90,7 @@ export default function AdminPengajuanPage() {
   }, [params, products, setParams]);
 
   const waiting = requests.filter((request) => request.state === "Diajukan").length;
-  const lowStockCount = products.filter((product) => product.stok <= product.stok_minimum).length;
+  const lowStockCount = products.filter((product) => Number(product.stok) <= Number(product.stok_minimum)).length;
   const selectedProduct = products.find((product) => String(product.id) === productId);
 
   const start = () => {
@@ -152,7 +163,7 @@ export default function AdminPengajuanPage() {
             {loading ? <tr><td colSpan={8}><div className="empty-note">Memuat pengajuan...</div></td></tr> : null}
             {!loading ? requests.map((request) => (
               <tr key={request.id_pengajuan}>
-                <td><div className="tt-num">{request.kode_pengajuan}</div><div className="tt-sub">{request.created_at}</div></td>
+                <td><div className="tt-num">{request.kode_pengajuan}</div><div className="tt-sub">{formatDateTime(request.created_at)}</div></td>
                 <td><div className="tt-num">{request.nama_barang}</div><div className="tt-sub">{request.kode_barang} · {request.jenis}</div></td>
                 <td className="tt-center tt-money">{request.stok ?? 0} / min. {request.stok_minimum}</td>
                 <td className="tt-center tt-money">+{request.jumlah_diminta}</td>

@@ -9,7 +9,6 @@ foreach ($detail as $item) {
 
 $totalTagihan = (float) ($trx['total'] ?? 0);
 $diskon       = (float) ($trx['diskon'] ?? 0);
-$pajak        = (float) ($trx['pajak'] ?? 0);
 $metode       = (string) ($pembayaran['metode_pembayaran'] ?? 'Tunai');
 $dibayar      = (float) ($pembayaran['jumlah_bayar'] ?? $totalTagihan);
 $kembalian    = $metode === 'Tunai' ? max(0, $dibayar - $totalTagihan) : 0.0;
@@ -78,12 +77,6 @@ $status       = (string) ($pembayaran['status'] ?? $trx['status_bayar'] ?? 'luna
             <span>Diskon</span>
             <b><?= esc(rupiah($diskon)) ?></b>
         </div>
-        <?php if ($pajak > 0): ?>
-            <div>
-                <span>Pajak</span>
-                <b><?= esc(rupiah($pajak)) ?></b>
-            </div>
-        <?php endif; ?>
         <div class="struk-grand">
             <span>Total</span>
             <b><?= esc(rupiah($totalTagihan)) ?></b>

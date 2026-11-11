@@ -61,9 +61,8 @@ export function sessionFromUser(user: AuthUser): Session {
     name: user.name,
     username: user.username,
     initials: initialsFromName(user.name),
-    // Nama cabang belum tersedia di respons autentikasi Backend.
-    // Tampilkan ID cabang agar tidak mengarang nama.
-    branch: isOwner ? "Seluruh Cabang" : `Cabang #${user.branchId ?? "-"}`,
+    // Nama cabang diambil dari respons autentikasi Backend; fallback ke ID.
+    branch: isOwner ? "Seluruh Cabang" : user.branchName ?? (user.branchId ? `Cabang #${user.branchId}` : "Cabang"),
     backendBranchId: user.branchId,
   };
 }

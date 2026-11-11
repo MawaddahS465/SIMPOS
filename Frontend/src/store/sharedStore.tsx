@@ -135,7 +135,7 @@ export type OwnerNotice = {
   summary: string;
 };
 
-export type PoTimeline = { at: string; actor: string; from: string; to: PoStatus; note: string };
+export type PoTimeline = { at: string; actor: string; from: string; to: string; note: string };
 
 export type SharedPO = PoOrder & {
   branchId: string;

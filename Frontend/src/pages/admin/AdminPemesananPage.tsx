@@ -1,34 +1,70 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { ChevronRight, ClipboardList, PackageCheck, PackagePlus } from "lucide-react";
 import type { PoStatus } from "../../data/mock";
 import { adminPoApi, ApiError } from "../../lib/api";
 import { mapApiPo } from "../../lib/po";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { Avatar, PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
-const FILTERS: Array<"Semua" | PoStatus> = ["Semua", "Dipesan", "Diproses", "Sudah Datang", "Selesai", "Dibatalkan"];
+type Filter = "Semua" | PoStatus;
+
+const FILTERS: Filter[] = ["Semua", "Dipesan", "Diproses", "Sudah Datang", "Selesai", "Dibatalkan"];
+
+const FILTER_TO_API: Record<Exclude<Filter, "Semua">, string> = {
+  Dipesan: "dipesan",
+  Diproses: "diproses",
+  "Sudah Datang": "sudah_datang",
+  Selesai: "selesai",
+  Dibatalkan: "dibatalkan",
+};
+
+function filterFromParam(value: string | null): Filter {
+  if (!value) return "Semua";
+  const match = (Object.entries(FILTER_TO_API) as Array<[Filter, string]>).find(([, api]) => api === value);
+  return match ? match[0] : "Semua";
+}
 
 export default function AdminPemesananPage() {
-  const [filter, setFilter] = useState<"Semua" | PoStatus>("Semua");
+  const [params, setParams] = useSearchParams();
+  const [filter, setFilter] = useState<Filter>(() => filterFromParam(params.get("status")));
   const [query, setQuery] = useState("");
   const [orders, setOrders] = useState<ReturnType<typeof mapApiPo>[]>([]);
+  const [stats, setStats] = useState({ baru: 0, diproses: 0, datang: 0 });
+  const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const debouncedQuery = useDebouncedValue(query);
+
+  useEffect(() => {
+    let active = true;
+    adminPoApi.orders()
+      .then((rows) => {
+        if (!active) return;
+        const all = rows.map((order) => mapApiPo(order));
+        setStats({
+          baru: all.filter((o) => o.status === "Dipesan").length,
+          diproses: all.filter((o) => o.status === "Diproses").length,
+          datang: all.filter((o) => o.status === "Sudah Datang").length,
+        });
+      })
+      .catch(() => {
+        /* Statistik tidak menghalangi daftar PO dimuat. */
+      });
+    return () => {
+      active = false;
+    };
+  }, [reloadKey]);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
     setError("");
-    const status = filter === "Semua" ? "" : ({
-      Dipesan: "dipesan",
-      Diproses: "diproses",
-      "Sudah Datang": "sudah_datang",
-      Selesai: "selesai",
-      Dibatalkan: "dibatalkan",
-    } as const)[filter];
-    adminPoApi.orders(status, query)
+    const status = filter === "Semua" ? "" : FILTER_TO_API[filter];
+    adminPoApi.orders(status, debouncedQuery)
       .then((rows) => {
         if (active) setOrders(rows.map((order) => mapApiPo(order)));
       })
@@ -41,13 +77,20 @@ export default function AdminPemesananPage() {
     return () => {
       active = false;
     };
-  }, [filter, query]);
+  }, [filter, debouncedQuery, reloadKey]);
+
+  const changeFilter = (value: Filter) => {
+    setFilter(value);
+    setParams((current) => {
+      const next = new URLSearchParams(current);
+      if (value === "Semua") next.delete("status");
+      else next.set("status", FILTER_TO_API[value]);
+      return next;
+    }, { replace: true });
+  };
 
   const rows = orders;
-
-  const baru = orders.filter((o) => o.status === "Dipesan").length;
-  const diproses = orders.filter((o) => o.status === "Diproses").length;
-  const datang = orders.filter((o) => o.status === "Sudah Datang").length;
+  const { baru, diproses, datang } = stats;
 
   return (
     <div className="page">
@@ -57,11 +100,18 @@ export default function AdminPemesananPage() {
       />
 
       <div className="stat-row">
-        <StatCard label="Pesanan Baru" value={String(baru).padStart(2, "0")} caption="Menunggu pemrosesan admin" icon={<PackagePlus size={22} />} tone="violet" />
-        <StatCard label="Sedang Diproses" value={String(diproses).padStart(2, "0")} caption="Dalam penanganan cabang" icon={<ClipboardList size={22} />} tone="amber" />
-        <StatCard label="Sudah Datang" value={String(datang).padStart(2, "0")} caption="Siap diambil pelanggan" icon={<PackageCheck size={22} />} tone="green" />
+        <StatCard label="Pesanan Baru" value={String(baru)} caption="Menunggu pemrosesan admin" icon={<PackagePlus size={22} />} tone="violet" />
+        <StatCard label="Sedang Diproses" value={String(diproses)} caption="Dalam penanganan cabang" icon={<ClipboardList size={22} />} tone="amber" />
+        <StatCard label="Sudah Datang" value={String(datang)} caption="Siap diambil pelanggan" icon={<PackageCheck size={22} />} tone="green" />
       </div>
-      {error ? <div className="notice" role="alert">{error}</div> : null}
+      {error ? (
+        <div className="notice" role="alert">
+          {error}{" "}
+          <button className="btn btn-ghost" type="button" onClick={() => setReloadKey((key) => key + 1)}>
+            Coba lagi
+          </button>
+        </div>
+      ) : null}
 
       <section className="section-block">
         <div className="section-head">
@@ -77,7 +127,7 @@ export default function AdminPemesananPage() {
               className="chip-select"
               aria-label="Filter Status"
               value={filter}
-              onChange={(e) => setFilter(e.target.value as "Semua" | PoStatus)}
+              onChange={(e) => changeFilter(e.target.value as Filter)}
             >
               {FILTERS.map((f) => (
                 <option key={f} value={f}>
@@ -121,7 +171,7 @@ export default function AdminPemesananPage() {
                     <div className="tt-num" style={{ fontSize: 13 }}>
                       {o.productLabel}
                     </div>
-                    <div className="tt-sub">{o.items.length ? `${o.items.length} jenis produk` : "Detail produk tersedia di PO"}</div>
+                    <div className="tt-sub">{o.itemCount > 0 ? `${o.itemCount} jenis produk` : "Detail produk tersedia di PO"}</div>
                   </td>
                   <td className="tt-center">
                     <StatusPill label={o.status} />

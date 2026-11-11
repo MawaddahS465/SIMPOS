@@ -254,10 +254,6 @@ $ketMetode = [
                                 <span>Diskon</span>
                                 <b>Rp 0</b>
                             </div>
-                            <div class="sum-row">
-                                <span>Pajak (PPN 11%)</span>
-                                <b><?= rupiah($ringkasan['pajak']) ?></b>
-                            </div>
                             <div class="sum-total">
                                 <span>Total</span>
                                 <b><?= rupiah($ringkasan['total']) ?></b>

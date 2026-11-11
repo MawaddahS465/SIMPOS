@@ -202,12 +202,6 @@ export default function TransaksiBerhasilPage() {
             </span>
             <b>{formatIDR(discount)}</b>
           </div>
-          {r.tax ? (
-            <div className="info-row">
-              <span>PPN (11%)</span>
-              <b>{formatIDR(r.tax)}</b>
-            </div>
-          ) : null}
           <div className="info-row">
             <span>
               <b style={{ color: "var(--ink)" }}>Total Pembayaran</b>
@@ -297,12 +291,6 @@ export default function TransaksiBerhasilPage() {
                   <span>Diskon</span>
                   <b>{formatIDR(discount)}</b>
                 </div>
-                {r.tax ? (
-                  <div>
-                    <span>PPN (11%)</span>
-                    <b>{formatIDR(r.tax)}</b>
-                  </div>
-                ) : null}
                 <div className="struk-grand">
                   <span>Total</span>
                   <b>{formatIDR(total)}</b>

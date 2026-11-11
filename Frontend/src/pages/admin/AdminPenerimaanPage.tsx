@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { Link } from "react-router-dom";
 import { CheckCircle2, Clock, PackageCheck, TriangleAlert, Truck, X } from "lucide-react";
 import { adminStockFlowApi, ApiError, type StockDistribution, type StockReceipt } from "../../lib/api";
+import { formatDateTime } from "../../lib/po";
 import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -160,7 +161,7 @@ export default function AdminPenerimaanPage() {
             <tbody>
               {receipts.map((receipt) => (
                 <tr key={receipt.id_penerimaan}>
-                  <td><div className="tt-num">RCV-{receipt.id_penerimaan}</div><div className="tt-sub">{receipt.created_at}</div></td>
+                  <td><div className="tt-num">RCV-{receipt.id_penerimaan}</div><div className="tt-sub">{formatDateTime(receipt.created_at)}</div></td>
                   <td>{receipt.kode_alokasi}</td><td>{receipt.nama_barang} · {receipt.kode_barang}</td>
                   <td className="tt-right tt-money">+{receipt.jumlah}</td><td>{receipt.admin_nama}</td>
                 </tr>

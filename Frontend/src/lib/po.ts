@@ -14,9 +14,10 @@ export type KasirPo = {
   createdAt: string;
   note: string;
   items: Array<{ name: string; sub: string; qty: number; price?: number; productId?: string }>;
+  itemCount: number;
   total: number;
   resep: boolean;
-  timeline: Array<{ at: string; actor: string; from: string; to: PoStatus; note: string }>;
+  timeline: Array<{ at: string; actor: string; from: string; to: string; note: string }>;
   productId?: string;
   linkedTrx?: string;
   customerId: number;
@@ -30,6 +31,7 @@ export type KasirPo = {
 };
 
 const STATUS: Record<string, PoStatus> = {
+  baru: "Dipesan",
   dipesan: "Dipesan",
   menunggu: "Dipesan",
   diproses: "Diproses",
@@ -38,8 +40,27 @@ const STATUS: Record<string, PoStatus> = {
   dibatalkan: "Dibatalkan",
 };
 
+/** Label timeline lama memakai Title Case (mis. "Baru", "Dipesan"). */
+const TIMELINE_LABEL: Record<string, string> = {
+  baru: "Baru",
+  menunggu: "Menunggu",
+  dipesan: "Dipesan",
+  diproses: "Diproses",
+  sudah_datang: "Sudah Datang",
+  selesai: "Selesai",
+  dibatalkan: "Dibatalkan",
+};
+
+function statusKey(value: string): string {
+  return value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
 export function poStatus(value: string): PoStatus {
-  return STATUS[value] ?? "Dipesan";
+  return STATUS[statusKey(value)] ?? "Dipesan";
+}
+
+function timelineLabel(value: string): string {
+  return TIMELINE_LABEL[statusKey(value)] ?? value;
 }
 
 function formattedDate(value: string | null | undefined): string {
@@ -49,7 +70,7 @@ function formattedDate(value: string | null | undefined): string {
   return parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function formattedDateTime(value: string | null | undefined): string {
+export function formatDateTime(value: string | null | undefined): string {
   if (!value) return "-";
   const parsed = new Date(value.replace(" ", "T"));
   if (Number.isNaN(parsed.getTime())) return value;
@@ -92,7 +113,7 @@ export function mapApiPo(
     products: products.length ? products : productLabel.split("|"),
     productLabel,
     status: poStatus(order.status),
-    createdAt: formattedDateTime(order.tanggal_po),
+    createdAt: formatDateTime(order.tanggal_po),
     note: order.catatan ?? "-",
     items: items.map((item) => ({
       name: item.nama_barang,
@@ -101,13 +122,14 @@ export function mapApiPo(
       price: Number(item.harga),
       productId: String(item.barang_id),
     })),
+    itemCount: Number(order.jml_item ?? items.length),
     total: Number(order.total ?? items.reduce((sum, item) => sum + Number(item.subtotal), 0)),
     resep: Boolean(order.id_resep),
     timeline: timeline.map((entry) => ({
-      at: formattedDateTime(entry.created_at),
+      at: formatDateTime(entry.created_at),
       actor: entry.actor_nama ?? "Sistem",
-      from: entry.dari_status ? poStatus(entry.dari_status) : "",
-      to: poStatus(entry.ke_status),
+      from: entry.dari_status ? timelineLabel(entry.dari_status) : "",
+      to: timelineLabel(entry.ke_status),
       note: entry.catatan ?? "",
     })),
     productId: items.length === 1 ? String(items[0].barang_id) : undefined,

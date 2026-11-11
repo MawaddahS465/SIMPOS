@@ -304,7 +304,7 @@ class Transaksi extends BaseKasir
                 'tanggal_transaksi' => $tanggal,
                 'total'             => $ringkasan['total'],
                 'diskon'            => 0,
-                'pajak'             => $ringkasan['pajak'],
+                'pajak'             => 0,
                 'status'            => 'selesai',
             ], true);
 

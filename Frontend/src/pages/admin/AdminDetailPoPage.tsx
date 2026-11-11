@@ -80,8 +80,8 @@ export default function AdminDetailPoPage() {
       </div>
     );
   }
-  const current = Math.max(0, FLOW.indexOf(order.status));
   const cancelled = order.status === "Dibatalkan";
+  const current = cancelled ? -1 : Math.max(0, FLOW.indexOf(order.status));
   const next: PoStatus | null =
     order.status === "Dipesan" ? "Diproses" : order.status === "Diproses" ? "Sudah Datang" : null;
   const canCancel = order.status === "Dipesan" || order.status === "Diproses";
@@ -210,7 +210,7 @@ export default function AdminDetailPoPage() {
           <div className="section-head">
             <h2>Data Pelanggan</h2>
             <div className="section-action">
-              <span className="tag-mini">Read-only</span>
+              <span className="tag-mini">Hanya baca</span>
             </div>
           </div>
           <div className="cust-card">
@@ -229,8 +229,8 @@ export default function AdminDetailPoPage() {
               <span className="tag-mini">{order.items.length} item</span>
             </div>
           </div>
-          {order.items.map((it) => (
-            <div key={it.name} className="cart-line">
+          {order.items.map((it, index) => (
+            <div key={`${it.productId ?? it.name}-${index}`} className="cart-line">
               <span className="cl-ico">
                 <Glasses size={20} strokeWidth={1.7} />
               </span>

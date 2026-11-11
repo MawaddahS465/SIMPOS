@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, History } from "lucide-react";
 import { adminStockFlowApi, ApiError, type StockMutation } from "../../lib/api";
+import { formatDateTime } from "../../lib/po";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -9,40 +11,63 @@ type Direction = "Semua" | "IN" | "OUT";
 
 export default function AdminMutasiPage() {
   const [mutations, setMutations] = useState<StockMutation[]>([]);
+  const [summary, setSummary] = useState({ masuk: 0, keluar: 0, total: 0 });
   const [query, setQuery] = useState("");
   const [direction, setDirection] = useState<Direction>("Semua");
   const [source, setSource] = useState("Semua");
+  const [reloadKey, setReloadKey] = useState(0);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+
+  const debouncedQuery = useDebouncedValue(query);
 
   const loadMutations = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      setMutations(await adminStockFlowApi.mutations(direction === "Semua" ? "" : direction, source === "Semua" ? "" : source, query.trim()));
+      setMutations(await adminStockFlowApi.mutations(direction === "Semua" ? "" : direction, source === "Semua" ? "" : source, debouncedQuery.trim()));
     } catch (requestError) {
       setError(requestError instanceof ApiError ? requestError.message : "Riwayat mutasi gagal dimuat.");
     } finally {
       setLoading(false);
     }
-  }, [direction, query, source]);
+  }, [direction, debouncedQuery, source, reloadKey]);
 
   useEffect(() => {
     void loadMutations();
   }, [loadMutations]);
 
-  const totalIn = useMemo(() => mutations.filter((mutation) => mutation.arah === "IN").reduce((total, mutation) => total + mutation.jumlah, 0), [mutations]);
-  const totalOut = useMemo(() => mutations.filter((mutation) => mutation.arah === "OUT").reduce((total, mutation) => total + mutation.jumlah, 0), [mutations]);
+  // Ringkasan selalu dari seluruh mutasi cabang, bukan hasil filter tabel.
+  useEffect(() => {
+    let active = true;
+    adminStockFlowApi.mutations()
+      .then((rows) => {
+        if (!active) return;
+        setSummary({
+          masuk: rows.filter((mutation) => mutation.arah === "IN").reduce((total, mutation) => total + mutation.jumlah, 0),
+          keluar: rows.filter((mutation) => mutation.arah === "OUT").reduce((total, mutation) => total + mutation.jumlah, 0),
+          total: rows.length,
+        });
+      })
+      .catch(() => {
+        /* Biarkan tabel tetap tampil walau ringkasan gagal dimuat. */
+      });
+    return () => {
+      active = false;
+    };
+  }, [reloadKey]);
+
+  const { masuk: totalIn, keluar: totalOut, total: totalMutations } = summary;
 
   return (
     <div className="page">
       <PageHeader overline="PERSEDIAAN — MUTASI" title="Riwayat Mutasi" />
       <div className="stat-row">
-        <StatCard label="Total Barang Masuk" value={`+${totalIn}`} caption="Penerimaan barang cabang" icon={<ArrowDownLeft size={22} />} tone="green" />
-        <StatCard label="Total Barang Keluar" value={String(totalOut)} caption="Penjualan dan pengambilan PO" icon={<ArrowUpRight size={22} />} tone="amber" />
-        <StatCard label="Total Catatan Mutasi" value={String(mutations.length)} caption="Sesuai filter aktif" icon={<History size={22} />} tone="violet" />
+        <StatCard label="Total Barang Masuk" value={`+${totalIn}`} caption="Penerimaan & saldo awal" icon={<ArrowDownLeft size={22} />} tone="green" />
+        <StatCard label="Total Barang Keluar" value={String(totalOut)} caption="Penjualan & pengambilan PO" icon={<ArrowUpRight size={22} />} tone="amber" />
+        <StatCard label="Total Catatan Mutasi" value={String(totalMutations)} caption="Seluruh mutasi cabang" icon={<History size={22} />} tone="violet" />
       </div>
-      {error ? <div className="notice" role="alert">{error}<button className="btn btn-ghost" onClick={() => void loadMutations()}>Coba lagi</button></div> : null}
+      {error ? <div className="notice" role="alert">{error}<button className="btn btn-ghost" onClick={() => setReloadKey((key) => key + 1)}>Coba lagi</button></div> : null}
       <div className="toolbar">
         <SearchBox placeholder="Cari ID mutasi, referensi, kode, atau nama produk..." value={query} onChange={setQuery} />
         <select className="select-pill" aria-label="Filter Jenis Mutasi" value={direction} onChange={(event) => setDirection(event.target.value as Direction)}>
@@ -59,7 +84,7 @@ export default function AdminMutasiPage() {
             {loading ? <tr><td colSpan={6}><div className="empty-note">Memuat riwayat mutasi...</div></td></tr> : null}
             {!loading ? mutations.map((mutation) => (
               <tr key={mutation.id_mutasi}>
-                <td><div className="tt-num">MUT-{mutation.id_mutasi}</div><div className="tt-sub">{mutation.created_at}</div></td>
+                <td><div className="tt-num">MUT-{mutation.id_mutasi}</div><div className="tt-sub">{formatDateTime(mutation.created_at)}</div></td>
                 <td><div className="tt-num">{mutation.nama_barang}</div><div className="tt-sub">{mutation.kode_barang} · {mutation.jenis}</div></td>
                 <td className="tt-center"><StatusPill label={mutation.arah === "IN" ? "Masuk" : "Keluar"} /></td>
                 <td><div className="tt-num">{mutation.sumber}</div><div className="tt-sub">{mutation.referensi}</div></td>

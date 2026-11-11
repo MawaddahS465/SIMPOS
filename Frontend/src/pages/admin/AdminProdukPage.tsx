@@ -1,24 +1,23 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Pencil, Plus, Power, X } from "lucide-react";
-import { FRAME_CATS, LENSA_CATS, type ProductType } from "../../store/sharedStore";
 import { adminInventoryApi, ApiError, type AdminCatalogProduct } from "../../lib/api";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { PageHeader, SearchBox, StatusPill, formatIDR } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
-type Props = { type: Exclude<ProductType, "Aksesoris"> };
+type Props = { type: "Frame" | "Lensa" };
 type ProductRow = {
   id: string;
   code: string;
   name: string;
   brand: string;
-  category: string;
   price: number;
   status: "Aktif" | "Nonaktif";
 };
 
-const empty = { name: "", brand: "", category: "", price: "" };
+const empty = { name: "", brand: "", price: "" };
 
 function mapProduct(product: AdminCatalogProduct): ProductRow {
   return {
@@ -26,7 +25,6 @@ function mapProduct(product: AdminCatalogProduct): ProductRow {
     code: product.kode_barang,
     name: product.nama_barang,
     brand: product.merek ?? "",
-    category: product.nama_kategori ?? "Tanpa kategori",
     price: Number(product.harga_jual),
     status: product.status.toLowerCase() === "aktif" ? "Aktif" : "Nonaktif",
   };
@@ -37,7 +35,6 @@ export default function AdminProdukPage({ type }: Props) {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"Semua" | "Aktif" | "Nonaktif">("Semua");
-  const [category, setCategory] = useState("all");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
@@ -47,7 +44,7 @@ export default function AdminProdukPage({ type }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const cats = type === "Frame" ? FRAME_CATS : LENSA_CATS;
+  const debouncedQ = useDebouncedValue(q);
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -56,8 +53,7 @@ export default function AdminProdukPage({ type }: Props) {
       const rows = await adminInventoryApi.products(
         type,
         status === "Semua" ? "" : status.toLowerCase(),
-        q.trim(),
-        category === "all" ? "" : category,
+        debouncedQ.trim(),
       );
       setProducts(rows.map(mapProduct));
     } catch (requestError) {
@@ -65,7 +61,7 @@ export default function AdminProdukPage({ type }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [type, status, q, category]);
+  }, [type, status, debouncedQ]);
 
   useEffect(() => {
     void loadProducts();
@@ -75,7 +71,7 @@ export default function AdminProdukPage({ type }: Props) {
 
   const startAdd = () => {
     setEditing(null);
-    setForm({ ...empty, category: cats[0] });
+    setForm({ ...empty });
     setFormError("");
     setOpen(true);
   };
@@ -87,7 +83,6 @@ export default function AdminProdukPage({ type }: Props) {
     setForm({
       name: product.name,
       brand: product.brand,
-      category: product.category,
       price: String(product.price),
     });
     setFormError("");
@@ -121,7 +116,7 @@ export default function AdminProdukPage({ type }: Props) {
         type,
         name: form.name.trim(),
         brand: form.brand.trim(),
-        category: form.category,
+        category: type,
         price,
       };
       if (editing) {
@@ -149,6 +144,19 @@ export default function AdminProdukPage({ type }: Props) {
     } catch (requestError) {
       setError(requestError instanceof ApiError ? requestError.message : "Produk gagal dinonaktifkan.");
       setConfirmId(null);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const activate = async (id: string) => {
+    setSaving(true);
+    setError("");
+    try {
+      await adminInventoryApi.activateProduct(Number(id));
+      await loadProducts();
+    } catch (requestError) {
+      setError(requestError instanceof ApiError ? requestError.message : "Produk gagal diaktifkan.");
     } finally {
       setSaving(false);
     }
@@ -188,17 +196,6 @@ export default function AdminProdukPage({ type }: Props) {
           <option value="Aktif">Aktif</option>
           <option value="Nonaktif">Nonaktif</option>
         </select>
-        <select
-          className="select-pill"
-          aria-label="Kategori"
-          value={category}
-          onChange={(event) => setCategory(event.target.value)}
-        >
-          <option value="all">Semua Kategori</option>
-          {cats.map((item) => (
-            <option key={item} value={item}>{item}</option>
-          ))}
-        </select>
       </div>
 
       <div className="table-wrap">
@@ -206,7 +203,6 @@ export default function AdminProdukPage({ type }: Props) {
           <thead>
             <tr>
               <th>KODE / PRODUK</th>
-              <th>KATEGORI</th>
               <th className="tt-center">HARGA JUAL</th>
               <th className="tt-center">STATUS</th>
               <th className="tt-right">AKSI</th>
@@ -214,14 +210,13 @@ export default function AdminProdukPage({ type }: Props) {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5}><div className="empty-note">Memuat produk...</div></td></tr>
+              <tr><td colSpan={4}><div className="empty-note">Memuat produk...</div></td></tr>
             ) : rows.map((product) => (
               <tr key={product.id}>
                 <td>
                   <div className="tt-num">{product.name}</div>
                   <div className="tt-sub">{product.code} · {product.brand}</div>
                 </td>
-                <td>{product.category}</td>
                 <td className="tt-center tt-money">{formatIDR(product.price)}</td>
                 <td className="tt-center"><StatusPill label={product.status} /></td>
                 <td className="tt-right">
@@ -235,13 +230,18 @@ export default function AdminProdukPage({ type }: Props) {
                         <Power size={14} />
                         Nonaktifkan
                       </button>
-                    ) : null}
+                    ) : (
+                      <button className="link-action" onClick={() => void activate(product.id)} disabled={saving}>
+                        <Power size={14} />
+                        Aktifkan
+                      </button>
+                    )}
                   </span>
                 </td>
               </tr>
             ))}
             {!loading && rows.length === 0 ? (
-              <tr><td colSpan={5}><div className="empty-note">Tidak ada produk yang cocok. Tambahkan produk baru.</div></td></tr>
+              <tr><td colSpan={4}><div className="empty-note">Tidak ada produk yang cocok. Tambahkan produk baru.</div></td></tr>
             ) : null}
           </tbody>
         </table>
@@ -271,12 +271,6 @@ export default function AdminProdukPage({ type }: Props) {
               <label className="afield">
                 <span>Merek</span>
                 <input value={form.brand} onChange={(event) => setForm({ ...form, brand: event.target.value })} placeholder="cth. Ray-Ban" />
-              </label>
-              <label className="afield">
-                <span>Kategori {type}</span>
-                <select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>
-                  {cats.map((item) => <option key={item}>{item}</option>)}
-                </select>
               </label>
               <label className="afield">
                 <span>Harga jual (Rp)</span>

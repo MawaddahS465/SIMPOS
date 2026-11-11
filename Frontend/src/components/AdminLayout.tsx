@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, Menu as MenuIcon, Search } from "lucide-react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { LogOut, Menu as MenuIcon } from "lucide-react";
 import { ADMIN_NAV } from "../data/admin";
 import { useAuth } from "../store/auth";
 import { ROLE_LABEL } from "../store/session";
@@ -13,9 +13,6 @@ import "../styles/admin.css";
 export default function AdminLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  // Search topbar hanya di Dashboard; halaman Admin lain disembunyikan.
-  const showSearch = location.pathname === "/admin/dashboard";
   const { session, signOut } = useAuth();
 
   const logout = async () => {
@@ -40,25 +37,17 @@ export default function AdminLayout() {
             {ADMIN_NAV.map((group) => (
               <div key={group.title}>
                 <div className="nav-sep">{group.title}</div>
-                {group.items.map((item) =>
-                  item.stage === 2 ? (
-                    <span key={item.to} className="nav-item nav-disabled" title="Hadir di Tahap 02">
-                      <item.icon size={19} strokeWidth={2} />
-                      {item.label}
-                      <em className="nav-soon">Segera</em>
-                    </span>
-                  ) : (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
-                      onClick={() => setOpen(false)}
-                    >
-                      <item.icon size={19} strokeWidth={2} />
-                      {item.label}
-                    </NavLink>
-                  ),
-                )}
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+                    onClick={() => setOpen(false)}
+                  >
+                    <item.icon size={19} strokeWidth={2} />
+                    {item.label}
+                  </NavLink>
+                ))}
               </div>
             ))}
           </nav>
@@ -78,14 +67,6 @@ export default function AdminLayout() {
             <button className="burger" aria-label="Buka menu" onClick={() => setOpen(true)}>
               <MenuIcon size={20} />
             </button>
-
-            {showSearch ? (
-              <label className="search-field">
-                <Search size={18} />
-                <input type="search" placeholder="Cari produk, stok, atau PO..." aria-label="Pencarian" />
-                <span className="kbd">Ctrl + K</span>
-              </label>
-            ) : null}
 
             <div className="topbar-right">
               <NotificationBell role="admin" />

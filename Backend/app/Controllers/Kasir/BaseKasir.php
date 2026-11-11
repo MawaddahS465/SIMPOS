@@ -99,14 +99,12 @@ abstract class BaseKasir extends BaseController
             $subtotal += (float) $row['subtotal'];
         }
 
-        $pajak = round($subtotal * 0.11);
-
         return [
             'rows'     => $rows,
             'count'    => $count,
             'subtotal' => $subtotal,
-            'pajak'    => $pajak,
-            'total'    => $subtotal + $pajak,
+            'pajak'    => 0.0,
+            'total'    => $subtotal,
         ];
     }
 

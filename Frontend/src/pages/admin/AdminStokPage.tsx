@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import { Link } from "react-router-dom";
 import { FilePlus2, Settings2 } from "lucide-react";
 import { adminInventoryApi, ApiError, type AdminStockRow } from "../../lib/api";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { PageHeader, SearchBox, StatusPill } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -39,17 +40,19 @@ export default function AdminStokPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const debouncedQ = useDebouncedValue(q);
+
   const loadStock = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      setStock((await adminInventoryApi.stocks(q.trim())).map(mapStock));
+      setStock((await adminInventoryApi.stocks(debouncedQ.trim())).map(mapStock));
     } catch (requestError) {
       setError(requestError instanceof ApiError ? requestError.message : "Daftar stok gagal dimuat.");
     } finally {
       setLoading(false);
     }
-  }, [q]);
+  }, [debouncedQ]);
 
   useEffect(() => {
     void loadStock();
@@ -137,6 +140,7 @@ export default function AdminStokPage() {
               <tr><td colSpan={6}><div className="empty-note">Memuat stok cabang...</div></td></tr>
             ) : rows.map((row) => {
               const low = row.saldo <= row.minimum;
+              const canRequest = ["frame", "lensa"].includes(row.type.toLowerCase());
               return (
                 <tr key={row.id}>
                   <td>
@@ -160,10 +164,14 @@ export default function AdminStokPage() {
                         <Settings2 size={14} />
                         Atur Minimum
                       </button>
-                      <Link className="link-action" to={`/admin/pengajuan?product=${row.id}`}>
-                        <FilePlus2 size={14} />
-                        Ajukan Stok
-                      </Link>
+                      {canRequest ? (
+                        <Link className="link-action" to={`/admin/pengajuan?product=${row.id}`}>
+                          <FilePlus2 size={14} />
+                          Ajukan Stok
+                        </Link>
+                      ) : (
+                        <span className="tt-sub" style={{ marginTop: 0 }}>Pengajuan hanya untuk Frame/Lensa</span>
+                      )}
                     </span>
                   </td>
                 </tr>

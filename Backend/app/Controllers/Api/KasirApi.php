@@ -178,14 +178,13 @@ class KasirApi extends BaseController
 
         $count    = array_sum(array_column($rows, 'qty'));
         $subtotal = array_sum(array_column($rows, 'subtotal'));
-        $pajak    = round($subtotal * 0.11);
 
         return [
             'rows'     => $rows,
             'count'    => $count,
             'subtotal' => $subtotal,
-            'pajak'    => $pajak,
-            'total'    => $subtotal + $pajak,
+            'pajak'    => 0.0,
+            'total'    => $subtotal,
         ];
     }
 
@@ -554,8 +553,8 @@ class KasirApi extends BaseController
         }
 
         $summary['subtotal'] -= $discount;
-        $summary['pajak']     = round($summary['subtotal'] * 0.11);
-        $summary['total']     = $summary['subtotal'] + $summary['pajak'];
+        $summary['pajak']     = 0.0;
+        $summary['total']     = $summary['subtotal'];
 
         $customerId = filter_var($data['customerId'] ?? $cart['pelanggan_id'], FILTER_VALIDATE_INT);
         if (! $customerId || (new PelangganModel())->find($customerId) === null) {
@@ -596,7 +595,7 @@ class KasirApi extends BaseController
                 'tanggal_transaksi' => $date,
                 'total'             => $summary['total'],
                 'diskon'            => $discount,
-                'pajak'             => $summary['pajak'],
+                'pajak'             => 0,
                 'status'            => 'selesai',
             ], true);
 

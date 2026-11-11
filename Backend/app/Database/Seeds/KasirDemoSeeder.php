@@ -208,8 +208,7 @@ class KasirDemoSeeder extends Seeder
                     $subtotal += (float) $barang[$kode]['harga_jual'] * $qty;
                 }
 
-                $pajak = round($subtotal * 0.11);
-                $total = $subtotal + $pajak;
+                $total = $subtotal;
 
                 $db->table('transaksi')->insert([
                     'kode_transaksi'    => 'TMP-' . uniqid(),
@@ -220,7 +219,7 @@ class KasirDemoSeeder extends Seeder
                     'tanggal_transaksi' => $tanggal,
                     'total'             => $total,
                     'diskon'            => 0,
-                    'pajak'             => $pajak,
+                    'pajak'             => 0,
                     'status'            => $status,
                     'created_at'        => $tanggal,
                     'updated_at'        => $tanggal,

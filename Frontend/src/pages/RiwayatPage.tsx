@@ -91,8 +91,7 @@ type StrukBodyProps = {
 function StrukBody({ trx, storeName, storePhone, storeAddress, branch, cashier }: StrukBodyProps) {
   const method = (trx.method as PaymentMethod | undefined) ?? "Tunai";
   const discount = trx.discount ?? 0;
-  const tax = trx.tax ?? 0;
-  const subtotal = trx.total + discount - tax;
+  const subtotal = trx.total + discount;
   const paid = trx.paid ?? trx.total;
   const change = trx.change ?? Math.max(0, paid - trx.total);
   const items =
@@ -160,12 +159,6 @@ function StrukBody({ trx, storeName, storePhone, storeAddress, branch, cashier }
           <span>Diskon</span>
           <b>{formatIDR(discount)}</b>
         </div>
-        {tax ? (
-          <div>
-            <span>PPN (11%)</span>
-            <b>{formatIDR(tax)}</b>
-          </div>
-        ) : null}
         <div className="struk-grand">
           <span>Total</span>
           <b>{formatIDR(trx.total)}</b>
@@ -320,7 +313,7 @@ export default function RiwayatPage() {
   const selectedMethod = (selected?.method as PaymentMethod | undefined) ?? "Tunai";
   const SelectedMethodIcon = METHOD_ICON[selectedMethod] ?? Banknote;
   const selectedDiscount = selected?.discount ?? 0;
-  const selectedSubtotal = (selected?.total ?? 0) + selectedDiscount - (selected?.tax ?? 0);
+  const selectedSubtotal = (selected?.total ?? 0) + selectedDiscount;
   const selectedPaid =
     selectedMethod === "Tunai" ? (selected?.paid ?? selected?.total ?? 0) : (selected?.total ?? 0);
   const selectedChange =
@@ -765,12 +758,6 @@ export default function RiwayatPage() {
                   <span>Diskon</span>
                   <b>{formatIDR(selectedDiscount)}</b>
                 </div>
-                {selected.tax ? (
-                  <div className="sub-row">
-                    <span>PPN (11%)</span>
-                    <b>{formatIDR(selected.tax)}</b>
-                  </div>
-                ) : null}
                 <div className="sub-row total">
                   <span>Total Tagihan</span>
                   <b>{formatIDR(selected.total)}</b>

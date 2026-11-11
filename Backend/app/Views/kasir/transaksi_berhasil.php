@@ -2,7 +2,7 @@
 
 <?= $this->section('content') ?>
 <?php
-$subtotal = (float) $trx['total'] - (float) $trx['pajak'] - (float) $trx['diskon'];
+$subtotal = (float) $trx['total'] - (float) $trx['diskon'];
 $metode   = $bayar['metode_pembayaran'] ?? '-';
 $pembayaran = $bayar ?? [];
 $dibayar  = (float) ($bayar['jumlah_bayar'] ?? $trx['total']);
@@ -87,10 +87,6 @@ $kembalian = $metode === 'Tunai' ? max(0, $dibayar - (float) $trx['total']) : 0;
             <div class="info-row">
                 <span>Diskon</span>
                 <b><?= rupiah($trx['diskon']) ?></b>
-            </div>
-            <div class="info-row">
-                <span>Pajak (PPN 11%)</span>
-                <b><?= rupiah($trx['pajak']) ?></b>
             </div>
             <div class="info-row">
                 <span>Total Pembayaran</span>

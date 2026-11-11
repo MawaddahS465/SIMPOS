@@ -254,7 +254,6 @@ class AdminInventoryApi extends BaseController
                 'nama_barang' => $product['name'],
                 'merek'       => $product['brand'],
                 'harga_jual'  => $product['price'],
-                'status'      => 'aktif',
                 'updated_at'  => $now,
             ]) || ! $db->transStatus() || ! $db->transCommit()) {
                 throw new \RuntimeException('Perubahan produk gagal disimpan.');
@@ -281,6 +280,20 @@ class AdminInventoryApi extends BaseController
         }
         if (! $model->update($id, ['status' => 'nonaktif', 'updated_at' => date('Y-m-d H:i:s')])) {
             return $this->failure(500, 'Produk gagal dinonaktifkan.');
+        }
+
+        return $this->success($this->product($id));
+    }
+
+    public function activateProduct(int $id): ResponseInterface
+    {
+        $model = new BarangModel();
+        $product = $model->find($id);
+        if ($product === null) {
+            return $this->failure(404, 'Produk tidak ditemukan.');
+        }
+        if (! $model->update($id, ['status' => 'aktif', 'updated_at' => date('Y-m-d H:i:s')])) {
+            return $this->failure(500, 'Produk gagal diaktifkan.');
         }
 
         return $this->success($this->product($id));

@@ -23,6 +23,7 @@ export type AuthUser = {
   username: string;
   role: Role;
   branchId: number | null;
+  branchName?: string | null;
 };
 
 type ApiPayload = {
@@ -646,6 +647,8 @@ export const adminInventoryApi = {
       requestData<AdminCatalogProduct>(`/api/admin/produk/${id}`, { method: "POST", body: product }),
     deactivateProduct: (id: number) =>
       requestData<AdminCatalogProduct>(`/api/admin/produk/${id}/nonaktifkan`, { method: "POST", body: {} }),
+    activateProduct: (id: number) =>
+      requestData<AdminCatalogProduct>(`/api/admin/produk/${id}/aktifkan`, { method: "POST", body: {} }),
     stocks: (query = "") =>
       requestData<AdminStockRow[]>(`/api/admin/stok${query ? `?q=${encodeURIComponent(query)}` : ""}`),
     updateMinimum: (id: number, minimum: number) =>

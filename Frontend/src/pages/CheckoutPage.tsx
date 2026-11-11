@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -75,7 +75,7 @@ export default function CheckoutPage() {
   const [query, setQuery] = useState("");
   const [warning, setWarning] = useState<string | null>(null);
   const [cashMode, setCashMode] = useState<"exact" | "manual">(() => {
-    const gross = cart.poId ? cart.subtotal : Math.round((cart.subtotal - cart.discount) * 1.11);
+    const gross = cart.poId ? cart.subtotal : cart.subtotal - cart.discount;
     return cart.cashInput.trim() !== "" && cart.cashPaid !== gross ? "manual" : "exact";
   });
   const [addOpen, setAddOpen] = useState(false);
@@ -88,8 +88,7 @@ export default function CheckoutPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const taxableSubtotal = cart.poId ? cart.subtotal : cart.subtotal - cart.discount;
-  const tax = useMemo(() => cart.poId ? 0 : Math.round((cart.subtotal - cart.discount) * 0.11), [cart.poId, cart.subtotal, cart.discount]);
-  const grandTotal = taxableSubtotal + tax;
+  const grandTotal = taxableSubtotal;
   const cashShortfall = Math.max(0, grandTotal - cart.cashPaid);
   const cashChange = Math.max(0, cart.cashPaid - grandTotal);
 
@@ -724,10 +723,6 @@ export default function CheckoutPage() {
               />
               <b>{formatIDR(cart.poId ? 0 : cart.discount)}</b>
             </span>
-          </div>
-          <div className="sum-row">
-            <span>{cart.poId ? "Pajak pengambilan PO" : "PPN (11%)"}</span>
-            <b>{formatIDR(tax)}</b>
           </div>
           <div className="sum-total">
             <span>Total Pembayaran</span>

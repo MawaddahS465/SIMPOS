@@ -11,18 +11,29 @@ use CodeIgniter\HTTP\Exceptions\HTTPException;
 class AuthApi extends BaseController
 {
     /**
-     * @return array{id: int, name: string, username: string, role: string, branchId: int|null}
+     * @return array{id: int, name: string, username: string, role: string, branchId: int|null, branchName: string|null}
      */
     private function publicUser(array $user, Role $role): array
     {
+        $branchId = $user['cabang_id'] !== null ? (int) $user['cabang_id'] : null;
+        $branchName = null;
+
+        if ($branchId !== null) {
+            $branch = db_connect()->table('cabang')
+                ->select('nama_cabang')
+                ->where('id', $branchId)
+                ->get()
+                ->getRowArray();
+            $branchName = isset($branch['nama_cabang']) ? (string) $branch['nama_cabang'] : null;
+        }
+
         return [
-            'id'       => (int) $user['id'],
-            'name'     => (string) $user['nama'],
-            'username' => (string) $user['username'],
-            'role'     => $role->value,
-            'branchId' => $user['cabang_id'] !== null
-                ? (int) $user['cabang_id']
-                : null,
+            'id'         => (int) $user['id'],
+            'name'       => (string) $user['nama'],
+            'username'   => (string) $user['username'],
+            'role'       => $role->value,
+            'branchId'   => $branchId,
+            'branchName' => $branchName,
         ];
     }
 
