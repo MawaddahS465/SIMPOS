@@ -374,10 +374,13 @@ class OwnerManagementApi extends BaseController
         $name = trim($name);
         $username = trim($username);
         if (mb_strlen($name) < 2 || mb_strlen($name) > 100 || mb_strlen($username) < 2 || mb_strlen($username) > 50
-            || ! in_array($role, ['kasir', 'admin', 'pemilik'], true)
-            || ($id === null && mb_strlen($password) < 6)
-            || ($password !== '' && mb_strlen($password) < 6)) {
-            return $this->failure(422, 'Nama, username, role, atau password tidak memenuhi ketentuan.');
+            || ! in_array($role, ['kasir', 'admin', 'pemilik'], true)) {
+            return $this->failure(422, 'Nama, username, atau role tidak memenuhi ketentuan.');
+        }
+        // Password baru wajib minimal 8 karakter. Saat edit, kosong berarti tidak diubah.
+        if (($id === null && mb_strlen($password) < 8)
+            || ($password !== '' && mb_strlen($password) < 8)) {
+            return $this->failure(422, 'Password wajib minimal 8 karakter.');
         }
         $cabangId = null;
         if ($role !== 'pemilik') {

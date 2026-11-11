@@ -20,8 +20,11 @@ class Encryption extends BaseConfig
      * If you use the Encryption class you must set an encryption key (seed).
      * You need to ensure it is long enough for the cipher and mode you plan to use.
      * See the user guide for more info.
+     *
+     * Kunci diambil dari .env (encryption.key) agar tidak pernah tersimpan
+     * di git. Isi dengan 32 byte acak, contoh: hex2bin:<64 karakter hex>.
      */
-    public string $key = '';
+    public string $key = env('encryption.key', '');
 
     /**
      * --------------------------------------------------------------------------

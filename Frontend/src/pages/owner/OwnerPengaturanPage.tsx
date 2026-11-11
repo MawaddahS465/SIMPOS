@@ -317,7 +317,7 @@ export default function OwnerPengaturanPage() {
                 <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="nama@email.com" />
               </label>
               <label className="afield">
-                <span>Password {editing ? "(kosongkan bila tidak diubah)" : "(min. 6 karakter)"}</span>
+                <span>Password {editing ? "(kosongkan bila tidak diubah)" : "(min. 8 karakter)"}</span>
                 <input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••" />
               </label>
               <label className="afield">
