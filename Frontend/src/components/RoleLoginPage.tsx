@@ -89,9 +89,6 @@ export default function RoleLoginPage() {
           </div>
 
           <h2>Selamat Datang</h2>
-          <p className="sub">
-            Silakan masuk untuk mengakses sistem Optik Mekar Jaya sebagai Kasir, Admin Cabang, atau Pemilik.
-          </p>
 
           <form onSubmit={onSubmit} noValidate>
             {error && (
