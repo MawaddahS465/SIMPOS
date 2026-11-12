@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useLocation } from "react-router-dom";
 import { authApi, ApiError, type AuthUser, type Role } from "../lib/api";
 import {
   LEGACY_SESSION_KEYS,
@@ -52,6 +53,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>("checking");
   const bootstrapped = useRef(false);
+  const { pathname } = useLocation();
+  const isOwnerSettingsPreview = pathname === "/preview/owner/pengaturan";
 
   const refresh = useCallback(async (): Promise<AuthUser | null> => {
     try {
@@ -80,13 +83,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (isOwnerSettingsPreview) {
+      if (!bootstrapped.current) setStatus("unauthenticated");
+      return;
+    }
+
     // Ref mencegah GET /api/me ganda dari double-effect StrictMode di dev.
     if (bootstrapped.current) return;
     bootstrapped.current = true;
 
     clearLegacySessions();
     void refresh();
-  }, [refresh]);
+  }, [isOwnerSettingsPreview, refresh]);
 
   // Bila halaman dipulihkan dari back-forward cache, validasi ulang sesi
   // agar halaman terlindungi tidak tampil setelah logout.
