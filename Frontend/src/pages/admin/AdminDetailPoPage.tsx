@@ -128,7 +128,6 @@ export default function AdminDetailPoPage() {
         }
         overline="OPERASIONAL — DETAIL PO"
         title="Detail Pemesanan"
-        desc="Periksa frame/lensa dan snapshot resep. Aksi status tercatat beserta aktor dan waktu serta tersinkron ke Kasir."
         actions={
           <Link className="btn btn-ghost" to="/admin/pemesanan">
             <ArrowLeft size={16} />

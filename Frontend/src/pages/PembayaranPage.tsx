@@ -56,7 +56,6 @@ export default function PembayaranPage() {
         }
         overline="KEUANGAN CABANG"
         title="Pembayaran"
-        desc="Rekap pembayaran transaksi di Cabang Padang."
         actions={
           <button className="btn btn-ghost" onClick={doExport}>
             <Download size={16} />

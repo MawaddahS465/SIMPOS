@@ -69,7 +69,6 @@ export default function DetailPoPage() {
           }
           overline="DETAIL PEMESANAN"
           title="PO Tidak Ditemukan"
-          desc={loadError || `Nomor PO "${id ?? "-"}" tidak ada di cabang ini. Periksa kembali daftar pemesanan.`}
           actions={
             <Link className="btn btn-ghost" to="/pemesanan">
               <ArrowLeft size={16} />
@@ -134,7 +133,6 @@ export default function DetailPoPage() {
         }
         overline="DETAIL PEMESANAN"
         title="Detail Pemesanan"
-        desc="Informasi pesanan pelanggan dan tahapan status yang diperbarui oleh Admin Cabang."
         actions={
           <>
             <Link className="btn btn-ghost" to="/pemesanan">
