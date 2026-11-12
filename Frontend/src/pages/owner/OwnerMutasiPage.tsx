@@ -115,7 +115,6 @@ export default function OwnerMutasiPage() {
       <PageHeader
         overline="PENGAWASAN — RIWAYAT MUTASI"
         title="Riwayat Mutasi"
-        desc="Pantau seluruh pergerakan stok masuk dan keluar beserta jejak alokasi di semua cabang."
       />
 
       <div className="stat-row">

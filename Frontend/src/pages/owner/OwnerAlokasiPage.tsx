@@ -141,7 +141,7 @@ export default function OwnerAlokasiPage() {
 
   return (
     <div className="page">
-      <PageHeader overline="KEPUTUSAN — ALOKASI" title="Alokasi Distribusi" desc="Tetapkan jumlah barang yang dikirim dari Pusat ke cabang. Stok pusat dikurangi setelah Admin cabang mencatat penerimaan." actions={<button className="btn btn-primary" onClick={start}><PackagePlus size={16} />Buat Alokasi</button>} />
+      <PageHeader overline="KEPUTUSAN — ALOKASI" title="Alokasi Distribusi" actions={<button className="btn btn-primary" onClick={start}><PackagePlus size={16} />Buat Alokasi</button>} />
       <div className="stat-row">
         <StatCard label="Menunggu Diterima" value={String(pendingCount)} caption="Kiriman belum diterima cabang" icon={<Truck size={22} />} tone="amber" />
         <StatCard label="Diterima Sebagian" value={String(partialCount)} caption="Masih ada sisa alokasi" icon={<PackagePlus size={22} />} tone="violet" />

@@ -388,7 +388,6 @@ export default function OwnerPengaturanPage() {
       <PageHeader
         overline="PENGATURAN"
         title="Pengaturan"
-        desc="Kelola profil Pemilik, informasi optik dan cabang, akun operasional, serta keamanan akses."
       />
 
       <section className="os-profile-card">
