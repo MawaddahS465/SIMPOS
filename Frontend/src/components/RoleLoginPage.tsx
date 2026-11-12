@@ -71,9 +71,6 @@ export default function RoleLoginPage() {
             <h1>
               Solusi Penglihatan untuk Hidup yang <em>Lebih Baik</em>
             </h1>
-            <p>
-              Layanan optik modern dengan produk berkualitas dan pelayanan profesional untuk setiap gaya Anda.
-            </p>
           </div>
           <div className="auth-tags" aria-hidden="true">
             <span>FRAME</span>
@@ -154,12 +151,6 @@ export default function RoleLoginPage() {
               {loading ? "Memproses..." : "Masuk"}
             </button>
           </form>
-
-          <div className="auth-help">
-            <b>Butuh bantuan masuk?</b>
-            <span>Hubungi admin di cabang atau tim IT.</span>
-            <span className="demo-foot">Gunakan username dan password yang terdaftar di sistem.</span>
-          </div>
 
           <div className="brand-foot">v1.0 — © 2026 Optik Mekar Jaya</div>
         </section>
