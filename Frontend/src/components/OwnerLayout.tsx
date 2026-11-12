@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { LogOut, Menu as MenuIcon } from "lucide-react";
 import { OWNER_NAV } from "../data/owner";
@@ -11,7 +11,7 @@ import "../styles/layout.css";
 import "../styles/admin.css";
 
 /** Shell Pemilik — kelas/geometri layout.css yang sama dengan Kasir & Admin. */
-export default function OwnerLayout({ preview = false, children }: { preview?: boolean; children?: ReactNode }) {
+export default function OwnerLayout() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { session, signOut } = useAuth();
@@ -40,16 +40,7 @@ export default function OwnerLayout({ preview = false, children }: { preview?: b
               <div key={group.title}>
                 <div className="nav-sep">{group.title}</div>
                 {group.items.map((item) =>
-                  preview ? (
-                    <span
-                      key={item.to}
-                      className={`nav-item nav-disabled ${item.to === "/owner/pengaturan" ? "active" : ""}`}
-                      aria-current={item.to === "/owner/pengaturan" ? "page" : undefined}
-                    >
-                      <item.icon size={19} strokeWidth={2} />
-                      {item.label}
-                    </span>
-                  ) : item.ready ? (
+                  item.ready ? (
                     <NavLink
                       key={item.to}
                       to={item.to}
@@ -74,12 +65,10 @@ export default function OwnerLayout({ preview = false, children }: { preview?: b
           <div className="sidebar-foot">
             <b>{session?.branch ?? "Seluruh Cabang"}</b>
             <span>{session ? ROLE_LABEL[session.role] : "Pemilik"}</span>
-            {preview ? <span>Mode pratinjau</span> : (
-              <button className="link-action admin-logout" onClick={() => void logout()}>
-                <LogOut size={14} />
-                Keluar
-              </button>
-            )}
+            <button className="link-action admin-logout" onClick={() => void logout()}>
+              <LogOut size={14} />
+              Keluar
+            </button>
           </div>
         </aside>
 
@@ -102,14 +91,7 @@ export default function OwnerLayout({ preview = false, children }: { preview?: b
           </header>
 
           <div className="main-content">
-            {preview ? (
-              <>
-                <div className="os-preview-banner" role="status">
-                  Pratinjau desain dengan data contoh. Login dan penyimpanan perubahan tidak aktif.
-                </div>
-                {children}
-              </>
-            ) : ownerData.ownerDataStatus === "loading" || ownerData.ownerDataStatus === "idle" ? (
+            {ownerData.ownerDataStatus === "loading" || ownerData.ownerDataStatus === "idle" ? (
               <div className="panel empty-note" role="status">Memuat data Pemilik dari server...</div>
             ) : ownerData.ownerDataStatus === "error" ? (
               <div className="notice" role="alert">

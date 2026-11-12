@@ -121,16 +121,15 @@ function branchFormFrom(branch: Branch | "add", store: ReturnType<typeof useShar
   };
 }
 
-export default function OwnerPengaturanPage({ previewOnly = false }: { previewOnly?: boolean }) {
+export default function OwnerPengaturanPage() {
   const store = useSharedStore();
   const { session, user, refresh } = useAuth();
 
   const [tab, setTab] = useState<Tab>("profil");
 
-  const owner = store.appUsers.find((candidate) => candidate.id === String(session?.id ?? ""))
-    ?? (previewOnly ? store.appUsers.find((candidate) => candidate.role === "pemilik") ?? null : null);
+  const owner = store.appUsers.find((candidate) => candidate.id === String(session?.id ?? "")) ?? null;
   const ownerName = owner?.name || user?.name || session?.name || "Pemilik";
-  const ownerUsername = owner?.username || user?.username || session?.username || (previewOnly ? "pemilik" : "");
+  const ownerUsername = owner?.username || user?.username || session?.username || "";
   const ownerEmail = owner?.email || user?.email || "";
   const ownerPhone = owner?.phone || user?.phone || "";
 
@@ -215,11 +214,6 @@ export default function OwnerPengaturanPage({ previewOnly = false }: { previewOn
       setProfileError("Data profil belum dimuat. Coba muat ulang halaman.");
       return;
     }
-    if (previewOnly) {
-      setProfileError("");
-      setProfileMsg("Mode pratinjau: perubahan tidak disimpan.");
-      return;
-    }
     setProfileSaving(true);
     setProfileError("");
     setProfileMsg("");
@@ -248,11 +242,6 @@ export default function OwnerPengaturanPage({ previewOnly = false }: { previewOn
   const submitBranch = async (event: FormEvent) => {
     event.preventDefault();
     if (!branchModal) return;
-    if (previewOnly) {
-      setBranchError("");
-      setBranchMsg("Mode pratinjau: perubahan tidak disimpan.");
-      return;
-    }
     setBranchSaving(true);
     setBranchError("");
     setBranchMsg("");
@@ -333,10 +322,6 @@ export default function OwnerPengaturanPage({ previewOnly = false }: { previewOn
 
   const submitCashier = async (event: FormEvent) => {
     event.preventDefault();
-    if (previewOnly) {
-      setCashierError("Mode pratinjau: akun tidak disimpan.");
-      return;
-    }
     if (!currentBranch || currentBranch.type !== "Cabang") return;
     setCashierError("");
     if (cashierForm.password.length < 8) {
@@ -376,10 +361,6 @@ export default function OwnerPengaturanPage({ previewOnly = false }: { previewOn
 
   const submitPassword = async (event: FormEvent) => {
     event.preventDefault();
-    if (previewOnly) {
-      setSecurityError("Mode pratinjau: kata sandi tidak diubah.");
-      return;
-    }
     setSecurityError("");
     if (securityForm.next.length < 8) {
       setSecurityError("Kata sandi baru minimal 8 karakter.");
