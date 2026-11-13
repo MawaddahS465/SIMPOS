@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace Config;
 
@@ -24,7 +24,7 @@ class Encryption extends BaseConfig
      * Kunci diambil dari .env (encryption.key) agar tidak pernah tersimpan
      * di git. Isi dengan 32 byte acak, contoh: hex2bin:<64 karakter hex>.
      */
-    public string $key = env('encryption.key', '');
+    public string $key = '';
 
     /**
      * --------------------------------------------------------------------------
