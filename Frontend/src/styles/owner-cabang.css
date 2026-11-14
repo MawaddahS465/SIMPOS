@@ -1,0 +1,464 @@
+/* ==========================================================================
+   MONITORING CABANG PEMILIK
+   Kartu kantor pusat, tabel lokasi, modal detail, dan akun cabang.
+   ========================================================================== */
+
+.branch-page {
+  gap: 20px;
+}
+
+.branch-central-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--panel-soft);
+  box-shadow: var(--shadow-sm);
+}
+
+.branch-central-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  min-width: 0;
+  flex: 1;
+}
+
+.branch-central-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.branch-central-copy {
+  min-width: 0;
+}
+
+.branch-central-label {
+  display: inline-block;
+  color: var(--accent-ink);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.branch-central-copy h2 {
+  margin-top: 5px;
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+}
+
+.branch-central-role {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.branch-central-contact {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 10px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.branch-central-contact-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.branch-central-contact-row svg {
+  flex: none;
+  color: var(--muted);
+}
+
+.branch-central-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex: none;
+}
+
+.branch-search-row .toolbar-search {
+  width: 100%;
+}
+
+.branch-detail-body {
+  gap: 0;
+}
+
+.branch-detail-tabs {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: -2px 0 18px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.branch-detail-tabs::-webkit-scrollbar {
+  height: 0;
+}
+
+.branch-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 10px 0 11px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.16s, border-color 0.16s;
+}
+
+.branch-tab:hover {
+  color: var(--accent-ink);
+}
+
+.branch-tab.is-active {
+  color: var(--accent-ink);
+  border-bottom-color: var(--accent);
+}
+
+.branch-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.branch-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.branch-tab.is-active .branch-tab-count {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.branch-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.branch-tab-desc {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.branch-modal .os-modal-actions,
+.branch-account-modal .os-modal-actions {
+  justify-content: space-between;
+}
+
+.branch-modal .os-input:disabled,
+.branch-account-modal .os-input:disabled {
+  color: var(--ink-2);
+  -webkit-text-fill-color: var(--ink-2);
+  opacity: 1;
+}
+
+.branch-account-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.branch-account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.branch-account-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.branch-account-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.branch-account-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.branch-account-copy b {
+  display: block;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.branch-account-username {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branch-account-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.branch-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.branch-account-action {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.16s, border-color 0.16s, color 0.16s;
+}
+
+.branch-account-action:hover:not(:disabled) {
+  border-color: var(--danger-bg);
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+.branch-account-action:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.branch-account-action:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.branch-account-empty {
+  padding: 18px;
+  border: 1px dashed var(--line-2);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.branch-access-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-2);
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.branch-access-note svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--muted);
+}
+
+.branch-inline-notice {
+  padding: 11px 14px;
+  border: 1px solid var(--ok-bg);
+  border-radius: 10px;
+  background: var(--ok-bg);
+  color: var(--ok-ink);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.branch-inline-error {
+  padding: 11px 14px;
+  border: 1px solid var(--danger-bg);
+  border-radius: 10px;
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.branch-state {
+  padding: 28px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.branch-state .btn {
+  margin-top: 12px;
+}
+
+.branch-state-error {
+  border-color: var(--danger-bg);
+  background: #fff7f7;
+  color: var(--danger-ink);
+}
+
+.branch-page .link-action:focus-visible,
+.branch-page .btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+  .branch-central-card {
+    flex-direction: column;
+  }
+
+  .branch-central-side {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .branch-central-side .btn {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .branch-central-card {
+    padding: 17px;
+  }
+
+  .branch-central-main {
+    align-items: flex-start;
+  }
+
+  .branch-central-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .branch-account-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .branch-account-meta {
+    width: 100%;
+    justify-content: flex-start;
+    padding-left: 50px;
+  }
+
+  .branch-account-toolbar .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .branch-detail-tabs {
+    gap: 12px;
+  }
+
+  .branch-tab {
+    font-size: 12.5px;
+  }
+
+  .branch-modal,
+  .branch-account-modal {
+    width: calc(100vw - 20px);
+  }
+}
+
+@media (max-width: 460px) {
+  .branch-account-meta {
+    padding-left: 0;
+  }
+
+  .branch-account-action {
+    margin-left: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .branch-tab,
+  .branch-account-action {
+    transition: none;
+  }
+}

@@ -35,17 +35,31 @@ class OwnerManagementApi extends BaseController
         return is_array($data) ? $data : null;
     }
 
+    private function centralBranchId(): ?int
+    {
+        $row = db_connect()->table('cabang')
+            ->select('id')
+            ->where('kode_cabang', 'PST')
+            ->where('deleted_at', null)
+            ->get()
+            ->getRowArray();
+
+        return isset($row['id']) ? (int) $row['id'] : null;
+    }
+
     private function branchRows(): array
     {
         $branches = db_connect()->table('cabang')
             ->select('id, kode_cabang, nama_cabang, kota, alamat, telepon, email, penanggung_jawab, status')
             ->where('deleted_at', null)
+            ->where('kode_cabang !=', 'PST')
             ->orderBy('nama_cabang', 'ASC')
             ->get()
             ->getResultArray();
 
         return array_map(static fn (array $branch): array => [
             'id' => (int) $branch['id'],
+            'db_id' => (int) $branch['id'],
             'kode_cabang' => $branch['kode_cabang'],
             'nama_cabang' => $branch['nama_cabang'],
             'kota' => $branch['kota'] ?? '',
@@ -63,6 +77,7 @@ class OwnerManagementApi extends BaseController
         $branches = $this->branchRows();
         $result = [[
             'id' => 'pusat',
+            'db_id' => $this->centralBranchId(),
             'kode_cabang' => 'PST',
             'nama_cabang' => 'Gudang Pusat',
             'kota' => '',
@@ -124,6 +139,9 @@ class OwnerManagementApi extends BaseController
         }
 
         $db = db_connect();
+        if ($id !== null && $id === $this->centralBranchId()) {
+            return $this->failure(409, 'Gudang Pusat dikelola melalui informasi pusat.');
+        }
         $duplicateSql = 'SELECT COUNT(*) AS total FROM cabang WHERE deleted_at IS NULL';
         $duplicateParams = [];
         if ($id !== null) {
@@ -183,6 +201,7 @@ class OwnerManagementApi extends BaseController
             ->select('id, nama_cabang')
             ->where('status', 'aktif')
             ->where('deleted_at', null)
+            ->where('kode_cabang !=', 'PST')
             ->orderBy('id', 'ASC')
             ->get()
             ->getResultArray();
@@ -552,6 +571,17 @@ class OwnerManagementApi extends BaseController
             'storePic' => $storePic,
         ] as $key => $value) {
             $db->table('app_settings')->replace(['setting_key' => $key, 'setting_value' => $value, 'updated_at' => $now]);
+        }
+
+        $centralId = $this->centralBranchId();
+        if ($centralId !== null) {
+            $db->table('cabang')->where('id', $centralId)->update([
+                'alamat' => trim($data['storeAddress']),
+                'telepon' => trim($data['storePhone']) !== '' ? trim($data['storePhone']) : null,
+                'email' => $storeEmail !== '' ? $storeEmail : null,
+                'penanggung_jawab' => $storePic !== '' ? $storePic : null,
+                'updated_at' => $now,
+            ]);
         }
 
         return $this->settings();

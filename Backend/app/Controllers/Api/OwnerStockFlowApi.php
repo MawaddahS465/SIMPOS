@@ -164,6 +164,7 @@ class OwnerStockFlowApi extends BaseController
         $branches = $db->table('cabang')
             ->select('id, nama_cabang, kode_cabang')
             ->where('status', 'aktif')
+            ->where('kode_cabang !=', 'PST')
             ->orderBy('nama_cabang', 'ASC')
             ->get()
             ->getResultArray();
@@ -268,7 +269,7 @@ class OwnerStockFlowApi extends BaseController
 
         $db->transBegin();
         try {
-            $branch = $db->table('cabang')->where('id', $branchId)->where('status', 'aktif')->get()->getRowArray();
+            $branch = $db->table('cabang')->where('id', $branchId)->where('status', 'aktif')->where('kode_cabang !=', 'PST')->get()->getRowArray();
             $product = $db->table('barang')->where('id', $productId)->where('status', 'aktif')->whereIn('jenis', ['Frame', 'Lensa', 'frame', 'lensa'])->get()->getRowArray();
             if ($branch === null || $product === null) {
                 $db->transRollback();

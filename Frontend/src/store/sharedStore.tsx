@@ -31,6 +31,7 @@ export type BranchStatus = "Aktif" | "Nonaktif";
 
 export type Branch = {
   id: string;
+  dbId?: string;
   name: string;
   type: "Pusat" | "Cabang";
   code: string;
@@ -705,6 +706,7 @@ function ownerDateTime(value: string | null | undefined): string {
 function ownerBranch(row: OwnerBranchRow): Branch {
   return {
     id: String(row.id),
+    dbId: row.db_id == null ? undefined : String(row.db_id),
     name: row.nama_cabang,
     type: row.type,
     code: row.kode_cabang,

@@ -322,6 +322,7 @@ export type OwnerAllocationOptions = {
 
 export type OwnerBranchRow = {
   id: number | "pusat";
+  db_id: number | null;
   kode_cabang: string;
   nama_cabang: string;
   kota: string;
