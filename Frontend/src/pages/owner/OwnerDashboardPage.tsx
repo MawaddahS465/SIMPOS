@@ -475,7 +475,7 @@ export default function OwnerDashboardPage() {
           </div>
           <div className="dash-branch-list">
             {cabangRows.slice(0, 5).map((row) => (
-              <Link className="dash-branch-row" to={`/owner/cabang/${row.b.id}`} key={row.b.id}>
+              <Link className="dash-branch-row" to={`/owner/cabang?branch=${row.b.id}`} key={row.b.id}>
                 <div className="dash-branch-line">
                   <span className="dash-branch-name">{row.b.name}</span>
                   <span className="dash-branch-value">

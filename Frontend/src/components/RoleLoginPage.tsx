@@ -151,8 +151,6 @@ export default function RoleLoginPage() {
               {loading ? "Memproses..." : "Masuk"}
             </button>
           </form>
-
-          <div className="brand-foot">v1.0 — © 2026 Optik Mekar Jaya</div>
         </section>
       </div>
     </div>

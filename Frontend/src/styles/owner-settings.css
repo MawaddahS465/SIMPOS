@@ -824,3 +824,368 @@ select.os-input {
     padding-right: 18px;
   }
 }
+
+/* ==========================================================================
+   HALAMAN PENGATURAN PEMILIK
+   Kartu profil, grid identitas, keamanan, dan modal.
+   ========================================================================== */
+
+.os-settings-page {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding-top: 18px;
+}
+
+.os-settings-card {
+  padding: 26px;
+  border: 1px solid #e3eaf4;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 40px -34px rgba(15, 23, 42, 0.35);
+}
+
+.os-settings-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid #e6eef8;
+  border-radius: 14px;
+  background: #f7fbff;
+}
+
+.os-settings-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #dbeafe;
+  box-shadow: 0 0 0 3px #dbeafe;
+  color: #1d4ed8;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.os-settings-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.os-settings-title h1 {
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.os-settings-title p {
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.os-settings-edit,
+.os-settings-security-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid #dbeafe;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.16s, border-color 0.16s;
+}
+
+.os-settings-edit:hover,
+.os-settings-security-btn:hover {
+  border-color: #bfdbfe;
+  background: #dbeafe;
+}
+
+.os-settings-edit:focus-visible,
+.os-settings-security-btn:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.os-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.os-settings-tile {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 15px 16px;
+  border: 1px solid #e5eaf2;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.os-settings-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+.os-settings-icon.is-name {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.os-settings-icon.is-username {
+  background: #f5f3ff;
+  color: #7c3aed;
+}
+
+.os-settings-icon.is-email {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.os-settings-icon.is-phone {
+  background: #fffbeb;
+  color: #f59e0b;
+}
+
+.os-settings-tile-copy {
+  min-width: 0;
+}
+
+.os-settings-label {
+  display: block;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.os-settings-value {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.os-settings-security {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 13px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #edf1f7;
+}
+
+.os-settings-security-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f1f7ff;
+  color: #2563eb;
+}
+
+.os-settings-security-copy {
+  flex: 1;
+  min-width: 200px;
+}
+
+.os-settings-security-copy h2 {
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.os-settings-security-copy p {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.os-settings-notice {
+  margin-top: 16px;
+  padding: 11px 14px;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.os-settings-footer {
+  margin: 18px 0 0;
+  color: #5b6b82;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.os-settings-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.os-settings-modal .os-eyebrow {
+  color: #2563eb;
+}
+
+.os-settings-modal .os-modal-head p {
+  color: #64748b;
+}
+
+/* Strength meter inside the password modal. */
+.os-strength {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.os-strength-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.os-strength-head b {
+  font-weight: 800;
+}
+
+.os-strength[data-score="0"] .os-strength-head b,
+.os-strength[data-score="1"] .os-strength-head b {
+  color: #dc2626;
+}
+
+.os-strength[data-score="2"] .os-strength-head b {
+  color: #d97706;
+}
+
+.os-strength[data-score="3"] .os-strength-head b {
+  color: #2563eb;
+}
+
+.os-strength[data-score="4"] .os-strength-head b {
+  color: #15803d;
+}
+
+.os-strength-track {
+  display: flex;
+  width: 100%;
+  gap: 4px;
+}
+
+.os-strength-track span {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  transition: background 0.16s;
+}
+
+.os-strength[data-score="0"] .os-strength-track span.is-filled,
+.os-strength[data-score="1"] .os-strength-track span.is-filled {
+  background: #ef4444;
+}
+
+.os-strength[data-score="2"] .os-strength-track span.is-filled {
+  background: #f59e0b;
+}
+
+.os-strength[data-score="3"] .os-strength-track span.is-filled {
+  background: #3b82f6;
+}
+
+.os-strength[data-score="4"] .os-strength-track span.is-filled {
+  background: #16a34a;
+}
+
+@media (max-width: 720px) {
+  .os-settings-page {
+    padding-top: 10px;
+  }
+
+  .os-settings-card {
+    padding: 18px;
+  }
+
+  .os-settings-head {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
+  .os-settings-avatar {
+    width: 54px;
+    height: 54px;
+    font-size: 18px;
+  }
+
+  .os-settings-title h1 {
+    font-size: 20px;
+  }
+
+  .os-settings-edit {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .os-settings-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .os-settings-security {
+    align-items: flex-start;
+  }
+
+  .os-settings-security-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-settings-edit,
+  .os-settings-security-btn,
+  .os-strength-track span {
+    transition: none;
+  }
+}
