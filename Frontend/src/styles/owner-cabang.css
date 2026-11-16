@@ -190,6 +190,82 @@
   justify-content: space-between;
 }
 
+/* Modal tambah cabang baru */
+.branch-create-modal {
+  width: min(780px, calc(100vw - 32px));
+}
+
+.branch-create-body {
+  padding-bottom: 0;
+}
+
+.branch-create-modal .os-modal-actions {
+  justify-content: flex-end;
+  margin: 2px -24px 0;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--line);
+}
+
+.os-required {
+  margin-left: 3px;
+  color: var(--danger-ink);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.branch-account-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.branch-account-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.branch-account-section-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.branch-account-section-copy h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.branch-account-section-copy h3 svg {
+  flex: none;
+  color: var(--muted);
+}
+
+.branch-account-section-copy p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.branch-account-empty-box {
+  background: #fbfdff;
+}
+
+.branch-account-empty-box b {
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+
 .branch-modal .os-input:disabled,
 .branch-account-modal .os-input:disabled {
   color: var(--ink-2);
@@ -315,6 +391,127 @@
   font-weight: 600;
   line-height: 1.5;
   text-align: center;
+}
+
+.os-form-helper-text {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  display: block;
+  line-height: 1.4;
+}
+
+/* Main form grid */
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+}
+
+.modal-form-grid .form-column {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-form-grid .form-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+}
+
+/* 2-column form layout */
+.os-form-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.os-form-two-col .form-column {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.os-form-two-col .form-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+}
+
+/* Password wrapper */
+.os-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.os-password-wrapper .os-input {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.os-password-toggle {
+  position: relative;
+  right: auto;
+  top: auto;
+  transform: none;
+  background: none;
+  border: none;
+  padding: 2px 8px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  border-radius: 4px;
+  transition: background 0.16s, color 0.16s;
+  white-space: nowrap;
+}
+
+.os-password-toggle:hover {
+  color: var(--accent-ink);
+  background: var(--panel-2);
+}
+
+.os-password-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.os-password-help {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  display: block;
+}
+
+/* Switch/toggle styling */
+.os-switch-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.os-switch-wrapper input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.os-switch-wrapper label {
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Responsive: 1 column on small screens */
+@media (max-width: 900px) {
+  .os-form-two-col {
+    grid-template-columns: 1fr;
+  }
 }
 
 .branch-access-note {
@@ -525,6 +722,13 @@
   .branch-modal,
   .branch-account-modal {
     width: calc(100vw - 20px);
+  }
+
+  .branch-create-modal .os-modal-actions {
+    margin-left: -18px;
+    margin-right: -18px;
+    padding-left: 18px;
+    padding-right: 18px;
   }
 }
 
