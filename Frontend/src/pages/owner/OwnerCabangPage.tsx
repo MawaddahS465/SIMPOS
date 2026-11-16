@@ -5,6 +5,9 @@ import {
   Building2,
   Check,
   CheckCircle2,
+  Eye,
+  EyeOff,
+  Info,
   MapPin,
   Pencil,
   Phone,
@@ -12,6 +15,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   useSharedStore,
   type AppSettings,
@@ -48,6 +52,8 @@ type AccountForm = {
   status: "aktif" | "nonaktif";
 };
 
+type PendingAccount = AccountForm & { key: string };
+
 type DetailTab = "profile" | "accounts";
 type ModalMode = "create" | "detail";
 
@@ -83,7 +89,6 @@ function initialsFromName(name: string): string {
       .toUpperCase() || "A"
   );
 }
-
 function displayOrDash(value?: string): string {
   const clean = value?.trim();
   return clean && clean !== "-" ? clean : "-";
@@ -175,6 +180,12 @@ export default function OwnerCabangPage() {
   const [accountSaving, setAccountSaving] = useState(false);
   const [accountActionError, setAccountActionError] = useState("");
   const [accountActionId, setAccountActionId] = useState<string | null>(null);
+
+  const [pendingAccounts, setPendingAccounts] = useState<PendingAccount[]>([]);
+  const [createAccountOpen, setCreateAccountOpen] = useState(false);
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [createdBranchId, setCreatedBranchId] = useState<number | null>(null);
 
   const rows = store.branches.map((branch) => {
     const stock = store.stockForBranch(branch.id);
@@ -270,6 +281,11 @@ export default function OwnerCabangPage() {
         setAccountError("");
         return;
       }
+      if (createAccountOpen && !saving) {
+        setCreateAccountOpen(false);
+        setAccountError("");
+        return;
+      }
       if (modalOpen && !saving) {
         setModalOpen(false);
         setFormError("");
@@ -279,23 +295,28 @@ export default function OwnerCabangPage() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [accountOpen, accountSaving, modalOpen, saving]);
+  }, [accountOpen, accountSaving, createAccountOpen, modalOpen, saving]);
 
   function openCreate() {
     setModalMode("create");
     setSelectedBranch(null);
+    setCreatedBranchId(null);
     setDetailTab("profile");
     setBranchForm(emptyBranchForm());
     setFormError("");
     setAccountError("");
     setAccountNotice("");
     setAccountActionError("");
+    setPendingAccounts([]);
+    setCreateAccountOpen(false);
+    setShowCreatePassword(false);
     setModalOpen(true);
   }
 
   function openDetail(branch: Branch) {
     setModalMode("detail");
     setSelectedBranch(branch);
+    setCreatedBranchId(null);
     setDetailTab("profile");
     setBranchForm(branchFormFrom(branch, store.settings));
     setFormError("");
@@ -309,6 +330,8 @@ export default function OwnerCabangPage() {
     if (saving) return;
     setModalOpen(false);
     setAccountOpen(false);
+    setCreateAccountOpen(false);
+    setCreatedBranchId(null);
     setFormError("");
     setAccountError("");
   }
@@ -363,10 +386,17 @@ export default function OwnerCabangPage() {
         await store.refreshOwnerData();
         setNotice("Informasi gudang pusat diperbarui.");
       } else {
-        await ownerManagementApi.saveBranch({
-          ...(modalMode === "detail" && selectedBranch ? { id: Number(selectedBranch.id) } : {}),
+        const savedCode = branchForm.code.trim().toUpperCase();
+        const existingId =
+          modalMode === "detail" && selectedBranch
+            ? Number(selectedBranch.id)
+            : createdBranchId !== null
+              ? createdBranchId
+              : undefined;
+        const savedBranches = await ownerManagementApi.saveBranch({
+          ...(existingId !== undefined && Number.isFinite(existingId) ? { id: existingId } : {}),
           name: branchForm.name.trim(),
-          code: branchForm.code.trim().toUpperCase(),
+          code: savedCode,
           city: branchForm.city.trim(),
           address: branchForm.address.trim(),
           phone: branchForm.phone.trim(),
@@ -374,6 +404,59 @@ export default function OwnerCabangPage() {
           pic: branchForm.pic.trim(),
           status: branchForm.status,
         });
+
+        const matchedBranch = savedBranches.find(
+          (candidate) => candidate.kode_cabang.toUpperCase() === savedCode,
+        );
+        const resolvedIdRaw = matchedBranch?.db_id ?? matchedBranch?.id ?? existingId;
+        const branchId = typeof resolvedIdRaw === "number" ? resolvedIdRaw : Number(resolvedIdRaw);
+
+        if (modalMode === "create" && Number.isFinite(branchId)) {
+          setCreatedBranchId(branchId);
+        }
+
+        if (modalMode === "create" && pendingAccounts.length > 0) {
+          if (!Number.isFinite(branchId)) {
+            await store.refreshOwnerData();
+            setFormError(
+              "Cabang tersimpan, tetapi ID cabang belum siap sehingga akun karyawan belum dibuat. Tambahkan akun melalui menu Detail & Edit.",
+            );
+            setPendingAccounts([]);
+            setPage(1);
+            return;
+          }
+
+          const failed: PendingAccount[] = [];
+          for (const account of pendingAccounts) {
+            try {
+              const result = await ownerManagementApi.saveUser({
+                name: account.name,
+                username: account.username,
+                password: account.password,
+                role: account.role,
+                branchId,
+                email: account.username.includes("@") ? account.username : "",
+                phone: account.phone,
+              });
+              if (account.status === "nonaktif") {
+                await ownerManagementApi.setUserStatus(result.id, "nonaktif");
+              }
+            } catch {
+              failed.push(account);
+            }
+          }
+
+          await store.refreshOwnerData();
+          if (failed.length > 0) {
+            const savedCount = pendingAccounts.length - failed.length;
+            setPendingAccounts(failed);
+            setFormError(
+              `${branchForm.name.trim()} tersimpan. ${savedCount} akun dibuat, ${failed.length} gagal disimpan. Periksa data akun lalu klik Simpan Cabang Baru untuk mencoba lagi.`,
+            );
+            return;
+          }
+        }
+
         await store.refreshOwnerData();
         setNotice(
           modalMode === "detail"
@@ -384,6 +467,9 @@ export default function OwnerCabangPage() {
 
       setModalOpen(false);
       setAccountOpen(false);
+      setCreateAccountOpen(false);
+      setCreatedBranchId(null);
+      setPendingAccounts([]);
       setPage(1);
     } catch (error) {
       setFormError(errorMessage(error, "Data cabang gagal disimpan."));
@@ -398,7 +484,57 @@ export default function OwnerCabangPage() {
     setAccountError("");
     setAccountNotice("");
     setAccountActionError("");
+    setShowPassword(false);
     setAccountOpen(true);
+  }
+
+  function openCreateAccount() {
+    setAccountForm(emptyAccountForm());
+    setAccountError("");
+    setShowCreatePassword(false);
+    setCreateAccountOpen(true);
+  }
+
+  function closeCreateAccount() {
+    setCreateAccountOpen(false);
+    setAccountError("");
+  }
+
+  function submitCreateAccount(event: FormEvent) {
+    event.preventDefault();
+
+    const name = accountForm.name.trim();
+    const username = accountForm.username.trim();
+
+    if (name.length < 2) {
+      setAccountError("Nama lengkap karyawan minimal 2 karakter.");
+      return;
+    }
+    if (username.length < 2) {
+      setAccountError("Username atau email login minimal 2 karakter.");
+      return;
+    }
+    if (accountForm.password.length < 8) {
+      setAccountError("Password awal minimal 8 karakter.");
+      return;
+    }
+    if (pendingAccounts.some((account) => account.username.toLowerCase() === username.toLowerCase())) {
+      setAccountError("Username tersebut sudah ada di daftar akun cabang ini.");
+      return;
+    }
+
+    setPendingAccounts((current) => [
+      ...current,
+      { ...accountForm, name, username, phone: accountForm.phone.trim(), key: `${Date.now()}-${current.length}` },
+    ]);
+    setAccountForm(emptyAccountForm());
+    setShowCreatePassword(false);
+    setAccountError("");
+    setCreateAccountOpen(false);
+  }
+
+  function removePendingAccount(key: string) {
+    setPendingAccounts((current) => current.filter((account) => account.key !== key));
   }
 
   function closeAccount() {
@@ -824,7 +960,7 @@ export default function OwnerCabangPage() {
       {modalOpen ? (
         <div className="overlay" onClick={closeModal}>
           <div
-            className="os-modal branch-modal"
+            className={`os-modal branch-modal${modalMode === "create" ? " os-modal-sm" : ""}`}
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -833,16 +969,16 @@ export default function OwnerCabangPage() {
             <div className="os-modal-head">
               <div>
                 <span className="os-eyebrow">
-                  {modalMode === "create" ? "TAMBAH CABANG" : "DETAIL CABANG"}
+                  {modalMode === "create" ? "TAMBAH CABANG BARU" : "DETAIL CABANG"}
                 </span>
                 <h2 id="branch-modal-title">
                   {modalMode === "create"
-                    ? "Tambah Cabang"
+                    ? "Tambah Cabang Baru"
                     : `Detail Cabang: ${selectedBranch ? branchDisplayName(selectedBranch) : ""}`}
                 </h2>
                 <p>
                   {modalMode === "create"
-                    ? "Cabang baru mulai tanpa saldo stok."
+                    ? "Lengkapi informasi profil cabang sekaligus siapkan akun Admin atau Kasir."
                     : "Perbarui profil dan kelola akun pengelola cabang."}
                 </p>
               </div>
@@ -987,13 +1123,150 @@ export default function OwnerCabangPage() {
                     {formError}
                   </div>
                 ) : null}
-                <div className="os-form-grid">{renderBranchFields(false)}</div>
-                <div className="os-modal-actions">
+                <div className="os-form">
+                  <div className="os-form-grid">
+                    <label className="os-field">
+                      <span>Nama Cabang</span>
+                      <input
+                        className="os-input"
+                        value={branchForm.name}
+                        onChange={(event) => updateBranchForm("name", event.target.value)}
+                        placeholder="Contoh: Sitoba"
+                        autoFocus
+                      />
+                    </label>
+                    <label className="os-field">
+                      <span>Penanggung Jawab</span>
+                      <input
+                        className="os-input"
+                        value={branchForm.pic}
+                        onChange={(event) => updateBranchForm("pic", event.target.value)}
+                        placeholder="Nama penanggung jawab"
+                        autoComplete="name"
+                      />
+                    </label>
+                    <label className="os-field">
+                      <span>Kode Cabang</span>
+                      <input
+                        className="os-input"
+                        value={branchForm.code}
+                        onChange={(event) => updateBranchForm("code", event.target.value.toUpperCase())}
+                        placeholder="CB008"
+                        maxLength={8}
+                      />
+                    </label>
+                    <label className="os-field">
+                      <span>Status</span>
+                      <select
+                        className="os-input"
+                        value={branchForm.status}
+                        onChange={(event) => updateBranchForm("status", event.target.value as BranchStatus)}
+                      >
+                        <option value="Aktif">Aktif</option>
+                        <option value="Nonaktif">Nonaktif</option>
+                      </select>
+                    </label>
+                    <label className="os-field">
+                      <span>Nomor Telepon</span>
+                      <input
+                        className="os-input"
+                        type="tel"
+                        value={branchForm.phone}
+                        onChange={(event) => updateBranchForm("phone", event.target.value)}
+                        placeholder="(0751) 123456"
+                        autoComplete="tel"
+                      />
+                    </label>
+                    <label className="os-field">
+                      <span>Email Cabang</span>
+                      <input
+                        className="os-input"
+                        type="email"
+                        value={branchForm.email}
+                        onChange={(event) => updateBranchForm("email", event.target.value)}
+                        placeholder="cabang@email.com"
+                        autoComplete="email"
+                      />
+                    </label>
+                    <label className="os-field os-field-wide">
+                      <span>Alamat Lengkap</span>
+                      <input
+                        className="os-input"
+                        value={branchForm.address}
+                        onChange={(event) => updateBranchForm("address", event.target.value)}
+                        placeholder="Alamat operasional cabang"
+                        autoComplete="street-address"
+                      />
+                    </label>
+                    <label className="os-field">
+                      <span>Kota</span>
+                      <input
+                        className="os-input"
+                        value={branchForm.city}
+                        onChange={(event) => updateBranchForm("city", event.target.value)}
+                        placeholder="Padang"
+                        autoComplete="address-level2"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="branch-create-accounts">
+                    <div className="branch-create-accounts-head">
+                      <div className="branch-create-accounts-title">
+                        <span className="branch-create-accounts-label">
+                          Tambah Akun Karyawan Cabang
+                          <Info size={14} />
+                        </span>
+                        <span className="branch-create-accounts-desc">
+                          Tambahan langkah atau admin untuk cabang baru ini (opsional).
+                        </span>
+                      </div>
+                      <button className="btn btn-primary btn-sm" type="button" onClick={openCreateAccount}>
+                        <Plus size={15} />
+                        Tambah Akun
+                      </button>
+                    </div>
+
+                    {pendingAccounts.length > 0 ? (
+                      <div className="branch-account-list">
+                        {pendingAccounts.map((account) => (
+                          <div className="branch-account-row" key={account.key}>
+                            <span className="branch-account-avatar">{initialsFromName(account.name)}</span>
+                            <div className="branch-account-copy">
+                              <b>{account.name}</b>
+                              <span className="branch-account-username">{usernameLabel(account.username)}</span>
+                            </div>
+                            <div className="branch-account-meta">
+                              <span className="branch-role-badge">
+                                {account.role === "admin" ? "Admin Cabang" : "Kasir Cabang"}
+                              </span>
+                              <button
+                                className="branch-account-action"
+                                type="button"
+                                title="Hapus akun"
+                                aria-label={`Hapus akun ${account.name}`}
+                                onClick={() => removePendingAccount(account.key)}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="branch-account-empty">
+                        Belum ada akun karyawan ditambahkan. Klik <b>+ Tambah Akun</b> untuk membuat akun Admin atau
+                        Kasir.
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="os-modal-actions" style={{ justifyContent: "flex-end", gap: 10 }}>
                   <button className="btn btn-ghost" type="button" onClick={closeModal} disabled={saving}>
                     Batal
                   </button>
                   <button className="btn btn-primary" type="submit" disabled={saving}>
-                    {saving ? "Menyimpan..." : "Tambah Cabang"}
+                    {saving ? "Menyimpan..." : "Simpan Cabang Baru"}
                   </button>
                 </div>
               </form>
@@ -1086,36 +1359,183 @@ export default function OwnerCabangPage() {
                   />
                 </label>
                 <label className="os-field">
-                  <span>Password Awal</span>
-                  <input
-                    className="os-input"
-                    type="password"
-                    value={accountForm.password}
-                    onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
-                    placeholder="Minimal 8 karakter"
-                    autoComplete="new-password"
-                  />
+                  <span>Password Awal *</span>
+                  <span className="branch-password-wrap">
+                    <input
+                      className="os-input"
+                      type={showPassword ? "text" : "password"}
+                      value={accountForm.password}
+                      onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
+                      placeholder="Minimal 8 karakter"
+                      autoComplete="new-password"
+                      required
+                      aria-describedby="password-help"
+                    />
+                    <button
+                      type="button"
+                      className="branch-password-toggle"
+                      aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                      title={showPassword ? "Sembunyikan password" : "Lihat password"}
+                      onClick={() => setShowPassword((current) => !current)}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </span>
+                  <small id="password-help" className="os-password-help">
+                    Minimal 8 karakter, kombinasi huruf dan angka
+                  </small>
                 </label>
                 <label className="os-field">
                   <span>Status Akun</span>
-                  <select
-                    className="os-input"
-                    value={accountForm.status}
-                    onChange={(event) =>
-                      setAccountForm({ ...accountForm, status: event.target.value as AccountForm["status"] })
-                    }
-                  >
-                    <option value="aktif">Aktif</option>
-                    <option value="nonaktif">Nonaktif</option>
-                  </select>
+                  <div className="os-switch-wrapper">
+                    <input
+                      type="checkbox"
+                      checked={accountForm.status === "aktif"}
+                      onChange={(e) =>
+                        setAccountForm({
+                          ...accountForm,
+                          status: e.target.checked ? "aktif" : "nonaktif",
+                        })
+                      }
+                    />
+                    <span>{accountForm.status === "aktif" ? "Aktif" : "Nonaktif"}</span>
+                  </div>
                 </label>
               </div>
-              <div className="os-modal-actions">
+              <div className="os-modal-actions" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                 <button className="btn btn-ghost" type="button" onClick={closeAccount} disabled={accountSaving}>
                   Batal
                 </button>
                 <button className="btn btn-primary" type="submit" disabled={accountSaving}>
-                  {accountSaving ? "Menyimpan..." : "Simpan Akun"}
+                  {accountSaving ? "Menyimpan..." : "Tambahkan Akun"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : null}
+
+      {modalOpen && modalMode === "create" && createAccountOpen ? (
+        <div className="overlay branch-create-account-overlay" onClick={closeCreateAccount}>
+          <div
+            className="os-modal os-modal-sm branch-account-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="branch-create-account-title"
+          >
+            <div className="os-modal-head">
+              <div>
+                <span className="os-eyebrow">TAMBAH AKUN KARYAWAN</span>
+                <h2 id="branch-create-account-title">Tambah Akun: {branchForm.name.trim() || "Cabang Baru"}</h2>
+                <p>Akun akan dibuat bersamaan saat cabang baru disimpan.</p>
+              </div>
+              <button className="icon-pill" type="button" aria-label="Tutup" onClick={closeCreateAccount}>
+                <X size={18} />
+              </button>
+            </div>
+            <form className="os-modal-body" onSubmit={submitCreateAccount} noValidate>
+              {accountError ? (
+                <div className="form-error" role="alert">
+                  {accountError}
+                </div>
+              ) : null}
+              <div className="os-form">
+                <div className="os-form-grid">
+                  <label className="os-field">
+                    <span>Nama Lengkap Karyawan</span>
+                    <input
+                      className="os-input"
+                      value={accountForm.name}
+                      onChange={(event) => setAccountForm({ ...accountForm, name: event.target.value })}
+                      placeholder="Contoh: Rina Marliana"
+                      autoComplete="name"
+                      autoFocus
+                    />
+                  </label>
+                  <label className="os-field">
+                    <span>Peran / Jabatan</span>
+                    <select
+                      className="os-input"
+                      value={accountForm.role}
+                      onChange={(event) =>
+                        setAccountForm({ ...accountForm, role: event.target.value as AccountForm["role"] })
+                      }
+                    >
+                      <option value="admin">Admin Cabang</option>
+                      <option value="kasir">Kasir Cabang</option>
+                    </select>
+                    <span className="branch-create-accounts-desc">
+                      Admin Cabang: Mengelola stok cabang, pengajuan barang, dan laporan.
+                    </span>
+                  </label>
+                  <label className="os-field">
+                    <span>Username / Email Login</span>
+                    <input
+                      className="os-input"
+                      value={accountForm.username}
+                      onChange={(event) => setAccountForm({ ...accountForm, username: event.target.value })}
+                      placeholder="rina@optikmekarjaya.com"
+                      autoComplete="username"
+                    />
+                  </label>
+                  <label className="os-field">
+                    <span>Nomor HP / WhatsApp</span>
+                    <input
+                      className="os-input"
+                      type="tel"
+                      value={accountForm.phone}
+                      onChange={(event) => setAccountForm({ ...accountForm, phone: event.target.value })}
+                      placeholder="0812-3456-7890"
+                      autoComplete="tel"
+                    />
+                  </label>
+                  <label className="os-field">
+                    <span>Password Awal</span>
+                    <span className="branch-password-wrap">
+                      <input
+                        className="os-input"
+                        type={showCreatePassword ? "text" : "password"}
+                        value={accountForm.password}
+                        onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
+                        placeholder="Minimal 8 karakter"
+                        autoComplete="new-password"
+                        aria-describedby="create-password-help"
+                      />
+                      <button
+                        className="branch-password-toggle"
+                        type="button"
+                        aria-label={showCreatePassword ? "Sembunyikan password" : "Tampilkan password"}
+                        onClick={() => setShowCreatePassword((current) => !current)}
+                      >
+                        {showCreatePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </span>
+                    <small id="create-password-help" className="os-password-help">
+                      Minimal 8 karakter, kombinasi huruf dan angka
+                    </small>
+                  </label>
+                  <label className="os-field">
+                    <span>Status Akun</span>
+                    <select
+                      className="os-input"
+                      value={accountForm.status}
+                      onChange={(event) =>
+                        setAccountForm({ ...accountForm, status: event.target.value as AccountForm["status"] })
+                      }
+                    >
+                      <option value="aktif">Aktif</option>
+                      <option value="nonaktif">Nonaktif</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div className="os-modal-actions">
+                <button className="btn btn-ghost" type="button" onClick={closeCreateAccount}>
+                  Batal
+                </button>
+                <button className="btn btn-primary" type="submit">
+                  Simpan Akun
                 </button>
               </div>
             </form>
