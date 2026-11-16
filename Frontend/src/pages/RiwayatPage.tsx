@@ -561,8 +561,6 @@ export default function RiwayatPage() {
                   <tr
                     key={t.id}
                     className={selected?.id === t.id ? "is-active" : ""}
-                    onClick={() => setSelectedId(t.id)}
-                    style={{ cursor: "pointer" }}
                   >
                     <td>
                       <div className="tt-num">{t.no}</div>
@@ -590,10 +588,7 @@ export default function RiwayatPage() {
                       <button
                         type="button"
                         className="link-action"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedId(t.id);
-                        }}
+                        onClick={() => setSelectedId(t.id)}
                       >
                         Lihat Detail
                         <ChevronRight size={15} />
