@@ -184,6 +184,7 @@ export default function OwnerCabangPage() {
   const [pendingAccounts, setPendingAccounts] = useState<PendingAccount[]>([]);
   const [createAccountOpen, setCreateAccountOpen] = useState(false);
   const [showCreatePassword, setShowCreatePassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const rows = store.branches.map((branch) => {
     const stock = store.stockForBranch(branch.id);
@@ -1331,36 +1332,62 @@ export default function OwnerCabangPage() {
                   />
                 </label>
                 <label className="os-field">
-                  <span>Password Awal</span>
-                  <input
-                    className="os-input"
-                    type="password"
-                    value={accountForm.password}
-                    onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
-                    placeholder="Minimal 8 karakter"
-                    autoComplete="new-password"
-                  />
+                  <span>Password Awal *</span>
+                  <div className="os-password-wrapper" style={{ position: 'relative', width: '100%' }}>
+                    <input
+                      className="os-input form-input"
+                      type={showPassword ? "text" : "password"}
+                      value={accountForm.password}
+                      onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
+                      placeholder="Minimal 8 karakter"
+                      required
+                      aria-describedby="password-help"
+                      style={{ width: '100%', boxSizing: 'border-box' }}
+                    />
+                    <button
+                      type="button"
+                      className="os-password-toggle"
+                      style={{
+                        position: 'absolute',
+                        right: 10,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'var(--muted)',
+                      }}
+                      aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
+                      title={showPassword ? "Sembunyikan password" : "Lihat password"}
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                    </button>
+                    <small id="password-help" className="os-password-help" style={{ marginTop: '8px', display: 'block' }}>
+                      Minimal 8 karakter, kombinasi huruf dan angka
+                    </small>
+                  </div>
                 </label>
                 <label className="os-field">
                   <span>Status Akun</span>
-                  <select
-                    className="os-input"
-                    value={accountForm.status}
-                    onChange={(event) =>
-                      setAccountForm({ ...accountForm, status: event.target.value as AccountForm["status"] })
-                    }
-                  >
-                    <option value="aktif">Aktif</option>
-                    <option value="nonaktif">Nonaktif</option>
-                  </select>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input
+                      type="checkbox"
+                      checked={accountForm.status === "aktif"}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--accent)' }}
+                      onChange={(e) =>
+                        setAccountForm({
+                          ...accountForm,
+                          status: e.target.checked ? "aktif" : "nonaktif",
+                        })
+                    }/>
+                    <span style={{ color: 'var(--muted)', fontSize: '11px', userSelect: 'none' }}>Aktif</span>
+                  </div>
                 </label>
               </div>
-              <div className="os-modal-actions">
+              <div className="os-modal-actions" style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                 <button className="btn btn-ghost" type="button" onClick={closeAccount} disabled={accountSaving}>
                   Batal
                 </button>
                 <button className="btn btn-primary" type="submit" disabled={accountSaving}>
-                  {accountSaving ? "Menyimpan..." : "Simpan Akun"}
+                  {accountSaving ? "Menyimpan..." : "Tambahkan Akun"}
                 </button>
               </div>
             </form>
