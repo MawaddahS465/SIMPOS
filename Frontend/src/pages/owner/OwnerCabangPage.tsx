@@ -185,6 +185,7 @@ export default function OwnerCabangPage() {
   const [createAccountOpen, setCreateAccountOpen] = useState(false);
   const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [createdBranchId, setCreatedBranchId] = useState<number | null>(null);
 
   const rows = store.branches.map((branch) => {
     const stock = store.stockForBranch(branch.id);
@@ -280,6 +281,11 @@ export default function OwnerCabangPage() {
         setAccountError("");
         return;
       }
+      if (createAccountOpen && !saving) {
+        setCreateAccountOpen(false);
+        setAccountError("");
+        return;
+      }
       if (modalOpen && !saving) {
         setModalOpen(false);
         setFormError("");
@@ -289,11 +295,12 @@ export default function OwnerCabangPage() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [accountOpen, accountSaving, modalOpen, saving]);
+  }, [accountOpen, accountSaving, createAccountOpen, modalOpen, saving]);
 
   function openCreate() {
     setModalMode("create");
     setSelectedBranch(null);
+    setCreatedBranchId(null);
     setDetailTab("profile");
     setBranchForm(emptyBranchForm());
     setFormError("");
@@ -309,6 +316,7 @@ export default function OwnerCabangPage() {
   function openDetail(branch: Branch) {
     setModalMode("detail");
     setSelectedBranch(branch);
+    setCreatedBranchId(null);
     setDetailTab("profile");
     setBranchForm(branchFormFrom(branch, store.settings));
     setFormError("");
@@ -323,6 +331,7 @@ export default function OwnerCabangPage() {
     setModalOpen(false);
     setAccountOpen(false);
     setCreateAccountOpen(false);
+    setCreatedBranchId(null);
     setFormError("");
     setAccountError("");
   }
@@ -378,8 +387,14 @@ export default function OwnerCabangPage() {
         setNotice("Informasi gudang pusat diperbarui.");
       } else {
         const savedCode = branchForm.code.trim().toUpperCase();
-        await ownerManagementApi.saveBranch({
-          ...(modalMode === "detail" && selectedBranch ? { id: Number(selectedBranch.id) } : {}),
+        const existingId =
+          modalMode === "detail" && selectedBranch
+            ? Number(selectedBranch.id)
+            : createdBranchId !== null
+              ? createdBranchId
+              : undefined;
+        const savedBranches = await ownerManagementApi.saveBranch({
+          ...(existingId !== undefined && Number.isFinite(existingId) ? { id: existingId } : {}),
           name: branchForm.name.trim(),
           code: savedCode,
           city: branchForm.city.trim(),
@@ -390,15 +405,19 @@ export default function OwnerCabangPage() {
           status: branchForm.status,
         });
 
-        if (modalMode === "create" && pendingAccounts.length > 0) {
-          await store.refreshOwnerData();
-          const createdBranch = store.branches.find(
-            (candidate) => candidate.code === savedCode || candidate.id === savedCode,
-          );
-          const branchDbId = createdBranch?.dbId ?? createdBranch?.id;
-          const branchId = Number(branchDbId);
+        const matchedBranch = savedBranches.find(
+          (candidate) => candidate.kode_cabang.toUpperCase() === savedCode,
+        );
+        const resolvedIdRaw = matchedBranch?.db_id ?? matchedBranch?.id ?? existingId;
+        const branchId = typeof resolvedIdRaw === "number" ? resolvedIdRaw : Number(resolvedIdRaw);
 
+        if (modalMode === "create" && Number.isFinite(branchId)) {
+          setCreatedBranchId(branchId);
+        }
+
+        if (modalMode === "create" && pendingAccounts.length > 0) {
           if (!Number.isFinite(branchId)) {
+            await store.refreshOwnerData();
             setFormError(
               "Cabang tersimpan, tetapi ID cabang belum siap sehingga akun karyawan belum dibuat. Tambahkan akun melalui menu Detail & Edit.",
             );
@@ -432,7 +451,7 @@ export default function OwnerCabangPage() {
             const savedCount = pendingAccounts.length - failed.length;
             setPendingAccounts(failed);
             setFormError(
-              `${branchForm.name.trim()} tersimpan. ${savedCount} akun dibuat, ${failed.length} gagal disimpan. Periksa data akun lalu Simpan Cabang Baru untuk mencoba lagi.`,
+              `${branchForm.name.trim()} tersimpan. ${savedCount} akun dibuat, ${failed.length} gagal disimpan. Periksa data akun lalu klik Simpan Cabang Baru untuk mencoba lagi.`,
             );
             return;
           }
@@ -449,6 +468,7 @@ export default function OwnerCabangPage() {
       setModalOpen(false);
       setAccountOpen(false);
       setCreateAccountOpen(false);
+      setCreatedBranchId(null);
       setPendingAccounts([]);
       setPage(1);
     } catch (error) {
@@ -464,17 +484,20 @@ export default function OwnerCabangPage() {
     setAccountError("");
     setAccountNotice("");
     setAccountActionError("");
+    setShowPassword(false);
     setAccountOpen(true);
   }
 
   function openCreateAccount() {
     setAccountForm(emptyAccountForm());
+    setAccountError("");
     setShowCreatePassword(false);
     setCreateAccountOpen(true);
   }
 
   function closeCreateAccount() {
     setCreateAccountOpen(false);
+    setAccountError("");
   }
 
   function submitCreateAccount(event: FormEvent) {
@@ -493,6 +516,10 @@ export default function OwnerCabangPage() {
     }
     if (accountForm.password.length < 8) {
       setAccountError("Password awal minimal 8 karakter.");
+      return;
+    }
+    if (pendingAccounts.some((account) => account.username.toLowerCase() === username.toLowerCase())) {
+      setAccountError("Username tersebut sudah ada di daftar akun cabang ini.");
       return;
     }
 
@@ -1333,52 +1360,45 @@ export default function OwnerCabangPage() {
                 </label>
                 <label className="os-field">
                   <span>Password Awal *</span>
-                  <div className="os-password-wrapper" style={{ position: 'relative', width: '100%' }}>
+                  <span className="branch-password-wrap">
                     <input
-                      className="os-input form-input"
+                      className="os-input"
                       type={showPassword ? "text" : "password"}
                       value={accountForm.password}
                       onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
                       placeholder="Minimal 8 karakter"
+                      autoComplete="new-password"
                       required
                       aria-describedby="password-help"
-                      style={{ width: '100%', boxSizing: 'border-box' }}
                     />
                     <button
                       type="button"
-                      className="os-password-toggle"
-                      style={{
-                        position: 'absolute',
-                        right: 10,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        color: 'var(--muted)',
-                      }}
+                      className="branch-password-toggle"
                       aria-label={showPassword ? "Sembunyikan password" : "Lihat password"}
                       title={showPassword ? "Sembunyikan password" : "Lihat password"}
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => setShowPassword((current) => !current)}
                     >
-                      {showPassword ? <EyeOff /> : <Eye />}
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
-                    <small id="password-help" className="os-password-help" style={{ marginTop: '8px', display: 'block' }}>
-                      Minimal 8 karakter, kombinasi huruf dan angka
-                    </small>
-                  </div>
+                  </span>
+                  <small id="password-help" className="os-password-help">
+                    Minimal 8 karakter, kombinasi huruf dan angka
+                  </small>
                 </label>
                 <label className="os-field">
                   <span>Status Akun</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="os-switch-wrapper">
                     <input
                       type="checkbox"
                       checked={accountForm.status === "aktif"}
-                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--accent)' }}
                       onChange={(e) =>
                         setAccountForm({
                           ...accountForm,
                           status: e.target.checked ? "aktif" : "nonaktif",
                         })
-                    }/>
-                    <span style={{ color: 'var(--muted)', fontSize: '11px', userSelect: 'none' }}>Aktif</span>
+                      }
+                    />
+                    <span>{accountForm.status === "aktif" ? "Aktif" : "Nonaktif"}</span>
                   </div>
                 </label>
               </div>
@@ -1478,8 +1498,9 @@ export default function OwnerCabangPage() {
                         type={showCreatePassword ? "text" : "password"}
                         value={accountForm.password}
                         onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
-                        placeholder="Minimal 6 karakter"
+                        placeholder="Minimal 8 karakter"
                         autoComplete="new-password"
+                        aria-describedby="create-password-help"
                       />
                       <button
                         className="branch-password-toggle"
@@ -1490,6 +1511,9 @@ export default function OwnerCabangPage() {
                         {showCreatePassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </span>
+                    <small id="create-password-help" className="os-password-help">
+                      Minimal 8 karakter, kombinasi huruf dan angka
+                    </small>
                   </label>
                   <label className="os-field">
                     <span>Status Akun</span>

@@ -441,30 +441,28 @@
 /* Password wrapper */
 .os-password-wrapper {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: block;
 }
 
 .os-password-wrapper .os-input {
-  flex: 1;
-  padding-right: 40px;
+  padding-right: 42px;
 }
 
 .os-password-toggle {
-  position: relative;
-  right: auto;
-  top: auto;
-  transform: none;
-  background: none;
-  border: none;
-  padding: 2px 8px;
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 0;
   color: var(--muted);
   cursor: pointer;
-  font-size: 12px;
-  border-radius: 4px;
+  border-radius: 9px;
   transition: background 0.16s, color 0.16s;
-  white-space: nowrap;
 }
 
 .os-password-toggle:hover {
@@ -474,14 +472,15 @@
 
 .os-password-toggle:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
 .os-password-help {
-  margin-top: 8px;
-  font-size: 11px;
+  margin-top: 0;
+  font-size: 11.5px;
   color: var(--muted);
   display: block;
+  line-height: 1.4;
 }
 
 /* Switch/toggle styling */
@@ -489,21 +488,21 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .os-switch-wrapper input {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
   accent-color: var(--accent);
 }
 
-.os-switch-wrapper label {
-  color: var(--muted);
-  font-size: 11px;
-  cursor: pointer;
+.os-switch-wrapper span {
+  color: var(--ink-2);
+  font-size: 12.5px;
+  font-weight: 600;
   user-select: none;
 }
 
