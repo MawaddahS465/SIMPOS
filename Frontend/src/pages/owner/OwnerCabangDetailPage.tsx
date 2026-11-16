@@ -144,8 +144,8 @@ export default function OwnerCabangDetailPage() {
         <section className="co-card">
           <div className="section-head">
             <div>
-              <h2>Kontak & Penanggung Jawab</h2>
-              <div className="section-desc">Alamat dan narahubung operasional cabang.</div>
+              <h2>Kontak &amp; Alamat</h2>
+              <div className="section-desc">Alamat dan informasi kontak operasional cabang.</div>
             </div>
           </div>
           <div className="detail-rows">
@@ -156,10 +156,6 @@ export default function OwnerCabangDetailPage() {
             <div className="detail-row">
               <span>Telepon</span>
               <b>{branch.phone}</b>
-            </div>
-            <div className="detail-row">
-              <span>Penanggung jawab</span>
-              <b>{branch.pic}</b>
             </div>
           </div>
         </section>

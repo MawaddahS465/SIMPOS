@@ -115,7 +115,7 @@ class OwnerManagementApi extends BaseController
         if ($data === null) {
             return $this->failure(400, 'Body JSON tidak valid.');
         }
-        foreach (['name', 'code', 'city', 'address', 'phone', 'pic', 'status'] as $field) {
+        foreach (['name', 'code', 'city', 'address', 'phone', 'status'] as $field) {
             if (! is_string($data[$field] ?? null)) {
                 return $this->failure(422, 'Data cabang tidak lengkap.');
             }
@@ -126,12 +126,12 @@ class OwnerManagementApi extends BaseController
         $city = trim($data['city']);
         $address = trim($data['address']);
         $phone = trim($data['phone']);
-        $pic = trim($data['pic']);
+        $pic = is_string($data['pic'] ?? null) ? trim($data['pic']) : '';
         $status = strtolower(trim($data['status']));
         $email = array_key_exists('email', $data) ? trim((string) $data['email']) : null;
         if (mb_strlen($name) < 2 || mb_strlen($name) > 100 || ! preg_match('/^[A-Z0-9]{2,8}$/', $code)
             || mb_strlen($city) < 2 || mb_strlen($city) > 100 || mb_strlen($address) < 3 || mb_strlen($address) > 1000
-            || mb_strlen($phone) > 20 || mb_strlen($pic) < 2 || mb_strlen($pic) > 100
+            || mb_strlen($phone) > 20 || mb_strlen($pic) > 100
             || ($email !== null && mb_strlen($email) > 150)
             || ($email !== null && $email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL))
             || ! in_array($status, ['aktif', 'nonaktif'], true)) {
@@ -162,7 +162,7 @@ class OwnerManagementApi extends BaseController
             'kota' => $city,
             'alamat' => $address,
             'telepon' => $phone !== '' ? $phone : null,
-            'penanggung_jawab' => $pic,
+            'penanggung_jawab' => $pic !== '' ? $pic : null,
             'status' => $status,
             'updated_at' => date('Y-m-d H:i:s'),
         ];

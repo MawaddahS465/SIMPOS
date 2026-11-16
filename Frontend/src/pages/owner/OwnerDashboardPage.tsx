@@ -6,12 +6,12 @@ import {
   ArrowUpRight,
   Banknote,
   Boxes,
-  CalendarDays,
   Truck,
 } from "lucide-react";
 import { useSharedStore, type Branch } from "../../store/sharedStore";
 import { requestState, requestStateLabel } from "../../store/requestStatus";
 import { PageHeader, StatusPill, formatIDR } from "../../components/ui";
+import DateRangePicker from "../../components/DateRangePicker";
 import SalesBarChart from "../../components/SalesBarChart";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -56,43 +56,86 @@ function parseTrxDate(s: string): Date | null {
   return new Date(year, month, day);
 }
 
-type PeriodKey = "30" | "90" | "180" | "all";
-
-const PERIOD_META: Record<PeriodKey, { label: string; period: string; previous: string | null }> = {
-  "30": { label: "30 hari", period: "30 hari terakhir", previous: "30 hari sebelumnya" },
-  "90": { label: "90 hari", period: "90 hari terakhir", previous: "90 hari sebelumnya" },
-  "180": { label: "180 hari", period: "180 hari terakhir", previous: "180 hari sebelumnya" },
-  all: { label: "Semua", period: "semua waktu", previous: null },
-};
-
-const PERIOD_OPTIONS: PeriodKey[] = ["30", "90", "180", "all"];
-
-type PeriodRange = {
+type DateRange = {
   from: Date | null;
   to: Date | null;
   previousFrom: Date | null;
   previousTo: Date | null;
+  periodLabel: string;
+  compareLabel: string | null;
 };
 
-function buildRange(period: PeriodKey): PeriodRange {
-  if (period === "all") {
-    return { from: null, to: null, previousFrom: null, previousTo: null };
+/** Parse nilai input kalender YYYY-MM-DD ke waktu lokal awal/akhir hari. */
+function parseInputDate(value: string, endOfDay = false): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) return null;
+  return endOfDay
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 23, 59, 59, 999)
+    : new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 0, 0, 0, 0);
+}
+
+function formatShortDate(d: Date): string {
+  return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+/** Bangun batas rentang kalender dan periode pembanding dengan durasi hari yang sama. */
+function buildDateRange(fromStr: string, toStr: string): DateRange {
+  let from = parseInputDate(fromStr, false);
+  let to = parseInputDate(toStr, true);
+  if (from && to && from > to) {
+    from = parseInputDate(toStr, false);
+    to = parseInputDate(fromStr, true);
   }
-  const days = Number(period);
-  const to = new Date();
-  to.setHours(23, 59, 59, 999);
-  const from = new Date(to);
-  from.setDate(from.getDate() - days + 1);
-  from.setHours(0, 0, 0, 0);
-  const previousTo = new Date(from.getTime() - 1);
-  const previousFrom = new Date(previousTo);
-  previousFrom.setDate(previousFrom.getDate() - days + 1);
-  previousFrom.setHours(0, 0, 0, 0);
-  return { from, to, previousFrom, previousTo };
+  if (!from && !to) {
+    return {
+      from: null,
+      to: null,
+      previousFrom: null,
+      previousTo: null,
+      periodLabel: "semua waktu",
+      compareLabel: null,
+    };
+  }
+  if (from && to) {
+    const dayMs = 86_400_000;
+    const utcFrom = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+    const utcTo = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+    const spanDays = Math.round((utcTo - utcFrom) / dayMs) + 1;
+    const previousTo = new Date(from.getFullYear(), from.getMonth(), from.getDate() - 1, 23, 59, 59, 999);
+    const previousFrom = new Date(from.getFullYear(), from.getMonth(), from.getDate() - spanDays, 0, 0, 0, 0);
+    return {
+      from,
+      to,
+      previousFrom,
+      previousTo,
+      periodLabel: spanDays === 1 ? formatShortDate(from) : `${formatShortDate(from)} – ${formatShortDate(to)}`,
+      compareLabel: `${spanDays} hari sebelumnya`,
+    };
+  }
+  if (from) {
+    return {
+      from,
+      to: null,
+      previousFrom: null,
+      previousTo: null,
+      periodLabel: `mulai ${formatShortDate(from)}`,
+      compareLabel: null,
+    };
+  }
+  return {
+    from: null,
+    to,
+    previousFrom: null,
+    previousTo: null,
+    periodLabel: `hingga ${formatShortDate(to!)}`,
+    compareLabel: null,
+  };
 }
 
 function inWindow(at: Date, from: Date | null, to: Date | null) {
-  return from !== null && to !== null && at >= from && at <= to;
+  if (from !== null && at < from) return false;
+  if (to !== null && at > to) return false;
+  return true;
 }
 
 function DeltaBadge({
@@ -127,23 +170,23 @@ function DeltaBadge({
 export default function OwnerDashboardPage() {
   const store = useSharedStore();
   const [scope, setScope] = useState<Scope>("all");
-  const [period, setPeriod] = useState<PeriodKey>("90");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const { tx, poActive, reqs, rows } = useOwnerScope(scope);
   const totalStockUnits = rows.reduce((a, s) => a + s.saldo, 0);
   const activeSkuCount = new Set(rows.map((s) => s.productId)).size;
 
-  const range = useMemo(() => buildRange(period), [period]);
-  const hasComparison = period !== "all";
-  const meta = PERIOD_META[period];
+  const range = useMemo(() => buildDateRange(fromDate, toDate), [fromDate, toDate]);
+  const hasComparison = range.previousFrom !== null && range.previousTo !== null;
 
   const periodTx = useMemo(
     () =>
       tx.filter((t) => {
-        if (period === "all") return true;
+        if (range.from === null && range.to === null) return true;
         const at = parseTrxDate(t.date);
         return at ? inWindow(at, range.from, range.to) : false;
       }),
-    [tx, period, range],
+    [tx, range.from, range.to],
   );
 
   const previousTx = useMemo(
@@ -154,7 +197,7 @@ export default function OwnerDashboardPage() {
             return at ? inWindow(at, range.previousFrom, range.previousTo) : false;
           })
         : [],
-    [tx, hasComparison, range],
+    [tx, hasComparison, range.previousFrom, range.previousTo],
   );
 
   const total = periodTx.reduce((a, t) => a + t.total, 0);
@@ -292,20 +335,14 @@ export default function OwnerDashboardPage() {
                 </option>
               ))}
             </select>
-            <label className="period-pill-select" title="Pilih periode">
-              <CalendarDays size={15} />
-              <select
-                aria-label="Periode"
-                value={period}
-                onChange={(e) => setPeriod(e.target.value as PeriodKey)}
-              >
-                {PERIOD_OPTIONS.map((key) => (
-                  <option key={key} value={key}>
-                    {PERIOD_META[key].label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <DateRangePicker
+              fromDate={fromDate}
+              toDate={toDate}
+              onChange={(nextFrom, nextTo) => {
+                setFromDate(nextFrom);
+                setToDate(nextTo);
+              }}
+            />
           </div>
         }
       />
@@ -325,7 +362,11 @@ export default function OwnerDashboardPage() {
           <div className="dash-kpi-foot">
             <DeltaBadge current={total} previous={previousTotal} hasComparison={hasComparison} />
             <span className="dash-kpi-compare">
-              {hasComparison ? `vs ${meta.previous}` : "Semua waktu"}
+              {hasComparison
+                ? `vs ${range.compareLabel}`
+                : range.from || range.to
+                  ? `Periode ${range.periodLabel}`
+                  : "Semua waktu"}
             </span>
           </div>
         </Link>
@@ -371,7 +412,7 @@ export default function OwnerDashboardPage() {
             <div>
               <h2>Tren Penjualan</h2>
               <div className="section-desc">
-                Transaksi selesai per tanggal aktif · {meta.period} · {scopeLabel(scope, store.branches)}
+                Transaksi selesai per tanggal aktif · {range.periodLabel} · {scopeLabel(scope, store.branches)}
               </div>
             </div>
             {hasComparison ? (
@@ -399,7 +440,7 @@ export default function OwnerDashboardPage() {
           <div className="section-head">
             <div>
               <h2>Produk Terlaris</h2>
-              <div className="section-desc">Transaksi selesai · {meta.period}</div>
+              <div className="section-desc">Transaksi selesai · {range.periodLabel}</div>
             </div>
             <Link className="link-action" to="/owner/laporan">
               Lihat Laporan
@@ -407,7 +448,7 @@ export default function OwnerDashboardPage() {
             </Link>
           </div>
           {topProducts.length > 0 ? (
-            <div className="top-list" key={`${scope}-${period}`}>
+            <div className="top-list" key={`${scope}-${fromDate}-${toDate}`}>
               {topProducts.map((p, i) => (
                 <div className="top-row" key={`${p.name}-${p.brand}`}>
                   <span className="top-rank">{String(i + 1).padStart(2, "0")}</span>
@@ -466,7 +507,7 @@ export default function OwnerDashboardPage() {
           <div className="section-head">
             <div>
               <h2>Ringkasan Lokasi</h2>
-              <div className="section-desc">Kinerja cabang &amp; ketersediaan stok · {meta.period}</div>
+              <div className="section-desc">Kinerja cabang &amp; ketersediaan stok · {range.periodLabel}</div>
             </div>
             <Link className="link-action" to="/owner/cabang">
               Semua Lokasi

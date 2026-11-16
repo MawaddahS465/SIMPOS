@@ -19,18 +19,17 @@ Frontend:
 
 ```sh
 npm install
-cp .env.example .env   # sekali saja
 npm run dev            # buka http://127.0.0.1:5173
 npm run build
 npm run typecheck
 ```
 
-Dengan `VITE_API_BASE_URL=/`, request `/api` diteruskan proxy Vite ke
-`http://127.0.0.1:8080` (lihat `vite.config.ts`). Karena same-origin, tidak ada
-preflight CORS dan cookie session tetap first-party. Cara ini menghindari
-`ERR_EMPTY_RESPONSE` dari `php spark serve` saat browser mengirim preflight.
-Isi URL absolut (mis. `http://127.0.0.1:8080`) hanya bila frontend tidak
-dijalankan lewat Vite dev server.
+Secara default, request API memakai URL relatif `/api`: saat development,
+request diteruskan proxy Vite ke `http://127.0.0.1:8080`; saat production,
+request menuju host yang sama dengan frontend. Karena same-origin, cookie
+session tetap first-party dan URL tunnel tidak mengarah ke `localhost` milik
+pengguna. `VITE_API_BASE_URL` opsional untuk mengatur base URL; isi URL absolut
+hanya bila frontend dan backend memang dilayani dari host berbeda.
 
 ## Akun login
 

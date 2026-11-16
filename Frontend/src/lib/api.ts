@@ -423,7 +423,7 @@ export class ApiError extends Error {
 }
 
 const configuredBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
-export const API_BASE_URL = (configuredBase || "http://localhost:8080").replace(/\/+$/, "");
+export const API_BASE_URL = (configuredBase ?? "").replace(/\/+$/, "");
 
 let csrfToken: string | null = null;
 

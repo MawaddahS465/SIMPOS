@@ -7,7 +7,6 @@ import { Avatar, PageHeader, SearchBox, StatCard, StatusPill } from "../../compo
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
-const PAGE = 10;
 const PERIODS: PeriodKey[] = ["semua", "hari", "mingguan", "bulanan", "tahunan", "custom"];
 const PERIOD_LABEL: Record<PeriodKey, string> = {
   semua: "Semua waktu", hari: "Hari ini", mingguan: "Minggu ini", bulanan: "Bulan ini", tahunan: "Tahun ini", custom: "Rentang",
@@ -23,7 +22,6 @@ export default function OwnerPOPage() {
   const [cFrom, setCFrom] = useState("");
   const [cTo, setCTo] = useState("");
   const [status, setStatus] = useState<"all" | PoStatus>("all");
-  const [page, setPage] = useState(1);
   const [detailId, setDetailId] = useState<string | null>(null);
 
   const range = periodRange(period, cFrom, cTo);
@@ -38,10 +36,7 @@ export default function OwnerPOPage() {
     [store.pos, branch, range.from, range.to, status, q],
   );
 
-  const pages = Math.max(1, Math.ceil(rows.length / PAGE));
-  const view = rows.slice((page - 1) * PAGE, page * PAGE);
   const detail = detailId ? store.pos.find((o) => o.id === detailId) : undefined;
-  const resetPage = () => setPage(1);
 
   return (
     <div className="page">
@@ -54,16 +49,13 @@ export default function OwnerPOPage() {
         <SearchBox
           placeholder="Cari nomor PO atau pelanggan..."
           value={q}
-          onChange={(v) => { setQ(v); resetPage(); }}
+          onChange={setQ}
         />
         <select
           className="select-pill"
           aria-label="Periode"
           value={period}
-          onChange={(e) => {
-            setPeriod(e.target.value as PeriodKey);
-            resetPage();
-          }}
+          onChange={(e) => setPeriod(e.target.value as PeriodKey)}
         >
           {PERIODS.map((k) => (
             <option key={k} value={k}>
@@ -71,13 +63,13 @@ export default function OwnerPOPage() {
             </option>
           ))}
         </select>
-        <select className="select-pill" aria-label="Cabang" value={branch} onChange={(e) => { setBranch(e.target.value); resetPage(); }}>
+        <select className="select-pill" aria-label="Cabang" value={branch} onChange={(e) => setBranch(e.target.value)}>
           <option value="all">Semua Cabang</option>
           {store.branches.filter((b) => b.type === "Cabang").map((b) => (
             <option key={b.id} value={b.id}>{b.name}</option>
           ))}
         </select>
-        <select className="select-pill" aria-label="Status" value={status} onChange={(e) => { setStatus(e.target.value as typeof status); resetPage(); }}>
+        <select className="select-pill" aria-label="Status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
           <option value="all">Semua Status</option>
           {FILTER_STATUSES.map((s) => (
             <option key={s} value={s}>{s}</option>
@@ -89,11 +81,11 @@ export default function OwnerPOPage() {
         <div className="toolbar">
           <label className="afield" style={{ minWidth: 170 }}>
             <span>Dari tanggal</span>
-            <input type="date" value={cFrom} onChange={(e) => { setCFrom(e.target.value); resetPage(); }} />
+            <input type="date" value={cFrom} onChange={(e) => setCFrom(e.target.value)} />
           </label>
           <label className="afield" style={{ minWidth: 170 }}>
             <span>Sampai tanggal</span>
-            <input type="date" value={cTo} onChange={(e) => { setCTo(e.target.value); resetPage(); }} />
+            <input type="date" value={cTo} onChange={(e) => setCTo(e.target.value)} />
           </label>
           <span className="tt-sub" style={{ fontWeight: 600 }}>Periode: {range.label}</span>
         </div>
@@ -133,7 +125,7 @@ export default function OwnerPOPage() {
             </tr>
           </thead>
           <tbody>
-            {view.map((o) => (
+            {rows.map((o) => (
               <tr key={o.id}>
                 <td>
                   <div className="tt-num">{o.number}</div>
@@ -162,17 +154,15 @@ export default function OwnerPOPage() {
                 </td>
               </tr>
             ))}
-            {view.length === 0 ? (
+            {rows.length === 0 ? (
               <tr><td colSpan={6}><div className="empty-note">Tidak ada PO pada filter ini.</div></td></tr>
             ) : null}
           </tbody>
         </table>
         <div className="table-foot">
-          <span className="foot-note">Halaman {page} dari {pages} · {rows.length} PO</span>
-          <div className="foot-actions">
-            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Sebelumnya</button>
-            <button className="btn btn-ghost btn-sm" disabled={page >= pages} onClick={() => setPage(page + 1)}>Berikutnya</button>
-          </div>
+          <span className="foot-note">
+            Menampilkan {rows.length} dari {store.pos.length} PO
+          </span>
         </div>
       </div>
 

@@ -812,8 +812,299 @@ a.stat-link:hover .stat-card {
   margin-left: auto;
 }
 
+.dashboard-anim .pagehead {
+  position: relative;
+  z-index: 25;
+}
+
 .dash-toolbar-filters .select-pill {
   min-width: 126px;
+}
+
+/* ---------------- Single-Calendar Date Range Picker ---------------- */
+.drp-wrap {
+  position: relative;
+}
+
+.drp-control {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.drp-control:hover,
+.drp-control.is-open,
+.drp-control:focus-within {
+  border-color: var(--accent);
+  box-shadow: var(--ring);
+}
+
+.drp-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.drp-icon {
+  color: var(--accent-ink);
+  flex: none;
+}
+
+.drp-label {
+  color: var(--ink-2);
+}
+
+.drp-label.has-value {
+  color: var(--ink);
+}
+
+.drp-caret {
+  color: var(--muted);
+  flex: none;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.drp-caret.is-open {
+  color: var(--accent-ink);
+  transform: rotate(180deg);
+}
+
+.drp-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.drp-clear:hover {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.drp-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 312px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+  z-index: 40;
+  animation: notif-in 0.16s cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+
+.drp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.drp-nav {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink-2);
+  cursor: pointer;
+  flex: none;
+  transition: border-color 0.14s ease, color 0.14s ease, background-color 0.14s ease;
+}
+
+.drp-nav:hover {
+  border-color: var(--accent);
+  background: var(--lav-2);
+  color: var(--accent-ink);
+}
+
+.drp-ym {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.drp-ym select {
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  padding: 4px 6px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  outline: none;
+}
+
+.drp-ym select:hover,
+.drp-ym select:focus-visible {
+  background: var(--lav-2);
+  color: var(--accent-ink);
+}
+
+.drp-hint {
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #f4f9fe;
+  color: var(--accent-ink);
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.drp-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin-bottom: 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.drp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  row-gap: 4px;
+}
+
+.drp-empty {
+  height: 36px;
+}
+
+.drp-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.drp-day span {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.drp-day:hover span {
+  background: var(--lav-2);
+  color: var(--accent-ink);
+}
+
+.drp-day.is-today:not(.is-start):not(.is-end) span {
+  border: 1px solid rgba(47, 125, 225, 0.45);
+  color: var(--accent-ink);
+  font-weight: 800;
+}
+
+.drp-day.is-in-range {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.drp-day.is-start:not(.is-single) {
+  background: linear-gradient(90deg, transparent 50%, var(--accent-soft) 50%);
+}
+
+.drp-day.is-end:not(.is-single) {
+  background: linear-gradient(270deg, transparent 50%, var(--accent-soft) 50%);
+}
+
+.drp-day.is-start span,
+.drp-day.is-end span,
+.drp-day.is-start:hover span,
+.drp-day.is-end:hover span {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+}
+
+.drp-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.drp-foot-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.14s ease, color 0.14s ease, background-color 0.14s ease;
+}
+
+.drp-foot-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.drp-foot-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.drp-foot-btn.is-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.drp-foot-btn.is-primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
 }
 
 /* KPI: satu kartu utama + dua kartu keputusan/pengawasan */
@@ -1170,6 +1461,10 @@ a.stat-link:hover .stat-card {
 }
 
 @media (max-width: 900px) {
+  .dashboard-anim .pagehead-actions {
+    width: 100%;
+  }
+
   .dash-toolbar-note {
     width: 100%;
   }
@@ -1182,6 +1477,10 @@ a.stat-link:hover .stat-card {
   .dash-toolbar-filters .select-pill {
     flex: 1;
     min-width: 0;
+  }
+
+  .drp-popover {
+    max-width: calc(100vw - 44px);
   }
 
   .dash-kpi-grid {
@@ -1202,6 +1501,27 @@ a.stat-link:hover .stat-card {
 }
 
 @media (max-width: 560px) {
+  .dash-toolbar-filters .select-pill,
+  .drp-wrap {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .drp-control {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .drp-trigger {
+    flex: 1;
+  }
+
+  .drp-popover {
+    left: 0;
+    right: auto;
+    width: min(320px, 100%);
+  }
+
   .dash-kpi-grid {
     grid-template-columns: 1fr;
   }

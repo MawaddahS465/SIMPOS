@@ -16,15 +16,12 @@ function parseAt(at: string): number {
   return new Date(Number(m[3]), BULAN[m[2]] ?? 0, Number(m[1]), Number(m[4]), Number(m[5])).getTime();
 }
 
-const PAGE = 10;
-
 export default function OwnerMutasiPage() {
   const store = useSharedStore();
   const [q, setQ] = useState("");
   const [loc, setLoc] = useState("all");
   const [arah, setArah] = useState<"Semua" | "Masuk" | "Keluar">("Semua");
   const [sumber, setSumber] = useState("all");
-  const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const scopedMutations = useMemo(
@@ -57,10 +54,6 @@ export default function OwnerMutasiPage() {
         }),
     [scopedMutations, arah, sumber, q, store],
   );
-
-  const pages = Math.max(1, Math.ceil(rows.length / PAGE));
-  const safePage = Math.min(page, pages);
-  const view = rows.slice((safePage - 1) * PAGE, safePage * PAGE);
 
   const directMove = selectedId ? store.mutations.find((m) => m.id === selectedId) : undefined;
 
@@ -145,19 +138,13 @@ export default function OwnerMutasiPage() {
         <SearchBox
           placeholder="Cari ID mutasi, nomor referensi, kode, atau nama produk..."
           value={q}
-          onChange={(v) => {
-            setQ(v);
-            setPage(1);
-          }}
+          onChange={setQ}
         />
         <select
           className="select-pill"
           aria-label="Filter Jenis Mutasi"
           value={arah}
-          onChange={(e) => {
-            setArah(e.target.value as "Semua" | "Masuk" | "Keluar");
-            setPage(1);
-          }}
+          onChange={(e) => setArah(e.target.value as "Semua" | "Masuk" | "Keluar")}
         >
           <option value="Semua">Semua Jenis</option>
           <option value="Masuk">Masuk</option>
@@ -167,10 +154,7 @@ export default function OwnerMutasiPage() {
           className="select-pill"
           aria-label="Sumber"
           value={sumber}
-          onChange={(e) => {
-            setSumber(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => setSumber(e.target.value)}
         >
           <option value="all">Semua Sumber</option>
           <option value="Penerimaan">Penerimaan</option>
@@ -183,10 +167,7 @@ export default function OwnerMutasiPage() {
           className="select-pill"
           aria-label="Lokasi"
           value={loc}
-          onChange={(e) => {
-            setLoc(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => setLoc(e.target.value)}
         >
           <option value="all">Semua Lokasi</option>
           {store.branches.map((b) => (
@@ -211,7 +192,7 @@ export default function OwnerMutasiPage() {
             </tr>
           </thead>
           <tbody>
-            {view.map((m) => {
+            {rows.map((m) => {
               const p = store.productOf(m.productId);
               const branchName = store.branches.find((b) => b.id === m.branchId)?.name ?? m.branchId;
               return (
@@ -268,7 +249,7 @@ export default function OwnerMutasiPage() {
                 </tr>
               );
             })}
-            {view.length === 0 ? (
+            {rows.length === 0 ? (
               <tr>
                 <td colSpan={7}>
                   <div className="empty-note">Tidak ada mutasi barang yang cocok dengan filter.</div>
@@ -279,24 +260,8 @@ export default function OwnerMutasiPage() {
         </table>
         <div className="table-foot">
           <span className="foot-note">
-            Menampilkan {view.length} dari {rows.length} mutasi stok · Halaman {safePage} dari {pages}
+            Menampilkan {rows.length} mutasi stok
           </span>
-          <div className="foot-actions">
-            <button
-              className="btn btn-ghost btn-sm"
-              disabled={safePage <= 1}
-              onClick={() => setPage(safePage - 1)}
-            >
-              Sebelumnya
-            </button>
-            <button
-              className="btn btn-ghost btn-sm"
-              disabled={safePage >= pages}
-              onClick={() => setPage(safePage + 1)}
-            >
-              Berikutnya
-            </button>
-          </div>
         </div>
       </div>
 

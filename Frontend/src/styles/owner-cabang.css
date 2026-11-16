@@ -4,102 +4,57 @@
    ========================================================================== */
 
 .branch-page {
-  gap: 20px;
-}
-
-.branch-central-card {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 20px 22px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--panel-soft);
-  box-shadow: var(--shadow-sm);
-}
-
-.branch-central-main {
-  display: flex;
-  align-items: flex-start;
   gap: 16px;
-  min-width: 0;
-  flex: 1;
 }
 
-.branch-central-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 52px;
-  height: 52px;
-  border-radius: 15px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
+.branch-page .pagehead {
+  padding-top: 0;
 }
 
-.branch-central-copy {
-  min-width: 0;
+.branch-page .stat-card {
+  padding: 17px 20px;
 }
 
-.branch-central-label {
-  display: inline-block;
-  color: var(--accent-ink);
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
-}
-
-.branch-central-copy h2 {
-  margin-top: 5px;
-  color: var(--ink);
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  line-height: 1.25;
-}
-
-.branch-central-role {
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.branch-central-contact {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  margin-top: 10px;
-  color: var(--ink-2);
-  font-size: 12.5px;
-  font-weight: 600;
-}
-
-.branch-central-contact-row {
+.branch-row-actions {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  min-width: 0;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-.branch-central-contact-row svg {
-  flex: none;
-  color: var(--muted);
+.branch-action-btn {
+  border: 1px solid var(--line);
+  padding: 7px 12px;
+  font-size: 12.5px;
+  border-radius: 10px;
+  color: var(--ink);
+  box-shadow: none;
 }
 
-.branch-central-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-  flex: none;
+.branch-action-btn:hover:not(:disabled) {
+  border-color: #b9d7f4;
+  background: var(--panel-soft);
+  color: var(--accent-ink);
 }
 
 .branch-search-row .toolbar-search {
   width: 100%;
+  height: 42px;
+  border: 1px solid var(--line);
+}
+
+.branch-search-row .toolbar-search input::placeholder {
+  color: var(--muted);
+}
+
+.branch-page table.tt th,
+.branch-page table.tt td {
+  padding: 13px 16px;
+}
+
+.branch-empty-cell {
+  margin-top: 0;
+  color: var(--muted);
 }
 
 .branch-detail-body {
@@ -192,18 +147,111 @@
 
 /* Modal tambah cabang baru */
 .branch-create-modal {
-  width: min(780px, calc(100vw - 32px));
+  width: min(760px, calc(100vw - 32px));
 }
 
-.branch-create-body {
+.branch-modal:not(.branch-view-modal) .os-modal-head {
+  align-items: center;
+}
+
+.branch-modal:not(.branch-view-modal) .os-modal-head h2 {
+  margin-top: 0;
+}
+
+.branch-view-modal {
+  width: min(680px, calc(100vw - 32px));
+}
+
+.branch-create-account-modal {
+  width: min(640px, calc(100vw - 32px));
+}
+
+.branch-create-body,
+.branch-view-body {
   padding-bottom: 0;
 }
 
-.branch-create-modal .os-modal-actions {
+.branch-create-modal .os-modal-actions,
+.branch-create-account-modal .os-modal-actions,
+.branch-view-actions {
   justify-content: flex-end;
   margin: 2px -24px 0;
   padding: 16px 24px 20px;
   border-top: 1px solid var(--line);
+}
+
+.branch-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.branch-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f8fbff;
+  min-width: 0;
+}
+
+.branch-info-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.branch-info-value {
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.branch-info-pill {
+  display: flex;
+  align-items: center;
+}
+
+.branch-info-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 13px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.branch-info-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.branch-info-summary-meta {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.branch-view-accounts {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.branch-account-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .os-required {
@@ -223,7 +271,7 @@
 
 .branch-account-section-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
@@ -584,13 +632,6 @@
   color: var(--accent-ink);
 }
 
-.branch-create-accounts-desc {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.45;
-}
-
 .branch-password-wrap {
   position: relative;
   display: block;
@@ -628,11 +669,11 @@
 }
 
 .branch-create-account-overlay {
-  z-index: 60;
+  z-index: 220;
 }
 
 .branch-account-modal {
-  z-index: 61;
+  z-index: 221;
 }
 
 .branch-state {
@@ -663,37 +704,7 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 900px) {
-  .branch-central-card {
-    flex-direction: column;
-  }
-
-  .branch-central-side {
-    align-items: center;
-    flex-direction: row;
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  .branch-central-side .btn {
-    margin-left: auto;
-  }
-}
-
 @media (max-width: 720px) {
-  .branch-central-card {
-    padding: 17px;
-  }
-
-  .branch-central-main {
-    align-items: flex-start;
-  }
-
-  .branch-central-icon {
-    width: 46px;
-    height: 46px;
-  }
-
   .branch-account-row {
     align-items: flex-start;
     flex-wrap: wrap;
@@ -723,11 +734,17 @@
     width: calc(100vw - 20px);
   }
 
-  .branch-create-modal .os-modal-actions {
+  .branch-create-modal .os-modal-actions,
+  .branch-create-account-modal .os-modal-actions,
+  .branch-view-actions {
     margin-left: -18px;
     margin-right: -18px;
     padding-left: 18px;
     padding-right: 18px;
+  }
+
+  .branch-info-grid {
+    grid-template-columns: 1fr;
   }
 }
 

@@ -6,7 +6,6 @@ import { PageHeader, SearchBox, StatCard, StatusPill, formatIDR } from "../../co
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
-const PAGE = 10;
 const PERIODS: PeriodKey[] = ["semua", "hari", "mingguan", "bulanan", "tahunan", "custom"];
 const PERIOD_LABEL: Record<PeriodKey, string> = {
   semua: "Semua waktu",
@@ -26,7 +25,6 @@ export default function OwnerTransaksiPage() {
   const [cTo, setCTo] = useState("");
   const [status, setStatus] = useState("all");
   const [method, setMethod] = useState("all");
-  const [page, setPage] = useState(1);
   const [detailNo, setDetailNo] = useState<string | null>(null);
 
   const range = periodRange(period, cFrom, cTo);
@@ -45,11 +43,7 @@ export default function OwnerTransaksiPage() {
   const sukses = rows.filter((t) => t.status === "Selesai");
   const pending = rows.filter((t) => t.status === "Pending");
   const omzet = sukses.reduce((a, t) => a + t.total, 0);
-  const pages = Math.max(1, Math.ceil(rows.length / PAGE));
-  const view = rows.slice((page - 1) * PAGE, page * PAGE);
   const detail = detailNo ? store.transactions.find((t) => t.no === detailNo) : undefined;
-
-  const resetPage = () => setPage(1);
 
   return (
     <div className="page">
@@ -62,19 +56,13 @@ export default function OwnerTransaksiPage() {
         <SearchBox
           placeholder="Cari nomor transaksi atau pelanggan..."
           value={q}
-          onChange={(v) => {
-            setQ(v);
-            resetPage();
-          }}
+          onChange={setQ}
         />
         <select
           className="select-pill"
           aria-label="Periode"
           value={period}
-          onChange={(e) => {
-            setPeriod(e.target.value as PeriodKey);
-            resetPage();
-          }}
+          onChange={(e) => setPeriod(e.target.value as PeriodKey)}
         >
           {PERIODS.map((k) => (
             <option key={k} value={k}>
@@ -82,7 +70,7 @@ export default function OwnerTransaksiPage() {
             </option>
           ))}
         </select>
-        <select className="select-pill" aria-label="Cabang" value={branch} onChange={(e) => { setBranch(e.target.value); resetPage(); }}>
+        <select className="select-pill" aria-label="Cabang" value={branch} onChange={(e) => setBranch(e.target.value)}>
           <option value="all">Semua Cabang</option>
           {store.branches.filter((b) => b.type === "Cabang").map((b) => (
             <option key={b.id} value={b.id}>
@@ -90,13 +78,13 @@ export default function OwnerTransaksiPage() {
             </option>
           ))}
         </select>
-        <select className="select-pill" aria-label="Status" value={status} onChange={(e) => { setStatus(e.target.value); resetPage(); }}>
+        <select className="select-pill" aria-label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
           <option value="all">Semua Status</option>
           <option value="Selesai">Selesai</option>
           <option value="Pending">Pending</option>
           <option value="Dibatalkan">Dibatalkan</option>
         </select>
-        <select className="select-pill" aria-label="Metode" value={method} onChange={(e) => { setMethod(e.target.value); resetPage(); }}>
+        <select className="select-pill" aria-label="Metode" value={method} onChange={(e) => setMethod(e.target.value)}>
           <option value="all">Semua Metode</option>
           <option value="Tunai">Tunai</option>
           <option value="Transfer Bank">Transfer Bank</option>
@@ -109,11 +97,11 @@ export default function OwnerTransaksiPage() {
         <div className="toolbar">
           <label className="afield" style={{ minWidth: 170 }}>
             <span>Dari tanggal</span>
-            <input type="date" value={cFrom} onChange={(e) => { setCFrom(e.target.value); resetPage(); }} />
+            <input type="date" value={cFrom} onChange={(e) => setCFrom(e.target.value)} />
           </label>
           <label className="afield" style={{ minWidth: 170 }}>
             <span>Sampai tanggal</span>
-            <input type="date" value={cTo} onChange={(e) => { setCTo(e.target.value); resetPage(); }} />
+            <input type="date" value={cTo} onChange={(e) => setCTo(e.target.value)} />
           </label>
           <span className="tt-sub" style={{ fontWeight: 600 }}>
             Periode: {range.label}
@@ -157,7 +145,7 @@ export default function OwnerTransaksiPage() {
             </tr>
           </thead>
           <tbody>
-            {view.map((t) => (
+            {rows.map((t) => (
               <tr key={t.id}>
                 <td>
                   <div className="tt-num" style={{ fontSize: 12.5 }}>{t.no}</div>
@@ -184,7 +172,7 @@ export default function OwnerTransaksiPage() {
                 </td>
               </tr>
             ))}
-            {view.length === 0 ? (
+            {rows.length === 0 ? (
               <tr>
                 <td colSpan={8}>
                   <div className="empty-note">Tidak ada transaksi pada filter ini.</div>
@@ -194,15 +182,9 @@ export default function OwnerTransaksiPage() {
           </tbody>
         </table>
         <div className="table-foot">
-          <span className="foot-note">Halaman {page} dari {pages} · {rows.length} transaksi</span>
-          <div className="foot-actions">
-            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-              Sebelumnya
-            </button>
-            <button className="btn btn-ghost btn-sm" disabled={page >= pages} onClick={() => setPage(page + 1)}>
-              Berikutnya
-            </button>
-          </div>
+          <span className="foot-note">
+            Menampilkan {rows.length} dari {store.transactions.length} transaksi
+          </span>
         </div>
       </div>
 

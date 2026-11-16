@@ -17,7 +17,6 @@ const PERIODS: PeriodKey[] = ["semua", "hari", "mingguan", "bulanan", "tahunan",
 const PERIOD_LABEL: Record<PeriodKey, string> = {
   semua: "Semua waktu", hari: "Hari ini", mingguan: "Minggu ini", bulanan: "Bulan ini", tahunan: "Tahun ini", custom: "Rentang",
 };
-const PAGE = 10;
 
 export default function OwnerLaporanPage() {
   const store = useSharedStore();
@@ -30,13 +29,11 @@ export default function OwnerLaporanPage() {
   const [period, setPeriod] = useState<PeriodKey>("semua");
   const [cFrom, setCFrom] = useState("");
   const [cTo, setCTo] = useState("");
-  const [page, setPage] = useState(1);
   const [busy, setBusy] = useState<"pdf" | "xlsx" | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
 
   const range = periodRange(period, cFrom, cTo);
   const resetAll = () => {
-    setPage(1);
     setSaved(null);
   };
 
@@ -138,8 +135,6 @@ export default function OwnerLaporanPage() {
     };
   }, [store, kind, branch, jenis, range.from, range.to, q]);
 
-  const pages = Math.max(1, Math.ceil(data.body.length / PAGE));
-  const view = data.body.slice((page - 1) * PAGE, page * PAGE);
   const branchName = branch === "all" ? "Semua Cabang" : branchLabel(branch);
   const meta: Array<[string, string]> = [
     ["Cabang", branchName],
@@ -201,20 +196,21 @@ export default function OwnerLaporanPage() {
             resetAll();
           }}
         />
-        <div className="toolbar-chips">
+        <select
+          className="select-pill"
+          aria-label="Periode"
+          value={period}
+          onChange={(e) => {
+            setPeriod(e.target.value as PeriodKey);
+            resetAll();
+          }}
+        >
           {PERIODS.map((k) => (
-            <Chip
-              key={k}
-              active={period === k}
-              onClick={() => {
-                setPeriod(k);
-                resetAll();
-              }}
-            >
+            <option key={k} value={k}>
               {PERIOD_LABEL[k]}
-            </Chip>
+            </option>
           ))}
-        </div>
+        </select>
         <select className="select-pill" aria-label="Cabang" value={branch} onChange={(e) => { setBranch(e.target.value); resetAll(); }}>
           <option value="all">Semua Cabang</option>
           {store.branches.map((b) => (
@@ -277,7 +273,7 @@ export default function OwnerLaporanPage() {
             </tr>
           </thead>
           <tbody>
-            {view.map((r, i) => (
+            {data.body.map((r, i) => (
               <tr key={i}>
                 {r.map((c, j) => (
                   <td key={j} className={typeof c === "number" ? "tt-center tt-money" : ""}>
@@ -286,7 +282,7 @@ export default function OwnerLaporanPage() {
                 ))}
               </tr>
             ))}
-            {view.length === 0 ? (
+            {data.body.length === 0 ? (
               <tr>
                 <td colSpan={data.head.length}>
                   <div className="empty-note">Tidak ada data pada filter ini.</div>
@@ -296,11 +292,7 @@ export default function OwnerLaporanPage() {
           </tbody>
         </table>
         <div className="table-foot">
-          <span className="foot-note">Halaman {page} dari {pages} · {data.body.length} baris</span>
-          <div className="foot-actions">
-            <button className="btn btn-ghost btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Sebelumnya</button>
-            <button className="btn btn-ghost btn-sm" disabled={page >= pages} onClick={() => setPage(page + 1)}>Berikutnya</button>
-          </div>
+          <span className="foot-note">Menampilkan {data.body.length} baris</span>
         </div>
       </div>
     </div>
