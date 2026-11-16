@@ -82,13 +82,11 @@ const methodShort = (method: PaymentMethod) =>
 type StrukBodyProps = {
   trx: Transaction;
   storeName: string;
-  storePhone: string;
   storeAddress: string;
-  branch: string;
   cashier: string;
 };
 
-function StrukBody({ trx, storeName, storePhone, storeAddress, branch, cashier }: StrukBodyProps) {
+function StrukBody({ trx, storeName, storeAddress, cashier }: StrukBodyProps) {
   const method = (trx.method as PaymentMethod | undefined) ?? "Tunai";
   const discount = trx.discount ?? 0;
   const subtotal = trx.total + discount;
@@ -106,9 +104,6 @@ function StrukBody({ trx, storeName, storePhone, storeAddress, branch, cashier }
           <MRLogo size={44} />
         </div>
         <b>{storeName}</b>
-        <span>
-          {branch} · {storePhone}
-        </span>
         <span>{storeAddress}</span>
       </div>
       <div className="struk-meta">
@@ -799,9 +794,7 @@ export default function RiwayatPage() {
           <StrukBody
             trx={active}
             storeName={shared.settings.storeName.split("—")[0].trim()}
-            storePhone={shared.settings.storePhone}
             storeAddress={shared.settings.storeAddress}
-            branch={session?.branch ?? "Cabang Padang"}
             cashier={session?.name ?? "Kasir"}
           />
         </div>

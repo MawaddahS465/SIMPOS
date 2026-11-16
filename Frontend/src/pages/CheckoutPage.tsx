@@ -407,9 +407,6 @@ export default function CheckoutPage() {
           <div className="section-head">
             <div>
               <h2>Pilih Pelanggan</h2>
-              <div className="section-desc">
-                Pelanggan dipilih sebelum memeriksa resep dan produk transaksi.
-              </div>
             </div>
             <button type="button" className="btn btn-ghost btn-sm" onClick={openAddCustomer}>
               <UserPlus size={15} />

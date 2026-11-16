@@ -298,7 +298,6 @@ export default function TransaksiBaruPage() {
                       <div className="cic-info">
                         <div className="cic-cat-row">
                           <span className="cic-cat">{i.category}</span>
-                          <span className="cic-unit-price">@ {formatIDR(i.price)}</span>
                         </div>
                         <b>{i.name}</b>
                         <span>{i.brand}</span>

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { CalendarDays, CheckCircle2, ChevronRight, FileText, Glasses, Pencil, Plus, Printer, Users, X } from "lucide-react";
 import { type ResepRecord } from "../data/mock";
 import { ApiError, kasirApi, type ApiCustomer, type ApiRecipe } from "../lib/api";
+import { useSharedStore } from "../store/sharedStore";
 import { Avatar, Chip, PageHeader, SearchBox, StatCard } from "../components/ui";
 import MRLogo from "../components/MRLogo";
 import "../styles/pages.css";
@@ -15,6 +16,7 @@ const EYE: Eye = { sph: "", cyl: "", axis: "" };
 const EMPTY: FormState = { customerId: "", date: "", od: { ...EYE }, os: { ...EYE }, pd: "", add: "", note: "" };
 
 export default function ResepMataPage() {
+  const shared = useSharedStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const [reseps, setReseps] = useState<ResepRecord[]>([]);
   const [customers, setCustomers] = useState<Array<{ id: string; code: string; name: string; phone: string; initials: string }>>([]);
@@ -413,9 +415,8 @@ export default function ResepMataPage() {
                 <div className="struk-logo">
                   <MRLogo size={44} />
                 </div>
-                <b>Optik Mekar Jaya</b>
-                <span>Cabang Padang · (0751) 123456</span>
-                <span>Jl. Contoh No. 1, Padang</span>
+                <b>{shared.settings.storeName.split("—")[0].trim()}</b>
+                <span>{shared.settings.storeAddress}</span>
               </div>
 
               <div className="struk-meta">

@@ -112,7 +112,6 @@ export default function TransaksiBerhasilPage() {
           <Check size={30} strokeWidth={3} />
         </span>
         <h1>Transaksi Berhasil</h1>
-        <p>Pembayaran telah diproses dan pesanan berhasil disimpan.</p>
       </div>
 
       {loadError ? <div className="notice" role="alert">{loadError}</div> : null}
@@ -167,46 +166,48 @@ export default function TransaksiBerhasilPage() {
           ) : null}
         </div>
 
-        <div className="section-head" style={{ marginTop: 4 }}>
-          <h2>Produk yang Dibeli</h2>
-        </div>
-        <div>
-          {items.map((i) => (
-            <div key={i.id} className="receipt-line">
-              <span className="rl-ico">
-                <ProductIcon category={i.category} />
-              </span>
-              <span className="rl-body">
-                <b>{i.name}</b>
-                <span>
-                  {i.brand} · {i.category} · Qty: {i.qty}
+        <div className="co-success-section">
+          <div className="section-head">
+            <h2>Produk yang Dibeli</h2>
+          </div>
+          <div>
+            {items.map((i) => (
+              <div key={i.id} className="receipt-line">
+                <span className="rl-ico">
+                  <ProductIcon category={i.category} />
                 </span>
-              </span>
-              <span className="tt-money">{formatIDR(i.price * i.qty)}</span>
-            </div>
-          ))}
+                <span className="rl-body">
+                  <b>{i.name}</b>
+                  <span>
+                    {i.brand} · {i.category} · Qty: {i.qty}
+                  </span>
+                </span>
+                <span className="tt-money">{formatIDR(i.price * i.qty)}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="section-head" style={{ marginTop: 4 }}>
-          <h2>Ringkasan Pembayaran</h2>
-        </div>
-        <div className="co-success-summary">
-          <div className="info-row">
-            <span>Subtotal</span>
-            <b>{formatIDR(subtotal)}</b>
+        <div className="co-success-section">
+          <div className="section-head">
+            <h2>Ringkasan Pembayaran</h2>
           </div>
-          <div className="info-row">
-            <span>
-              Diskon
-              {r?.discountPercent ? ` (${r.discountPercent}%)` : ""}
-            </span>
-            <b>{formatIDR(discount)}</b>
-          </div>
-          <div className="info-row">
-            <span>
-              <b style={{ color: "var(--ink)" }}>Total Pembayaran</b>
-            </span>
-            <b>{formatIDR(total)}</b>
+          <div className="co-success-summary">
+            <div className="info-row">
+              <span>Subtotal</span>
+              <b>{formatIDR(subtotal)}</b>
+            </div>
+            <div className="info-row">
+              <span>
+                Diskon
+                {r?.discountPercent ? ` (${r.discountPercent}%)` : ""}
+              </span>
+              <b>{formatIDR(discount)}</b>
+            </div>
+            <div className="info-row is-total">
+              <span>Total Pembayaran</span>
+              <b>{formatIDR(total)}</b>
+            </div>
           </div>
         </div>
       </section>
@@ -246,7 +247,6 @@ export default function TransaksiBerhasilPage() {
                   <MRLogo size={44} />
                 </div>
                 <b>{shared.settings.storeName.split("—")[0].trim()}</b>
-                <span>{session?.branch ?? "Cabang"} · {shared.settings.storePhone}</span>
                 <span>{shared.settings.storeAddress}</span>
               </div>
               <div className="struk-meta">

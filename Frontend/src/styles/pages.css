@@ -2695,12 +2695,6 @@ table.tt td:last-child .row-actions {
   border-radius: 999px;
 }
 
-.cic-unit-price {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
 .cic-info b {
   display: block;
   font-size: 13.5px;
@@ -5099,10 +5093,48 @@ table.tt.stock-table {
   gap: 0 28px;
 }
 
+.co-success-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
 .co-success-summary {
   width: 100%;
-  max-width: 480px;
-  margin-left: auto;
+  padding: 4px 18px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.co-success-summary .info-row {
+  padding: 12px 0;
+}
+
+.co-success-summary .info-row > b {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.co-success-summary .info-row.is-total {
+  margin-top: 2px;
+  padding: 14px 0 12px;
+  border-top: 1px solid var(--line);
+  border-bottom: none;
+}
+
+.co-success-summary .info-row.is-total > span {
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 800;
+}
+
+.co-success-summary .info-row.is-total > b {
+  color: var(--accent-ink);
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .co-success .success-badge {
