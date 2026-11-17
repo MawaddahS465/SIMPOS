@@ -36,7 +36,6 @@ $showDetail = (int) request()->getGet('pilih') > 0 && ! $drawer && $terpilih !==
             <div class="stat-body">
                 <div class="stat-label">Total pelanggan</div>
                 <div class="stat-value"><?= (int) $total ?></div>
-                <div class="stat-caption">Terdaftar di cabang ini</div>
             </div>
             <span class="stat-icon"><?= icon('users', 22) ?></span>
         </div>
@@ -44,7 +43,6 @@ $showDetail = (int) request()->getGet('pilih') > 0 && ! $drawer && $terpilih !==
             <div class="stat-body">
                 <div class="stat-label">Pelanggan dengan resep</div>
                 <div class="stat-value"><?= (int) $punyaResep ?></div>
-                <div class="stat-caption">Memiliki arsip resep</div>
             </div>
             <span class="stat-icon"><?= icon('glasses', 22) ?></span>
         </div>
@@ -52,7 +50,6 @@ $showDetail = (int) request()->getGet('pilih') > 0 && ! $drawer && $terpilih !==
             <div class="stat-body">
                 <div class="stat-label">Pelanggan dengan PO aktif</div>
                 <div class="stat-value"><?= (int) $punyaPo ?></div>
-                <div class="stat-caption">Pesanan belum selesai</div>
             </div>
             <span class="stat-icon"><?= icon('message-square', 22) ?></span>
         </div>
@@ -62,12 +59,6 @@ $showDetail = (int) request()->getGet('pilih') > 0 && ! $drawer && $terpilih !==
         <div class="section-head">
             <div>
                 <h2>Daftar Pelanggan</h2>
-                <div class="section-desc">Informasi pelanggan dan ringkasan aktivitas</div>
-            </div>
-            <div class="section-action">
-                <span class="foot-note" style="color:var(--muted);font-size:12.5px;font-weight:700">
-                    <?= count($rows) ?> dari <?= (int) $total ?> data
-                </span>
             </div>
         </div>
 

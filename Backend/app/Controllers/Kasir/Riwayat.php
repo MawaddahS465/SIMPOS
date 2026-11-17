@@ -63,7 +63,7 @@ class Riwayat extends BaseKasir
 
         $model = new TransaksiModel();
 
-        // Semua riwayat cabang (tanpa filter) untuk angka "total riwayat transaksi".
+        // Semua riwayat cabang menjadi basis statistik dan filter di bawah.
         $semua = [];
         foreach ($model->riwayatCabang($this->cabangId()) as $row) {
             $semua[(int) $row['id_transaksi']] = $row;
@@ -201,7 +201,6 @@ class Riwayat extends BaseKasir
             'periodeLabel'   => $periodeLabel,
             'dari'           => $dari,
             'sampai'         => $sampai,
-            'total'          => count($semua),
             'jumlah'         => count($rows),
             'selesaiCount'   => count($selesaiRows),
             'diterima'       => $diterima,

@@ -193,7 +193,6 @@ export default function RiwayatPage() {
   const [filter, setFilter] = useState<"Semua" | TrxStatus>("Semua");
   const [methodFilter, setMethodFilter] = useState<"Semua" | PaymentMethod>("Semua");
   const [query, setQuery] = useState("");
-  const [pageSize, setPageSize] = useState(25);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [strukId, setStrukId] = useState<string | null>(null);
   const [notice, setNotice] = useState(false);
@@ -301,7 +300,6 @@ export default function RiwayatPage() {
     .filter((t) => (t.method ?? "Tunai") !== "Tunai")
     .reduce((sum, t) => sum + t.total, 0);
 
-  const visibleRows = rows.slice(0, pageSize);
   const selectedRow = selectedId ? transactions.find((t) => t.id === selectedId) : undefined;
   const selected = selectedRow ? { ...selectedRow, products: detailProducts[selectedRow.id] ?? selectedRow.products } : undefined;
   const active = strukId ? transactions.find((t) => t.id === strukId) : undefined;
@@ -463,14 +461,12 @@ export default function RiwayatPage() {
         <StatCard
           label="Transaksi selesai"
           value={String(selesaiRows.length)}
-          caption="Transaksi telah dibayar lunas"
           icon={<Wallet size={22} />}
           tone="blue"
         />
         <StatCard
           label="Jumlah ditampilkan"
           value={String(rows.length)}
-          caption={`Dari ${transactions.length} total riwayat transaksi`}
           icon={<CreditCard size={22} />}
           tone="violet"
         />
@@ -489,12 +485,6 @@ export default function RiwayatPage() {
         <div className="section-head">
           <div>
             <h2>Daftar Transaksi</h2>
-            <div className="section-desc">Pilih transaksi untuk melihat detail pembayaran dan struk</div>
-          </div>
-          <div className="section-action">
-            <span className="foot-note" style={{ color: "var(--muted)", fontSize: 12.5, fontWeight: 700 }}>
-              {rows.length} transaksi
-            </span>
           </div>
         </div>
 
@@ -554,7 +544,7 @@ export default function RiwayatPage() {
               </tr>
             </thead>
             <tbody>
-              {visibleRows.map((t) => {
+              {rows.map((t) => {
                 const method = (t.method as PaymentMethod | undefined) ?? "Tunai";
                 const MethodIcon = METHOD_ICON[method] ?? Banknote;
                 return (
@@ -607,23 +597,6 @@ export default function RiwayatPage() {
             </tbody>
           </table>
 
-          <div className="table-foot">
-            <span className="foot-note">
-              Menampilkan {visibleRows.length} dari {rows.length} transaksi sesuai filter ({transactions.length} total)
-            </span>
-            <div className="foot-actions">
-              <select
-                className="select-pill"
-                aria-label="Baris per halaman"
-                value={String(pageSize)}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-              >
-                <option value="10">10 per halaman</option>
-                <option value="25">25 per halaman</option>
-                <option value="50">50 per halaman</option>
-              </select>
-            </div>
-          </div>
         </div>
       </section>
 

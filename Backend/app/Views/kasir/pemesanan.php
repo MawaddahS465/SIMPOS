@@ -31,7 +31,6 @@ $filterList = [
             <div class="stat-body">
                 <div class="stat-label">Pesanan Baru</div>
                 <div class="stat-value"><?= str_pad((string) $hitung['dipesan'], 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="stat-caption">Menunggu pemrosesan admin</div>
             </div>
             <span class="stat-icon"><?= icon('package-plus', 22) ?></span>
         </div>
@@ -39,7 +38,6 @@ $filterList = [
             <div class="stat-body">
                 <div class="stat-label">Sedang Diproses</div>
                 <div class="stat-value"><?= str_pad((string) $hitung['diproses'], 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="stat-caption">Dalam penanganan cabang</div>
             </div>
             <span class="stat-icon"><?= icon('clipboard-list', 22) ?></span>
         </div>
@@ -47,7 +45,6 @@ $filterList = [
             <div class="stat-body">
                 <div class="stat-label">Sudah Datang</div>
                 <div class="stat-value"><?= str_pad((string) $hitung['sudah_datang'], 2, '0', STR_PAD_LEFT) ?></div>
-                <div class="stat-caption">Siap diambil pelanggan</div>
             </div>
             <span class="stat-icon"><?= icon('package-check', 22) ?></span>
         </div>
@@ -68,7 +65,6 @@ $filterList = [
         <div class="section-head">
             <div>
                 <h2>Daftar Pemesanan</h2>
-                <div class="section-desc">Informasi pesanan pelanggan dan status terbaru dari Admin Cabang</div>
             </div>
         </div>
 
@@ -123,7 +119,6 @@ $filterList = [
                             </td>
                             <td>
                                 <div class="tt-num" style="font-size:13px"><?= esc($labelProduk[0] ?? '-') ?></div>
-                                <div class="tt-sub"><?= esc($labelProduk[1] ?? ((int) $o['jml_item'] . ' item')) ?></div>
                             </td>
                             <td class="tt-center"><?= status_pill($o['status']) ?></td>
                             <td class="tt-right">
@@ -144,9 +139,6 @@ $filterList = [
                     <?php endif; ?>
                 </tbody>
             </table>
-            <div class="table-foot">
-                <span class="foot-note">Menampilkan <?= count($rows) ?> dari <?= (int) $total ?> pesanan</span>
-            </div>
         </div>
     </section>
 </div>

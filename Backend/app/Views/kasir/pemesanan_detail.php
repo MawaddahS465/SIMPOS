@@ -6,7 +6,6 @@ $flow      = ['dipesan', 'diproses', 'sudah_datang', 'selesai'];
 $flowLabel = ['dipesan' => 'Dipesan', 'diproses' => 'Diproses', 'sudah_datang' => 'Sudah Datang', 'selesai' => 'Selesai'];
 $flowDesc  = [
     'dipesan'      => 'Menunggu diproses Admin Cabang',
-    'diproses'     => 'Sedang disiapkan Admin Cabang',
     'sudah_datang' => 'Barang tersedia & siap diambil pelanggan',
     'selesai'      => 'Pesanan selesai & telah diambil pelanggan',
     'dibatalkan'   => 'Dibatalkan oleh Admin Cabang',
@@ -31,7 +30,6 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
         </div>
         <div class="pagehead-main">
             <div>
-                <div class="overline">DETAIL PEMESANAN</div>
                 <h1>Detail Pemesanan</h1>
                 <p>Informasi pesanan pelanggan dan tahapan status yang diperbarui oleh Admin Cabang.</p>
             </div>
@@ -66,7 +64,9 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
         <div class="po-status-right">
             <div class="po-mini-label">STATUS PESANAN</div>
             <?= status_pill($statusNow) ?>
-            <span style="font-size:12.5px;color:var(--muted);font-weight:600"><?= esc($flowDesc[$statusNow] ?? '-') ?></span>
+            <?php if (isset($flowDesc[$statusNow])): ?>
+                <span style="font-size:12.5px;color:var(--muted);font-weight:600"><?= esc($flowDesc[$statusNow]) ?></span>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -74,7 +74,6 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
         <div class="section-head">
             <div>
                 <h2>Progres Pemesanan</h2>
-                <div class="section-desc">Status diperbarui oleh Admin Cabang secara real-time</div>
             </div>
         </div>
         <div class="progress" style="opacity:<?= $cancelled ? '0.45' : '1' ?>">
@@ -82,13 +81,16 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
                 <?php
                 $done  = $i < $current || $statusNow === 'selesai';
                 $kelas = trim(($done ? 'done' : '') . ' ' . ($i === $current && $statusNow !== 'selesai' ? 'current' : ''));
+                $stepDescription = $i === $current
+                    ? tgl_id($po['tanggal_po'], true)
+                    : ($flowDesc[$step] ?? '');
                 ?>
                 <div class="pnode <?= $kelas ?>">
                     <span class="pdot"><?= $done ? icon('check', 14) : $i + 1 ?></span>
                     <b><?= esc($flowLabel[$step]) ?></b>
-                    <span>
-                        <?= esc($i === $current ? tgl_id($po['tanggal_po'], true) : $flowDesc[$step]) ?>
-                    </span>
+                    <?php if ($stepDescription !== ''): ?>
+                        <span><?= esc($stepDescription) ?></span>
+                    <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -184,7 +186,6 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
                             </tbody>
                         </table>
                     </div>
-                    <div class="tt-sub" style="font-weight:600">Ukuran lensa tersimpan pada detail PO ini.</div>
                 <?php else: ?>
                     <div class="empty-note">PO ini tidak menyertakan resep mata.</div>
                 <?php endif; ?>
@@ -207,8 +208,5 @@ $kodePlg   = 'PLG-' . str_pad((string) $po['pelanggan_id'], 4, '0', STR_PAD_LEFT
             </section>
     </div>
 
-    <div class="tt-sub" style="padding:0 6px;font-weight:600">
-        Kasir mencatat pemesanan dan memantau status PO. Pemrosesan dan pembaruan status PO ditangani oleh Admin Cabang.
-    </div>
 </div>
 <?= $this->endSection() ?>

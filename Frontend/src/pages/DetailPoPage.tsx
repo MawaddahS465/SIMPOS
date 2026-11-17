@@ -11,9 +11,8 @@ import "../styles/pages.css";
 import "../styles/admin.css";
 
 const FLOW: PoStatus[] = ["Dipesan", "Diproses", "Sudah Datang", "Selesai"];
-const FLOW_DESC: Record<PoStatus, string> = {
+const FLOW_DESC: Partial<Record<PoStatus, string>> = {
   Dipesan: "Menunggu diproses Admin Cabang",
-  Diproses: "Sedang disiapkan Admin Cabang",
   "Sudah Datang": "Barang tersedia & siap diambil pelanggan",
   Selesai: "Pesanan selesai & telah diambil pelanggan",
   Dibatalkan: "Dibatalkan oleh Admin Cabang",
@@ -67,7 +66,6 @@ export default function DetailPoPage() {
               <Link to="/dashboard">Kasir</Link> › <Link to="/pemesanan">Pemesanan (PO)</Link> › <b>Detail PO</b>
             </>
           }
-          overline="DETAIL PEMESANAN"
           title="PO Tidak Ditemukan"
           actions={
             <Link className="btn btn-ghost" to="/pemesanan">
@@ -131,7 +129,6 @@ export default function DetailPoPage() {
             <Link to="/dashboard">Kasir</Link> › <Link to="/pemesanan">Pemesanan (PO)</Link> › <b>Detail PO</b>
           </>
         }
-        overline="DETAIL PEMESANAN"
         title="Detail Pemesanan"
         actions={
           <>
@@ -182,9 +179,11 @@ export default function DetailPoPage() {
         <div className="po-status-right">
           <div className="po-mini-label">STATUS PESANAN</div>
           <StatusPill label={order.status} />
-          <span style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600 }}>
-            {FLOW_DESC[order.status]}
-          </span>
+          {FLOW_DESC[order.status] ? (
+            <span style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600 }}>
+              {FLOW_DESC[order.status]}
+            </span>
+          ) : null}
         </div>
       </div>
 
@@ -192,13 +191,13 @@ export default function DetailPoPage() {
         <div className="section-head">
           <div>
             <h2>Progres Pemesanan</h2>
-            <div className="section-desc">Status diperbarui oleh Admin Cabang secara real-time</div>
           </div>
         </div>
         <div className="progress" style={{ opacity: cancelled ? 0.45 : 1 }}>
           {FLOW.map((step, i) => {
             const done = i < current || order.status === "Selesai";
             const stepLog = order.timeline.find((t) => t.to === step);
+            const stepDescription = stepLog?.at ?? (i === current ? order.createdAt : FLOW_DESC[step]);
             return (
               <div
                 key={step}
@@ -206,7 +205,7 @@ export default function DetailPoPage() {
               >
                 <span className="pdot">{done ? <Check size={14} strokeWidth={3} /> : i + 1}</span>
                 <b>{step}</b>
-                <span>{stepLog?.at ?? (i === current ? order.createdAt : FLOW_DESC[step])}</span>
+                {stepDescription ? <span>{stepDescription}</span> : null}
               </div>
             );
           })}
@@ -311,9 +310,6 @@ export default function DetailPoPage() {
                     </tr>
                   </tbody>
                 </table>
-                <div className="tt-sub" style={{ fontWeight: 600 }}>
-                  Ukuran lensa tersimpan pada detail PO ini ({resep.at}).
-                </div>
               </>
             ) : (
               <div className="empty-note">PO ini tidak menyertakan resep mata.</div>
@@ -336,10 +332,6 @@ export default function DetailPoPage() {
             </div>
           </section>
         </div>
-      </div>
-
-      <div className="tt-sub" style={{ padding: "0 6px", fontWeight: 600 }}>
-        Kasir mencatat pemesanan dan memantau status PO. Pemrosesan dan pembaruan status PO ditangani oleh Admin Cabang.
       </div>
     </div>
   );

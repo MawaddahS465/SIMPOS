@@ -37,7 +37,6 @@ class Dashboard extends BaseKasir
             'trxHariIni'        => $trxHariIni,
             'penerimaanHariIni' => $penerimaanHariIni,
             'poSiapDiambil'     => $poSiapDiambil,
-            'tanggalHariIni'    => date('d M Y'),
         ]);
     }
 }

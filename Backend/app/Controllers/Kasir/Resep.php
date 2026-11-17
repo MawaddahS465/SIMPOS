@@ -66,18 +66,10 @@ class Resep extends BaseKasir
             }
         }
 
-        $namaUnik = [];
-        foreach ($semua as $r) {
-            $namaUnik[mb_strtolower((string) $r['nama_pelanggan'])] = true;
-        }
-
         return view('kasir/resep', [
             'judul'     => 'Resep Mata',
             'aktif'     => 'resep',
             'rows'      => $rows,
-            'total'     => count($semua),
-            'unik'      => count($namaUnik),
-            'terbaru'   => $semua[0] ?? null,
             'terpilih'  => $terpilih,
             'cariQ'     => $cari,
             'filter'    => $filter,

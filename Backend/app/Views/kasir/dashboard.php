@@ -3,10 +3,10 @@
 <?= $this->section('content') ?>
 <?php
 $menu = [
-    ['path' => 'kasir/transaksi', 'ikon' => 'shopping-cart', 'judul' => 'Transaksi Baru', 'desc' => 'Pilih frame dan lensa untuk pelanggan baru'],
-    ['path' => 'kasir/pemesanan', 'ikon' => 'clipboard-list', 'judul' => 'Pemesanan (PO)', 'desc' => 'Kelola pesanan barang yang belum tersedia'],
-    ['path' => 'kasir/pelanggan', 'ikon' => 'users', 'judul' => 'Pelanggan', 'desc' => 'Cari, tambah, atau kelola data pelanggan'],
-    ['path' => 'kasir/resep', 'ikon' => 'glasses', 'judul' => 'Resep Mata', 'desc' => 'Kelola dan lihat riwayat resep pelanggan'],
+    ['path' => 'kasir/transaksi', 'ikon' => 'shopping-cart', 'judul' => 'Transaksi Baru'],
+    ['path' => 'kasir/pemesanan', 'ikon' => 'clipboard-list', 'judul' => 'Pemesanan (PO)'],
+    ['path' => 'kasir/pelanggan', 'ikon' => 'users', 'judul' => 'Pelanggan'],
+    ['path' => 'kasir/resep', 'ikon' => 'glasses', 'judul' => 'Resep Mata'],
 ];
 ?>
 <div class="dash">
@@ -31,7 +31,6 @@ $menu = [
             <div>
                 <span class="dm-label">Transaksi hari ini</span>
                 <b><?= esc((string) $trxHariIni) ?></b>
-                <span class="dm-caption">Transaksi lunas · <?= esc($tanggalHariIni) ?></span>
             </div>
             <svg class="ic dm-arrow" width="17" height="17" aria-hidden="true"><use href="<?= base_url('assets/icons/sprite.svg') ?>#i-arrow-right"></use></svg>
         </a>
@@ -40,7 +39,6 @@ $menu = [
             <div>
                 <span class="dm-label">Penerimaan hari ini</span>
                 <b><?= esc(rupiah($penerimaanHariIni)) ?></b>
-                <span class="dm-caption">Total pembayaran lunas · Lihat transaksi</span>
             </div>
             <svg class="ic dm-arrow" width="17" height="17" aria-hidden="true"><use href="<?= base_url('assets/icons/sprite.svg') ?>#i-arrow-right"></use></svg>
         </a>
@@ -49,9 +47,6 @@ $menu = [
             <div>
                 <span class="dm-label">PO siap diambil</span>
                 <b><?= esc((string) $poSiapDiambil) ?></b>
-                <span class="dm-caption">
-                    <?= $poSiapDiambil > 0 ? 'Barang sudah datang di cabang' : 'Tidak ada PO menunggu pengambilan' ?>
-                </span>
             </div>
             <svg class="ic dm-arrow" width="17" height="17" aria-hidden="true"><use href="<?= base_url('assets/icons/sprite.svg') ?>#i-arrow-right"></use></svg>
         </a>
@@ -60,7 +55,6 @@ $menu = [
     <section>
         <div class="section-head">
             <h2>Menu Utama</h2>
-            <p>Pilih menu untuk memulai aktivitas</p>
         </div>
 
         <div class="menu-cards">
@@ -68,7 +62,6 @@ $menu = [
                 <a href="<?= site_url($m['path']) ?>" class="menu-card">
                     <span class="m-icon"><?= icon($m['ikon'], 24) ?></span>
                     <h3><?= esc($m['judul']) ?></h3>
-                    <p><?= esc($m['desc']) ?></p>
                     <span class="m-arrow"><?= icon('arrow-right', 18) ?></span>
                 </a>
             <?php endforeach; ?>
@@ -79,7 +72,6 @@ $menu = [
         <span class="h-icon"><?= icon('history', 24) ?></span>
         <div>
             <h3>Riwayat Transaksi</h3>
-            <p>Lihat transaksi hari ini atau cari transaksi sebelumnya</p>
         </div>
         <a class="btn btn-ghost" href="<?= site_url('kasir/riwayat') ?>">
             Buka

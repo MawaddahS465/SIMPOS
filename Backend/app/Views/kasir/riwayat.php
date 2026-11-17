@@ -137,10 +137,6 @@ $metodeIkonMap = [
         <div class="section-head">
             <div>
                 <h2>Daftar Transaksi</h2>
-                <div class="section-desc">Pilih transaksi untuk melihat detail pembayaran dan struk</div>
-            </div>
-            <div class="section-action">
-                <span class="foot-note" style="color:var(--muted);font-size:12.5px;font-weight:700"><?= (int) $jumlah ?> transaksi</span>
             </div>
         </div>
 
@@ -243,17 +239,6 @@ $metodeIkonMap = [
                     <?php endif; ?>
                 </tbody>
             </table>
-
-            <div class="table-foot">
-                <span class="foot-note">Menampilkan <?= count($rows) ?> dari <?= (int) $total ?> transaksi</span>
-                <div class="foot-actions">
-                    <select class="select-pill" aria-label="Baris per halaman">
-                        <option>10 per halaman</option>
-                        <option>25 per halaman</option>
-                        <option>50 per halaman</option>
-                    </select>
-                </div>
-            </div>
         </div>
     </section>
 

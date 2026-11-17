@@ -60,9 +60,6 @@ export default function PelangganPage() {
   const withResep = customers.filter((c) => hasResepOf(c)).length;
   const withPo = customers.filter((c) => poCountOf(c) > 0).length;
 
-  const editingCustomer = editing ? customers.find((c) => c.id === editing) : null;
-  const previewCode = editingCustomer?.code ?? "Dibuat otomatis";
-
   function startAdd() {
     setEditing(null);
     setForm(EMPTY);
@@ -107,9 +104,9 @@ export default function PelangganPage() {
       />
 
       <div className="stat-row">
-        <StatCard label="Total pelanggan" value={String(customers.length)} caption="Terdaftar di cabang ini" icon={<Users size={22} />} tone="violet" />
-        <StatCard label="Pelanggan dengan resep" value={String(withResep)} caption="Memiliki arsip resep" icon={<Glasses size={22} />} tone="blue" />
-        <StatCard label="Pelanggan dengan PO aktif" value={String(withPo)} caption="Pesanan belum selesai" icon={<MessageSquare size={22} />} tone="amber" />
+        <StatCard label="Total pelanggan" value={String(customers.length)} icon={<Users size={22} />} tone="violet" />
+        <StatCard label="Pelanggan dengan resep" value={String(withResep)} icon={<Glasses size={22} />} tone="blue" />
+        <StatCard label="Pelanggan dengan PO aktif" value={String(withPo)} icon={<MessageSquare size={22} />} tone="amber" />
       </div>
 
       <section className="section-block">
@@ -117,12 +114,6 @@ export default function PelangganPage() {
         <div className="section-head">
           <div>
             <h2>Daftar Pelanggan</h2>
-            <div className="section-desc">Informasi pelanggan dan ringkasan aktivitas</div>
-          </div>
-          <div className="section-action">
-            <span className="foot-note" style={{ color: "var(--muted)", fontSize: 12.5, fontWeight: 700 }}>
-              {rows.length} dari {customers.length} data
-            </span>
           </div>
         </div>
 
@@ -214,7 +205,6 @@ export default function PelangganPage() {
                 </div>
                 <div>
                   <h2>{editing ? "Ubah Data Pelanggan" : "Tambah Pelanggan"}</h2>
-                  <p>Lengkapi nama dan nomor kontak pelanggan ({previewCode})</p>
                 </div>
               </div>
               <button className="icon-pill" aria-label="Tutup" onClick={() => setOpen(false)}>

@@ -22,25 +22,21 @@ const MENU = [
     to: "/transaksi-baru",
     icon: ShoppingCart,
     title: "Transaksi Baru",
-    desc: "Pilih frame dan lensa untuk pelanggan baru",
   },
   {
     to: "/pemesanan",
     icon: ClipboardList,
     title: "Pemesanan (PO)",
-    desc: "Kelola pesanan barang yang belum tersedia",
   },
   {
     to: "/pelanggan",
     icon: Users,
     title: "Pelanggan",
-    desc: "Cari, tambah, atau kelola data pelanggan",
   },
   {
     to: "/resep-mata",
     icon: Glasses,
     title: "Resep Mata",
-    desc: "Kelola dan lihat riwayat resep pelanggan",
   },
 ];
 
@@ -51,11 +47,6 @@ export default function DashboardPage() {
   const [loadError, setLoadError] = useState("");
   const name = session?.name ?? "Kasir";
   const now = new Date();
-  const today = now.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
   const todaySql = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   useEffect(() => {
@@ -107,7 +98,6 @@ export default function DashboardPage() {
           <div>
             <span className="dm-label">Transaksi hari ini</span>
             <b>{todayTrx.length}</b>
-            <span className="dm-caption">Transaksi lunas · {today}</span>
           </div>
         </div>
         <div className="dash-metric">
@@ -117,7 +107,6 @@ export default function DashboardPage() {
           <div>
             <span className="dm-label">Penerimaan hari ini</span>
             <b>{formatIDR(todayTotal)}</b>
-            <span className="dm-caption">Total pembayaran lunas</span>
           </div>
         </div>
         <Link className="dash-metric" to="/pemesanan">
@@ -127,9 +116,6 @@ export default function DashboardPage() {
           <div>
             <span className="dm-label">PO siap diambil</span>
             <b>{readyPo.length}</b>
-            <span className="dm-caption">
-              {readyPo.length > 0 ? "Barang sudah datang di cabang" : "Tidak ada PO menunggu pengambilan"}
-            </span>
           </div>
           <ArrowRight size={17} className="dm-arrow" />
         </Link>
@@ -138,7 +124,6 @@ export default function DashboardPage() {
       <section>
         <div className="section-head">
           <h2>Menu Utama</h2>
-          <p>Pilih menu untuk memulai aktivitas</p>
         </div>
 
         <div className="menu-cards">
@@ -148,7 +133,6 @@ export default function DashboardPage() {
                 <m.icon size={24} strokeWidth={2.1} />
               </span>
               <h3>{m.title}</h3>
-              <p>{m.desc}</p>
               <span className="m-arrow">
                 <ArrowRight size={18} />
               </span>
@@ -163,7 +147,6 @@ export default function DashboardPage() {
         </span>
         <div>
           <h3>Riwayat Transaksi</h3>
-          <p>Lihat transaksi hari ini atau cari transaksi sebelumnya</p>
         </div>
         <Link className="btn btn-ghost" to="/riwayat-transaksi">
           Buka

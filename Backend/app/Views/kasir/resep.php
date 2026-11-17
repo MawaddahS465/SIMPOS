@@ -22,7 +22,6 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
         <div class="pagehead-main">
             <div>
                 <h1>Resep Mata</h1>
-                <p>Catat dan kelola riwayat resep ukuran lensa mata kanan (OD) dan kiri (OS) pelanggan.</p>
             </div>
             <div class="pagehead-actions">
                 <a class="btn btn-primary" href="<?= esc(site_url('kasir/resep' . $qs(['tambah' => 1, 'pilih' => null])), 'attr') ?>">
@@ -33,45 +32,7 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
         </div>
     </div>
 
-    <div class="stat-row">
-        <div class="stat-card tone-violet">
-            <div class="stat-body">
-                <div class="stat-label">Total arsip resep</div>
-                <div class="stat-value"><?= (int) $total ?></div>
-                <div class="stat-caption">Tersimpan di cabang ini</div>
-            </div>
-            <span class="stat-icon"><?= icon('glasses', 22) ?></span>
-        </div>
-        <div class="stat-card tone-green">
-            <div class="stat-body">
-                <div class="stat-label">Pelanggan memiliki resep</div>
-                <div class="stat-value"><?= (int) $unik ?></div>
-                <div class="stat-caption">Tercatat dalam arsip digital</div>
-            </div>
-            <span class="stat-icon"><?= icon('users', 22) ?></span>
-        </div>
-        <div class="stat-card tone-blue">
-            <div class="stat-body">
-                <div class="stat-label">Pemeriksaan terbaru</div>
-                <div class="stat-value"><?= esc($terbaru !== null ? tgl_id($terbaru['tanggal_resep']) : '-') ?></div>
-                <div class="stat-caption">
-                    <?= $terbaru !== null
-                        ? esc($terbaru['nama_pelanggan'] . ' (' . $terbaru['kode_resep'] . ')')
-                        : 'Belum ada data' ?>
-                </div>
-            </div>
-            <span class="stat-icon"><?= icon('calendar-days', 22) ?></span>
-        </div>
-    </div>
-
     <section class="section-block">
-        <div class="section-head">
-            <div>
-                <h2>Daftar Resep</h2>
-                <div class="section-desc">Cari riwayat resep berdasarkan nama atau nomor HP pelanggan</div>
-            </div>
-        </div>
-
         <form class="toolbar" method="get" action="<?= esc(site_url('kasir/resep'), 'attr') ?>">
             <label class="toolbar-search">
                 <?= icon('search', 16) ?>
@@ -111,14 +72,13 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
                             onclick="window.location='<?= esc($detailUrl, 'attr') ?>'">
                             <td>
                                 <div class="tt-num"><?= esc(tgl_id($r['tanggal_resep'])) ?></div>
-                                <div class="tt-sub"><?= esc($r['kode_resep']) ?></div>
                             </td>
                             <td>
                                 <div class="cell-person">
                                     <?= avatar($r['nama_pelanggan'], 40) ?>
                                     <span>
                                         <b><?= esc($r['nama_pelanggan']) ?></b>
-                                        <span><?= esc($r['no_hp'] ?: $r['kode_resep']) ?></span>
+                                        <span><?= esc($r['no_hp'] ?: '-') ?></span>
                                     </span>
                                 </div>
                             </td>
@@ -152,9 +112,6 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
                     <?php endif; ?>
                 </tbody>
             </table>
-            <div class="table-foot">
-                <span class="foot-note">Menampilkan <?= count($rows) ?> dari <?= (int) $total ?> resep</span>
-            </div>
         </div>
     </section>
 
@@ -168,7 +125,7 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
                         <div>
                             <b><?= esc($terpilih['nama_pelanggan']) ?></b>
                             <span>
-                                <?= esc($terpilih['kode_resep']) ?><?= ! empty($terpilih['no_hp']) ? ' · ' . esc($terpilih['no_hp']) : '' ?>
+                                <?= esc(! empty($terpilih['no_hp']) ? $terpilih['no_hp'] : '-') ?>
                             </span>
                         </div>
                     </div>
@@ -327,7 +284,6 @@ $filterList = ['semua' => 'Semua Resep', 'terbaru' => 'Resep Terbaru'];
                         </div>
                         <div>
                             <h2>Tambah Resep Mata</h2>
-                            <p>Catat hasil pemeriksaan ukuran mata kanan (OD) &amp; kiri (OS)</p>
                         </div>
                     </div>
                     <a class="icon-pill" aria-label="Tutup" href="<?= esc($tutupUrl, 'attr') ?>">

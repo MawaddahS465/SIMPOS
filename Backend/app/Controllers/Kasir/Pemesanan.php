@@ -61,7 +61,6 @@ class Pemesanan extends BaseKasir
             'judul'      => 'Pemesanan (PO)',
             'aktif'      => 'pemesanan',
             'rows'       => $rows,
-            'total'      => count($semua),
             'hitung'     => $hitung,
             'status'     => $status,
             'cariQ'      => $cari,
