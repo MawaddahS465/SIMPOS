@@ -65,7 +65,7 @@ export function SearchBox({
       <Search size={16} />
       <input
         type="search"
-        placeholder={placeholder}
+        placeholder={placeholder ?? ""}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
       />
