@@ -224,7 +224,6 @@ export default function PelangganPage() {
                 <input
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="cth. Siti Rahma"
                 />
               </label>
 
@@ -235,7 +234,6 @@ export default function PelangganPage() {
                     inputMode="tel"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    placeholder="cth. 0812 3456 7890"
                   />
                 </label>
               </div>
@@ -245,7 +243,6 @@ export default function PelangganPage() {
                 <textarea
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  placeholder="Alamat pelanggan"
                   rows={3}
                 />
               </label>

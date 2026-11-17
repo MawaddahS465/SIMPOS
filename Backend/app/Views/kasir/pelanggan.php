@@ -248,17 +248,17 @@ $showDetail = (int) request()->getGet('pilih') > 0 && ! $drawer && $terpilih !==
 
                 <label class="afield">
                     <span>Nama pelanggan</span>
-                    <input name="nama_pelanggan" required minlength="2" value="<?= esc(old('nama_pelanggan', $ubah ? $terpilih['nama_pelanggan'] : ''), 'attr') ?>" placeholder="cth. Andi Saputra">
+                    <input name="nama_pelanggan" required minlength="2" value="<?= esc(old('nama_pelanggan', $ubah ? $terpilih['nama_pelanggan'] : ''), 'attr') ?>">
                 </label>
 
                 <label class="afield">
                     <span>Nomor HP</span>
-                    <input name="no_hp" value="<?= esc(old('no_hp', $ubah ? ($terpilih['no_hp'] ?? '') : ''), 'attr') ?>" placeholder="cth. 0812 3456 7890">
+                    <input name="no_hp" value="<?= esc(old('no_hp', $ubah ? ($terpilih['no_hp'] ?? '') : ''), 'attr') ?>">
                 </label>
 
                 <label class="afield">
                     <span>Alamat</span>
-                    <input name="alamat" value="<?= esc(old('alamat', $ubah ? ($terpilih['alamat'] ?? '') : ''), 'attr') ?>" placeholder="cth. Jl. Khatib Sulaiman No. 12">
+                    <input name="alamat" value="<?= esc(old('alamat', $ubah ? ($terpilih['alamat'] ?? '') : ''), 'attr') ?>">
                 </label>
 
                 <div class="drawer-foot">

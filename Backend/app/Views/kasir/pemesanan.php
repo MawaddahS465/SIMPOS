@@ -149,7 +149,6 @@ $filterList = [
             <div class="drawer-head">
                 <div>
                     <h2>Buat PO Baru</h2>
-                    <div class="section-desc">Status awal Dipesan · diteruskan ke Admin Cabang</div>
                 </div>
                 <a class="icon-pill" aria-label="Tutup" href="<?= site_url('kasir/pemesanan') ?>">
                     <?= icon('x', 18) ?>
@@ -185,12 +184,12 @@ $filterList = [
 
                 <label class="afield">
                     <span>Jumlah</span>
-                    <input name="qty" inputmode="numeric" value="<?= esc(old('qty', '1'), 'attr') ?>" placeholder="cth. 1" required>
+                    <input name="qty" inputmode="numeric" value="<?= esc(old('qty', ''), 'attr') ?>" required>
                 </label>
 
                 <label class="afield">
                     <span>Catatan (opsional)</span>
-                    <input name="catatan" value="<?= esc(old('catatan', ''), 'attr') ?>" placeholder="cth. lensa sesuai resep">
+                    <input name="catatan" value="<?= esc(old('catatan', ''), 'attr') ?>">
                 </label>
 
                 <?php if ($pelanggan === []): ?>

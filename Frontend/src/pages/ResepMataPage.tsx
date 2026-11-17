@@ -99,7 +99,7 @@ export default function ResepMataPage() {
 
   function startAdd() {
     setEditingId(null);
-    setForm({ ...EMPTY, customerId: customers[0]?.id ?? "", date: new Date().toISOString().slice(0, 10), od: { ...EYE }, os: { ...EYE } });
+    setForm({ ...EMPTY, od: { ...EYE }, os: { ...EYE } });
     setFormError("");
     setOpen(true);
   }
@@ -489,6 +489,7 @@ export default function ResepMataPage() {
                     onChange={(e) => setForm({ ...form, customerId: e.target.value })}
                     disabled={Boolean(editingId)}
                   >
+                    <option value="">Pilih pelanggan</option>
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name} · {c.phone} ({c.code})
@@ -512,15 +513,15 @@ export default function ResepMataPage() {
                 <div className="srb-grid">
                   <label className="afield">
                     <span>SPH *</span>
-                    <input value={form.od.sph} onChange={(e) => setForm({ ...form, od: { ...form.od, sph: e.target.value } })} placeholder="-1.50" />
+                    <input value={form.od.sph} onChange={(e) => setForm({ ...form, od: { ...form.od, sph: e.target.value } })} />
                   </label>
                   <label className="afield">
                     <span>CYL</span>
-                    <input value={form.od.cyl} onChange={(e) => setForm({ ...form, od: { ...form.od, cyl: e.target.value } })} placeholder="-0.75" />
+                    <input value={form.od.cyl} onChange={(e) => setForm({ ...form, od: { ...form.od, cyl: e.target.value } })} />
                   </label>
                   <label className="afield">
                     <span>AXIS</span>
-                    <input value={form.od.axis} onChange={(e) => setForm({ ...form, od: { ...form.od, axis: e.target.value } })} placeholder="180" />
+                    <input value={form.od.axis} onChange={(e) => setForm({ ...form, od: { ...form.od, axis: e.target.value } })} />
                   </label>
                 </div>
               </div>
@@ -530,15 +531,15 @@ export default function ResepMataPage() {
                 <div className="srb-grid">
                   <label className="afield">
                     <span>SPH *</span>
-                    <input value={form.os.sph} onChange={(e) => setForm({ ...form, os: { ...form.os, sph: e.target.value } })} placeholder="-1.25" />
+                    <input value={form.os.sph} onChange={(e) => setForm({ ...form, os: { ...form.os, sph: e.target.value } })} />
                   </label>
                   <label className="afield">
                     <span>CYL</span>
-                    <input value={form.os.cyl} onChange={(e) => setForm({ ...form, os: { ...form.os, cyl: e.target.value } })} placeholder="-0.50" />
+                    <input value={form.os.cyl} onChange={(e) => setForm({ ...form, os: { ...form.os, cyl: e.target.value } })} />
                   </label>
                   <label className="afield">
                     <span>AXIS</span>
-                    <input value={form.os.axis} onChange={(e) => setForm({ ...form, os: { ...form.os, axis: e.target.value } })} placeholder="170" />
+                    <input value={form.os.axis} onChange={(e) => setForm({ ...form, os: { ...form.os, axis: e.target.value } })} />
                   </label>
                 </div>
               </div>
@@ -546,11 +547,11 @@ export default function ResepMataPage() {
               <div className="simple-two-col">
                 <label className="afield">
                   <span>PD (mm) *</span>
-                  <input value={form.pd} onChange={(e) => setForm({ ...form, pd: e.target.value })} placeholder="cth. 62" />
+                  <input value={form.pd} onChange={(e) => setForm({ ...form, pd: e.target.value })} />
                 </label>
                 <label className="afield">
                   <span>ADD (opsional)</span>
-                  <input value={form.add} onChange={(e) => setForm({ ...form, add: e.target.value })} placeholder="cth. +1.00" />
+                  <input value={form.add} onChange={(e) => setForm({ ...form, add: e.target.value })} />
                 </label>
               </div>
 
@@ -559,7 +560,6 @@ export default function ResepMataPage() {
                 <input
                   value={form.note}
                   onChange={(e) => setForm({ ...form, note: e.target.value })}
-                  placeholder="cth. Resep dokter mata / lensa blue control"
                 />
               </label>
 

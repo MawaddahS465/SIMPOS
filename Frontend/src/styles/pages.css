@@ -4758,7 +4758,7 @@ table.tt.stock-table {
 .po-builder-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   padding: 15px 26px;
   border-top: 1px solid var(--line);

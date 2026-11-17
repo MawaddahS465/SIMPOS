@@ -101,7 +101,6 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
         const mappedProducts = productRows.map(mapProduct).filter((product) => product.type === "Frame" || product.type === "Lensa");
         setCustomers(mappedCustomers);
         setProducts(mappedProducts);
-        setCustomerId((current) => current || mappedCustomers[0]?.id || "");
         setItems((current) => current.length || !initialProductId || !mappedProducts.some((product) => product.id === initialProductId)
           ? current
           : [{ productId: initialProductId, qty: 1 }]);
@@ -123,13 +122,14 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
       setResepId("");
       return;
     }
+    setReseps([]);
+    setResepId("");
     let active = true;
     kasirApi.recipes(Number(customerId), "aktif")
       .then((rows) => {
         if (!active) return;
         const mapped = rows.map(mapRecipe);
         setReseps(mapped);
-        setResepId(mapped[0]?.id ?? "");
       })
       .catch((requestError: unknown) => {
         if (active) setError(requestError instanceof ApiError ? requestError.message : "Resep pelanggan gagal dimuat.");
@@ -260,7 +260,6 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
           </div>
           <div className="po-builder-title">
             <h2>Buat PO Baru</h2>
-            <p>Catat pemesanan pelanggan · Status awal: Dipesan</p>
           </div>
           <button type="button" className="po-builder-x" aria-label="Tutup" onClick={onClose}>
             <X size={20} />
@@ -505,6 +504,7 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
                   <h3>Resep Mata (untuk lensa)</h3>
                   {reseps.length > 0 ? (
                     <select className="po-select" value={resepId} onChange={(e) => setResepId(e.target.value)}>
+                      <option value="">Pilih resep (opsional)</option>
                       {reseps.map((r) => (
                         <option key={r.id} value={r.id}>
                           {r.id} ({r.date}) — OD {r.od.sph} / OS {r.os.sph} · PD {r.pd} mm
@@ -526,14 +526,9 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
                   className="po-note"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Contoh: lensa sesuai resep pelanggan, warna frame hitam, dll"
                 />
               </label>
 
-              <div className="po-hint">
-                <Info size={15} />
-                Estimasi total dihitung otomatis berdasarkan produk yang dipilih.
-              </div>
             </div>
 
             <aside className="po-summary">
@@ -574,10 +569,6 @@ export default function PoBuilderModal({ onClose, onCreated, initialProductId }:
           </div>
 
           <footer className="po-builder-foot">
-            <span className="po-foot-hint">
-              <Info size={15} />
-              Status awal PO adalah <b>Dipesan</b> dan diteruskan ke Admin Cabang.
-            </span>
             <div className="po-foot-actions">
               <button type="button" className="btn btn-ghost" onClick={onClose}>
                 Batal
