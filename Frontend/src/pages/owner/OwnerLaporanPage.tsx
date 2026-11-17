@@ -267,7 +267,7 @@ export default function OwnerLaporanPage() {
           <thead>
             <tr>
               {data.head.map((h) => (
-                <th key={h} className={/total|qty|stok|rp/i.test(h) ? "tt-center" : ""}>{h.toUpperCase()}</th>
+                <th key={h} className={/total|qty|stok|rp|minimum/i.test(h) ? "tt-right" : ""}>{h.toUpperCase()}</th>
               ))}
             </tr>
           </thead>
@@ -275,7 +275,7 @@ export default function OwnerLaporanPage() {
             {data.body.map((r, i) => (
               <tr key={i}>
                 {r.map((c, j) => (
-                  <td key={j} className={typeof c === "number" ? "tt-center tt-money" : ""}>
+                  <td key={j} className={typeof c === "number" ? "tt-right tt-money" : /tanggal|waktu/i.test(data.head[j]) ? "tt-nowrap" : ""}>
                     {typeof c === "number" && /total/i.test(data.head[j]) ? rp(c) : String(c)}
                   </td>
                 ))}

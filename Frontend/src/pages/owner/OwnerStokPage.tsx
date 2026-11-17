@@ -142,7 +142,7 @@ export default function OwnerStokPage() {
               <th>JENIS</th>
               <th className="tt-right">STOK</th>
               <th className="tt-right">MINIMUM</th>
-              <th>STATUS</th>
+              <th className="tt-center">STATUS</th>
             </tr>
           </thead>
           <tbody>
@@ -171,7 +171,7 @@ export default function OwnerStokPage() {
                   <td className="stock-type">{p.type}</td>
                   <td className="tt-right tt-money stock-saldo">{s.saldo}</td>
                   <td className="tt-right tt-money stock-min">{s.minimum}</td>
-                  <td className="stock-status">
+                  <td className="stock-status tt-center">
                     <StatusPill
                       label={state === "Habis" ? "Stok Habis" : state === "Menipis" ? "Stok Menipis" : "Aman"}
                     />

@@ -100,7 +100,7 @@ export default function OwnerPengajuanPage() {
 
       <div className="table-wrap">
         <table className="tt">
-          <thead><tr><th>ID / WAKTU</th><th>CABANG</th><th>PRODUK</th><th className="tt-right">DIMINTA</th><th className="tt-right">DIALOKASIKAN</th><th className="tt-right">DITERIMA</th><th className="tt-right">SISA</th><th>STATUS</th><th className="tt-right">AKSI</th></tr></thead>
+          <thead><tr><th>ID / WAKTU</th><th>CABANG</th><th>PRODUK</th><th className="tt-right">DIMINTA</th><th className="tt-right">DIALOKASIKAN</th><th className="tt-right">DITERIMA</th><th className="tt-right">SISA</th><th className="tt-center">STATUS</th><th className="tt-right">AKSI</th></tr></thead>
           <tbody>
             {loading ? <tr><td colSpan={9}><div className="empty-note">Memuat pengajuan...</div></td></tr> : null}
             {!loading ? requests.map((request) => (
@@ -112,7 +112,7 @@ export default function OwnerPengajuanPage() {
                 <td className="tt-right tt-money">{request.jumlah_dialokasikan}</td>
                 <td className="tt-right tt-money">{request.jumlah_diterima}</td>
                 <td className="tt-right tt-money">{request.sisa ?? Math.max(0, request.jumlah_diminta - request.jumlah_dialokasikan)}</td>
-                <td><StatusPill label={requestStateLabel(request.state as RequestState)} /></td>
+                <td className="tt-center"><StatusPill label={requestStateLabel(request.state as RequestState)} /></td>
                 <td className="tt-right">
                   {request.state !== "Ditolak" && (request.sisa ?? (request.jumlah_diminta - request.jumlah_dialokasikan)) > 0
                     ? <button className="link-action" onClick={() => navigate(`/owner/alokasi?requestId=${request.id_pengajuan}`)}>Alokasikan</button>

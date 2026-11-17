@@ -138,7 +138,7 @@ export default function OwnerTransaksiPage() {
               <th>CABANG</th>
               <th>PELANGGAN</th>
               <th>METODE</th>
-              <th className="tt-center">TOTAL</th>
+              <th className="tt-right">TOTAL</th>
               <th className="tt-center">STATUS</th>
               <th className="tt-right">AKSI</th>
             </tr>
@@ -150,7 +150,7 @@ export default function OwnerTransaksiPage() {
                   <div className="tt-num" style={{ fontSize: 12.5 }}>{t.no}</div>
                 </td>
                 <td>
-                  <div className="tt-sub" style={{ marginTop: 0 }}>{t.date}{t.time ? ` · ${t.time}` : ""}</div>
+                  <div className="tt-sub" style={{ marginTop: 0, whiteSpace: "nowrap" }}>{t.date}{t.time ? ` · ${t.time}` : ""}</div>
                 </td>
                 <td>{store.branches.find((b) => b.id === (t.branchId ?? "cabang-padang"))?.name ?? "Cabang Padang"}</td>
                 <td>
@@ -159,7 +159,7 @@ export default function OwnerTransaksiPage() {
                 <td>
                   <span className="type-chip">{t.method ?? "—"}</span>
                 </td>
-                <td className="tt-center tt-money">{formatIDR(t.total)}</td>
+                <td className="tt-right tt-money">{formatIDR(t.total)}</td>
                 <td className="tt-center">
                   <StatusPill label={t.status} />
                 </td>

@@ -159,7 +159,7 @@ export default function OwnerAlokasiPage() {
       </div>
       <div className="table-wrap">
         <table className="tt">
-          <thead><tr><th>ID / WAKTU</th><th>CABANG TUJUAN</th><th>PRODUK</th><th className="tt-center">DIALOKASIKAN</th><th className="tt-center">DITERIMA</th><th>STATUS</th></tr></thead>
+          <thead><tr><th>ID / WAKTU</th><th>CABANG TUJUAN</th><th>PRODUK</th><th className="tt-right">DIALOKASIKAN</th><th className="tt-right">DITERIMA</th><th className="tt-center">STATUS</th></tr></thead>
           <tbody>
             {loading ? <tr><td colSpan={6}><div className="empty-note">Memuat alokasi...</div></td></tr> : null}
             {!loading ? rows.map((allocation) => (
@@ -167,7 +167,7 @@ export default function OwnerAlokasiPage() {
                 <td><div className="tt-num">{allocation.kode_alokasi}</div><div className="tt-sub">{allocation.tanggal}</div></td>
                 <td><div className="tt-num">{allocation.nama_cabang}</div><div className="tt-sub">{allocation.kode_pengajuan ?? "Alokasi tanpa pengajuan"}</div></td>
                 <td>{allocation.items.map((item) => <div key={item.id_detail_alokasi} className="tt-num">{item.nama_barang} <span className="tt-sub">({item.kode_barang})</span></div>)}</td>
-                <td className="tt-center tt-money">{allocation.jumlah_dialokasikan}</td><td className="tt-center tt-money">{allocation.jumlah_diterima}</td><td><StatusPill label={allocation.status} /></td>
+                <td className="tt-right tt-money">{allocation.jumlah_dialokasikan}</td><td className="tt-right tt-money">{allocation.jumlah_diterima}</td><td className="tt-center"><StatusPill label={allocation.status} /></td>
               </tr>
             )) : null}
             {!loading && rows.length === 0 ? <tr><td colSpan={6}><div className="empty-note">Belum ada alokasi yang cocok.</div></td></tr> : null}
