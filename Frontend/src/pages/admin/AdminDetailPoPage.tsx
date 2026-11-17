@@ -63,7 +63,6 @@ export default function AdminDetailPoPage() {
               <Link to="/admin/dashboard">Admin</Link> › <Link to="/admin/pemesanan">Pemesanan (PO)</Link> › <b>Detail PO</b>
             </>
           }
-          overline="OPERASIONAL — DETAIL PO"
           title="PO Tidak Ditemukan"
           desc={loadError || `Nomor PO "${id ?? "-"}" tidak ada. Periksa kembali daftar pemesanan.`}
           actions={
@@ -126,7 +125,6 @@ export default function AdminDetailPoPage() {
             <Link to="/admin/dashboard">Admin</Link> › <Link to="/admin/pemesanan">Pemesanan (PO)</Link> › <b>Detail PO</b>
           </>
         }
-        overline="OPERASIONAL — DETAIL PO"
         title="Detail Pemesanan"
         actions={
           <Link className="btn btn-ghost" to="/admin/pemesanan">

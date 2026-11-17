@@ -97,7 +97,6 @@ export default function AdminPemesananPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="OPERASIONAL — PEMESANAN"
         title="Pemesanan (PO)"
       />
 

@@ -143,7 +143,6 @@ export default function AdminPengajuanPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="PERSEDIAAN — PENGAJUAN"
         title="Pengajuan Stok"
         actions={<button className="btn btn-primary" onClick={start}><FilePlus2 size={16} />Ajukan Stok</button>}
       />

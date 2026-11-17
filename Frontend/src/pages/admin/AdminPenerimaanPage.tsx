@@ -113,7 +113,7 @@ export default function AdminPenerimaanPage() {
 
   return (
     <div className="page">
-      <PageHeader overline="PERSEDIAAN — PENERIMAAN" title="Penerimaan Barang" />
+      <PageHeader title="Penerimaan Barang" />
 
       <div className="stat-row">
         <StatCard label="Menunggu Diterima" value={loading || error ? "—" : String(waitingCount)} caption="Kiriman baru dari pusat" icon={<Truck size={22} />} tone="amber" />

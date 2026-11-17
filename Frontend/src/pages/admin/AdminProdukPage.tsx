@@ -176,7 +176,6 @@ export default function AdminProdukPage({ type }: Props) {
   return (
     <div className="page">
       <PageHeader
-        overline={type === "Frame" ? "MASTER PRODUK — FRAME" : "MASTER PRODUK — LENSA"}
         title={type === "Frame" ? "Katalog Frame" : "Katalog Lensa"}
         actions={
           <button className="btn btn-primary" onClick={startAdd}>

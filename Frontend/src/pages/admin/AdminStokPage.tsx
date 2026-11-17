@@ -106,7 +106,6 @@ export default function AdminStokPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="PERSEDIAAN CABANG"
         title="Stok Cabang"
       />
 

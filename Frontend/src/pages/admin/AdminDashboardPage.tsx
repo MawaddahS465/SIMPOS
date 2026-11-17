@@ -50,7 +50,6 @@ export default function AdminDashboardPage() {
   return (
     <div className="page dashboard-anim">
       <PageHeader
-        overline="DASHBOARD ADMIN CABANG"
         title="Dashboard Admin Cabang"
         actions={summary ? <span className="branch-chip">{summary.branch}</span> : null}
       />
