@@ -23,7 +23,7 @@ import {
   type BranchStatus,
 } from "../../store/sharedStore";
 import { ApiError, ownerManagementApi } from "../../lib/api";
-import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
+import { PageHeader, SearchBox, StatCard, StatusPill, TableCols } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 import "../../styles/owner-settings.css";
@@ -822,7 +822,8 @@ export default function OwnerCabangPage() {
           </div>
 
           <div className="table-wrap">
-            <table className="tt">
+            <table className="tt owner-table">
+              <TableCols widths={["25%", "24%", "12%", "19%", "20%"]} />
               <thead>
                 <tr>
                   <th>NAMA LOKASI</th>
@@ -835,20 +836,20 @@ export default function OwnerCabangPage() {
               <tbody>
                 {filtered.map(({ branch, units, sales, po, req, city, address }) => (
                   <tr key={branch.id}>
-                    <td style={{ whiteSpace: "nowrap" }}>
+                    <td>
                       <div className="cell-person">
                         <span
                           className="stat-icon"
                           style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 13,
+                            width: 38,
+                            height: 38,
+                            borderRadius: 12,
                             ...(branch.type === "Pusat"
                               ? { background: "var(--info-bg)", color: "var(--info-ink)" }
                               : {}),
                           }}
                         >
-                          {branch.type === "Pusat" ? <Boxes size={19} /> : <Building2 size={19} />}
+                          {branch.type === "Pusat" ? <Boxes size={18} /> : <Building2 size={18} />}
                         </span>
                         <span>
                           <b>{branchDisplayName(branch)}</b>
@@ -861,10 +862,10 @@ export default function OwnerCabangPage() {
                     <td>
                       <BranchCellStack primary={address} secondary={city} />
                     </td>
-                    <td className="tt-center" style={{ whiteSpace: "nowrap" }}>
+                    <td className="tt-center">
                       <StatusPill label={branch.status} />
                     </td>
-                    <td style={{ whiteSpace: "nowrap" }}>
+                    <td>
                       {branch.type === "Pusat" ? (
                         <>
                           <div className="tt-num" style={{ fontSize: 13.5 }}>
@@ -883,7 +884,7 @@ export default function OwnerCabangPage() {
                         </>
                       )}
                     </td>
-                    <td className="tt-right" style={{ whiteSpace: "nowrap" }}>
+                    <td className="tt-right">
                       <div className="branch-row-actions">
                         <button
                           type="button"

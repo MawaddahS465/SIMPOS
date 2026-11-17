@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Download, FileSpreadsheet, FileText } from "lucide-react";
 import { useSharedStore, type ProductType } from "../../store/sharedStore";
 import { exportPdf, exportXlsx, inPeriod, periodRange, rp, stamp, type PeriodKey } from "../../store/reports";
-import { Chip, PageHeader, SearchBox, StatusPill, formatIDR } from "../../components/ui";
+import { Chip, PageHeader, SearchBox, StatusPill, TableCols, formatIDR } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -16,6 +16,12 @@ const KINDS: Array<{ id: Kind; label: string }> = [
 const PERIODS: PeriodKey[] = ["semua", "hari", "mingguan", "bulanan", "tahunan", "custom"];
 const PERIOD_LABEL: Record<PeriodKey, string> = {
   semua: "Semua waktu", hari: "Hari ini", mingguan: "Minggu ini", bulanan: "Bulan ini", tahunan: "Tahun ini", custom: "Rentang",
+};
+const REPORT_COL_WIDTHS: Record<Kind, readonly string[]> = {
+  transaksi: ["19%", "15%", "13%", "17%", "11%", "11%", "14%"],
+  stok: ["16%", "10%", "32%", "11%", "8%", "11%", "12%"],
+  po: ["16%", "13%", "15%", "16%", "28%", "12%"],
+  aktivitas: ["15%", "13%", "11%", "20%", "12%", "6%", "14%", "9%"],
 };
 
 export default function OwnerLaporanPage() {
@@ -263,7 +269,8 @@ export default function OwnerLaporanPage() {
       </section>
 
       <div className="table-wrap">
-        <table className="tt">
+        <table className={`tt owner-table${kind === "aktivitas" ? " owner-table-dense" : ""}`}>
+          <TableCols widths={REPORT_COL_WIDTHS[kind]} />
           <thead>
             <tr>
               {data.head.map((h) => (
@@ -275,7 +282,7 @@ export default function OwnerLaporanPage() {
             {data.body.map((r, i) => (
               <tr key={i}>
                 {r.map((c, j) => (
-                  <td key={j} className={typeof c === "number" ? "tt-right tt-money" : /tanggal|waktu/i.test(data.head[j]) ? "tt-nowrap" : ""}>
+                  <td key={j} className={typeof c === "number" ? "tt-right tt-money" : /referensi|kode|no\./i.test(data.head[j]) ? "tt-nowrap" : ""}>
                     {typeof c === "number" && /total/i.test(data.head[j]) ? rp(c) : String(c)}
                   </td>
                 ))}

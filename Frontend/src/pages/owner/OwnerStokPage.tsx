@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AlertTriangle, Boxes, PackageX } from "lucide-react";
 import { useSharedStore, type ProductType } from "../../store/sharedStore";
-import { Chip, PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
+import { Chip, PageHeader, SearchBox, StatCard, StatusPill, TableCols } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -126,15 +126,14 @@ export default function OwnerStokPage() {
       </div>
 
       <div className="table-wrap">
-        <table className="tt stock-table">
-          <colgroup>
-            {showLocation ? <col style={{ width: "14%" }} /> : null}
-            <col style={{ width: showLocation ? "38%" : "50%" }} />
-            <col style={{ width: "12%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: showLocation ? "16%" : "18%" }} />
-          </colgroup>
+        <table className="tt owner-table stock-table">
+          <TableCols
+            widths={
+              showLocation
+                ? ["15%", "39%", "11%", "8%", "10%", "17%"]
+                : ["54%", "11%", "8%", "10%", "17%"]
+            }
+          />
           <thead>
             <tr>
               {showLocation ? <th>LOKASI</th> : null}

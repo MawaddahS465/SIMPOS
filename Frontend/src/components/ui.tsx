@@ -143,6 +143,18 @@ export function StatCard({
   );
 }
 
+/* ---------- Table column proportions ---------- */
+/** Render `<colgroup>` with explicit column width proportions. */
+export function TableCols({ widths }: { widths: readonly string[] }) {
+  return (
+    <colgroup>
+      {widths.map((width, index) => (
+        <col key={index} style={{ width }} />
+      ))}
+    </colgroup>
+  );
+}
+
 /* ---------- Avatar initials ---------- */
 export function Avatar({ initials, size = 40 }: { initials: string; size?: number }) {
   return (

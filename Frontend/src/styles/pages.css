@@ -463,6 +463,92 @@ table.tt td:last-child .row-actions {
   justify-content: flex-end;
 }
 
+/* Tabel Pemilik: proporsi kolom terukur via <colgroup> & table-layout fixed */
+table.tt.owner-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+table.tt.owner-table th.tt-right,
+table.tt.owner-table th:last-child,
+table.tt.owner-table td:last-child:has(.link-action),
+table.tt.owner-table td:last-child:has(.row-actions) {
+  width: auto;
+}
+
+table.tt.owner-table th,
+table.tt.owner-table td {
+  padding: 12px 9px;
+}
+
+table.tt.owner-table th {
+  letter-spacing: 0.75px;
+}
+
+table.tt.owner-table td {
+  overflow-wrap: break-word;
+}
+
+/* Kode/ID di kolom pertama tetap satu baris; sub-baris waktu boleh membungkus rapi */
+table.tt.owner-table td:first-child {
+  white-space: normal;
+}
+
+table.tt.owner-table td:first-child > .tt-num,
+table.tt.owner-table td .tt-nowrap {
+  white-space: nowrap;
+}
+
+table.tt.owner-table .status-pill {
+  padding: 5px 9px;
+  font-size: 11.5px;
+  gap: 5px;
+}
+
+table.tt.owner-table .link-action {
+  white-space: nowrap;
+}
+
+table.tt.owner-table .cell-person {
+  gap: 10px;
+  min-width: 0;
+}
+
+table.tt.owner-table .cell-person > span:last-child {
+  overflow-wrap: break-word;
+}
+
+/* Tabel Pemilik padat (8–9 kolom: pengajuan, transaksi, laporan aktivitas) */
+table.tt.owner-table.owner-table-dense th {
+  padding: 11px 6px;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+
+table.tt.owner-table.owner-table-dense td {
+  padding: 11px 6px;
+  font-size: 13px;
+}
+
+table.tt.owner-table.owner-table-dense .status-pill {
+  padding: 5px 8px;
+}
+
+table.tt.owner-table.owner-table-transaksi {
+  min-width: 840px;
+}
+
+table.tt.owner-table.owner-table-pengajuan {
+  min-width: 870px;
+}
+
+.owner-row-actions {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 .cell-person {
   display: flex;
   align-items: center;

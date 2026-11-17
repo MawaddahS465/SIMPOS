@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ArrowRight, TriangleAlert, X } from "lucide-react";
 import { useSharedStore } from "../../store/sharedStore";
 import { inPeriod, periodRange, type PeriodKey } from "../../store/reports";
-import { PageHeader, SearchBox, StatCard, StatusPill, formatIDR } from "../../components/ui";
+import { PageHeader, SearchBox, StatCard, StatusPill, TableCols, formatIDR } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -130,7 +130,8 @@ export default function OwnerTransaksiPage() {
       </div>
 
       <div className="table-wrap">
-        <table className="tt">
+        <table className="tt owner-table owner-table-dense owner-table-transaksi">
+          <TableCols widths={["17%", "14%", "12%", "14%", "10%", "12%", "12%", "9%"]} />
           <thead>
             <tr>
               <th>NO. TRANSAKSI</th>
@@ -150,7 +151,7 @@ export default function OwnerTransaksiPage() {
                   <div className="tt-num" style={{ fontSize: 12.5 }}>{t.no}</div>
                 </td>
                 <td>
-                  <div className="tt-sub" style={{ marginTop: 0, whiteSpace: "nowrap" }}>{t.date}{t.time ? ` · ${t.time}` : ""}</div>
+                  <div className="tt-sub" style={{ marginTop: 0 }}>{t.date}{t.time ? ` · ${t.time}` : ""}</div>
                 </td>
                 <td>{store.branches.find((b) => b.id === (t.branchId ?? "cabang-padang"))?.name ?? "Cabang Padang"}</td>
                 <td>
@@ -165,7 +166,7 @@ export default function OwnerTransaksiPage() {
                 </td>
                 <td className="tt-right">
                   <button className="link-action" onClick={() => setDetailNo(t.no)}>
-                    Lihat Detail
+                    Detail
                     <ArrowRight size={15} />
                   </button>
                 </td>

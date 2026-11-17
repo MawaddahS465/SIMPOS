@@ -3,13 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { CheckCircle2, Clock, Truck, X } from "lucide-react";
 import { ApiError, ownerStockFlowApi, type StockRequestRow } from "../../lib/api";
 import { requestStateLabel, type RequestState } from "../../store/requestStatus";
-import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
+import { PageHeader, SearchBox, StatCard, StatusPill, TableCols } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
 type StatusFilter = "Semua" | RequestState;
 
 const STATUSES: StatusFilter[] = ["Semua", "Diajukan", "Sebagian", "Dialokasikan", "Selesai", "Ditolak"];
+
+function formatRequestDate(value: string): string {
+  const parsed = new Date(value.replace(" ", "T"));
+  if (Number.isNaN(parsed.getTime())) return value;
+  const date = parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+  const time = parsed.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }).replace(".", ":");
+  return `${date}, ${time}`;
+}
 
 export default function OwnerPengajuanPage() {
   const navigate = useNavigate();
@@ -99,25 +107,28 @@ export default function OwnerPengajuanPage() {
       </div>
 
       <div className="table-wrap">
-        <table className="tt">
-          <thead><tr><th>ID / WAKTU</th><th>CABANG</th><th>PRODUK</th><th className="tt-right">DIMINTA</th><th className="tt-right">DIALOKASIKAN</th><th className="tt-right">DITERIMA</th><th className="tt-right">SISA</th><th className="tt-center">STATUS</th><th className="tt-right">AKSI</th></tr></thead>
+        <table className="tt owner-table owner-table-dense owner-table-pengajuan">
+          <TableCols widths={["15%", "13%", "16%", "7%", "10%", "8%", "5%", "17%", "9%"]} />
+          <thead><tr><th>ID / WAKTU</th><th>CABANG</th><th>PRODUK</th><th className="tt-center">DIMINTA</th><th className="tt-center">DIALOKASIKAN</th><th className="tt-center">DITERIMA</th><th className="tt-center">SISA</th><th className="tt-center">STATUS</th><th className="tt-right">AKSI</th></tr></thead>
           <tbody>
             {loading ? <tr><td colSpan={9}><div className="empty-note">Memuat pengajuan...</div></td></tr> : null}
             {!loading ? requests.map((request) => (
               <tr key={request.id_pengajuan}>
-                <td><div className="tt-num">{request.kode_pengajuan}</div><div className="tt-sub">{request.created_at}</div></td>
+                <td><div className="tt-num">{request.kode_pengajuan}</div><div className="tt-sub tt-nowrap">{formatRequestDate(request.created_at)}</div></td>
                 <td>{request.nama_cabang}</td>
                 <td><div className="tt-num">{request.nama_barang}</div><div className="tt-sub">{request.jenis} · {request.kode_barang}</div></td>
-                <td className="tt-right tt-money">{request.jumlah_diminta}</td>
-                <td className="tt-right tt-money">{request.jumlah_dialokasikan}</td>
-                <td className="tt-right tt-money">{request.jumlah_diterima}</td>
-                <td className="tt-right tt-money">{request.sisa ?? Math.max(0, request.jumlah_diminta - request.jumlah_dialokasikan)}</td>
+                <td className="tt-center tt-money">{request.jumlah_diminta}</td>
+                <td className="tt-center tt-money">{request.jumlah_dialokasikan}</td>
+                <td className="tt-center tt-money">{request.jumlah_diterima}</td>
+                <td className="tt-center tt-money">{request.sisa ?? Math.max(0, request.jumlah_diminta - request.jumlah_dialokasikan)}</td>
                 <td className="tt-center"><StatusPill label={requestStateLabel(request.state as RequestState)} /></td>
                 <td className="tt-right">
-                  {request.state !== "Ditolak" && (request.sisa ?? (request.jumlah_diminta - request.jumlah_dialokasikan)) > 0
-                    ? <button className="link-action" onClick={() => navigate(`/owner/alokasi?requestId=${request.id_pengajuan}`)}>Alokasikan</button>
-                    : null}
-                  {request.state === "Diajukan" ? <button className="link-action" onClick={() => openDetail(request)}>Tolak</button> : null}
+                  <div className="owner-row-actions">
+                    {request.state !== "Ditolak" && (request.sisa ?? (request.jumlah_diminta - request.jumlah_dialokasikan)) > 0
+                      ? <button className="link-action" onClick={() => navigate(`/owner/alokasi?requestId=${request.id_pengajuan}`)}>Alokasikan</button>
+                      : null}
+                    {request.state === "Diajukan" ? <button className="link-action" onClick={() => openDetail(request)}>Tolak</button> : null}
+                  </div>
                 </td>
               </tr>
             )) : null}

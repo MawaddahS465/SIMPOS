@@ -3,7 +3,7 @@ import { ArrowRight, Check, Lock, X } from "lucide-react";
 import { useSharedStore } from "../../store/sharedStore";
 import { inPeriod, periodRange, type PeriodKey } from "../../store/reports";
 import type { PoStatus } from "../../data/mock";
-import { Avatar, PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
+import { Avatar, PageHeader, SearchBox, StatCard, StatusPill, TableCols } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -112,7 +112,8 @@ export default function OwnerPOPage() {
       </div>
 
       <div className="table-wrap">
-        <table className="tt">
+        <table className="tt owner-table">
+          <TableCols widths={["16%", "13%", "22%", "23%", "16%", "10%"]} />
           <thead>
             <tr>
               <th>NO. PO / TANGGAL</th>
@@ -133,7 +134,7 @@ export default function OwnerPOPage() {
                 <td>{store.branches.find((b) => b.id === o.branchId)?.name ?? o.branchId}</td>
                 <td>
                   <div className="cell-person">
-                    <Avatar initials={o.initials} size={40} />
+                    <Avatar initials={o.initials} size={34} />
                     <span><b>{o.customer}</b><span>{o.phone}</span></span>
                   </div>
                 </td>

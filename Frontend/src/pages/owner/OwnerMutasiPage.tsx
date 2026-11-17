@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Check, ChevronRight, Clock, History, Info, X } from "lucide-react";
 import { useSharedStore } from "../../store/sharedStore";
 import { requestState, requestStateLabel } from "../../store/requestStatus";
-import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
+import { PageHeader, SearchBox, StatCard, StatusPill, TableCols } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -178,7 +178,8 @@ export default function OwnerMutasiPage() {
       </div>
 
       <div className="table-wrap">
-        <table className="tt">
+        <table className="tt owner-table">
+          <TableCols widths={["15%", "23%", "15%", "10%", "13%", "14%", "10%"]} />
           <thead>
             <tr>
               <th>WAKTU / ID</th>
@@ -200,7 +201,7 @@ export default function OwnerMutasiPage() {
                   onClick={() => setSelectedId(m.id)}
                   style={{ cursor: "pointer" }}
                 >
-                  <td style={{ whiteSpace: "nowrap" }}>
+                  <td>
                     <div className="tt-num">{m.id}</div>
                     <div className="tt-sub">{m.at}</div>
                   </td>
@@ -210,18 +211,18 @@ export default function OwnerMutasiPage() {
                     </div>
                     <div className="tt-sub">{p?.code} · {p?.type}</div>
                   </td>
-                  <td style={{ whiteSpace: "nowrap" }}>
+                  <td>
                     <div className="tt-num" style={{ fontSize: 13 }}>{branchName}</div>
                     <div className="tt-sub">{m.actor}</div>
                   </td>
-                  <td className="tt-center" style={{ whiteSpace: "nowrap" }}>
+                  <td className="tt-center">
                     <StatusPill label={m.arah === "IN" ? "Masuk" : "Keluar"} />
                   </td>
-                  <td style={{ whiteSpace: "nowrap" }}>
+                  <td>
                     <div className="tt-num" style={{ fontSize: 13 }}>{m.sumber}</div>
                     <div className="tt-sub">{m.ref}</div>
                   </td>
-                  <td className="tt-right" style={{ whiteSpace: "nowrap" }}>
+                  <td className="tt-right">
                     <div
                       className="tt-money"
                       style={{ color: m.arah === "IN" ? "var(--ok-ink)" : "var(--danger-ink)" }}
