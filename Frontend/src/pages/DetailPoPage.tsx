@@ -11,12 +11,6 @@ import "../styles/pages.css";
 import "../styles/admin.css";
 
 const FLOW: PoStatus[] = ["Dipesan", "Diproses", "Sudah Datang", "Selesai"];
-const FLOW_DESC: Partial<Record<PoStatus, string>> = {
-  Dipesan: "Menunggu diproses Admin Cabang",
-  "Sudah Datang": "Barang tersedia & siap diambil pelanggan",
-  Selesai: "Pesanan selesai & telah diambil pelanggan",
-  Dibatalkan: "Dibatalkan oleh Admin Cabang",
-};
 
 export default function DetailPoPage() {
   const { id } = useParams();
@@ -156,7 +150,7 @@ export default function DetailPoPage() {
       {canPickup ? (
         <div className="notice notice-ok" role="status">
           <ClipboardCheck size={16} />
-          Barang sudah datang. Proses pengambilan akan membuka checkout dengan produk PO dan pelanggan terisi otomatis.
+          Barang sudah datang dan siap diambil pelanggan.
         </div>
       ) : null}
 
@@ -179,25 +173,17 @@ export default function DetailPoPage() {
         <div className="po-status-right">
           <div className="po-mini-label">STATUS PESANAN</div>
           <StatusPill label={order.status} />
-          {FLOW_DESC[order.status] ? (
-            <span style={{ fontSize: 12.5, color: "var(--muted)", fontWeight: 600 }}>
-              {FLOW_DESC[order.status]}
-            </span>
-          ) : null}
         </div>
       </div>
 
       <section className="panel" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <div className="section-head">
-          <div>
-            <h2>Progres Pemesanan</h2>
-          </div>
+          <h2>Progres Pemesanan</h2>
         </div>
         <div className="progress" style={{ opacity: cancelled ? 0.45 : 1 }}>
           {FLOW.map((step, i) => {
             const done = i < current || order.status === "Selesai";
             const stepLog = order.timeline.find((t) => t.to === step);
-            const stepDescription = stepLog?.at ?? (i === current ? order.createdAt : FLOW_DESC[step]);
             return (
               <div
                 key={step}
@@ -205,7 +191,7 @@ export default function DetailPoPage() {
               >
                 <span className="pdot">{done ? <Check size={14} strokeWidth={3} /> : i + 1}</span>
                 <b>{step}</b>
-                {stepDescription ? <span>{stepDescription}</span> : null}
+                <span>{stepLog?.at ?? (i === current ? order.createdAt : "—")}</span>
               </div>
             );
           })}
@@ -276,41 +262,39 @@ export default function DetailPoPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <section className="co-card">
             <div className="section-head">
-              <h2>Resep Mata (Snapshot PO)</h2>
+              <h2>Resep Mata</h2>
             </div>
             {resep ? (
-              <>
-                <table className="rx-table">
-                  <thead>
-                    <tr>
-                      <th>MATA</th>
-                      <th>SPH</th>
-                      <th>CYL</th>
-                      <th>AXIS</th>
-                      <th>ADD</th>
-                      <th>PD</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>OD (Kanan)</td>
-                      <td>{resep.od.sph}</td>
-                      <td>{resep.od.cyl}</td>
-                      <td>{resep.od.axis}</td>
-                      <td>{resep.add ?? "-"}</td>
-                      <td>{resep.pd}</td>
-                    </tr>
-                    <tr>
-                      <td>OS (Kiri)</td>
-                      <td>{resep.os.sph}</td>
-                      <td>{resep.os.cyl}</td>
-                      <td>{resep.os.axis}</td>
-                      <td>{resep.add ?? "-"}</td>
-                      <td>{resep.pd}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </>
+              <table className="rx-table">
+                <thead>
+                  <tr>
+                    <th>MATA</th>
+                    <th>SPH</th>
+                    <th>CYL</th>
+                    <th>AXIS</th>
+                    <th>ADD</th>
+                    <th>PD</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>OD (Kanan)</td>
+                    <td>{resep.od.sph}</td>
+                    <td>{resep.od.cyl}</td>
+                    <td>{resep.od.axis}</td>
+                    <td>{resep.add ?? "-"}</td>
+                    <td>{resep.pd}</td>
+                  </tr>
+                  <tr>
+                    <td>OS (Kiri)</td>
+                    <td>{resep.os.sph}</td>
+                    <td>{resep.os.cyl}</td>
+                    <td>{resep.os.axis}</td>
+                    <td>{resep.add ?? "-"}</td>
+                    <td>{resep.pd}</td>
+                  </tr>
+                </tbody>
+              </table>
             ) : (
               <div className="empty-note">PO ini tidak menyertakan resep mata.</div>
             )}
@@ -324,10 +308,6 @@ export default function DetailPoPage() {
               <div className="note-line">
                 <i />
                 {order.note}
-              </div>
-              <div className="note-line">
-                <i />
-                Hubungi pelanggan ({order.phone}) saat pesanan berstatus Sudah Datang.
               </div>
             </div>
           </section>

@@ -283,11 +283,11 @@ export default function AdminProdukPage({ type }: Props) {
               {formError ? <div className="form-error" role="alert">{formError}</div> : null}
               <label className="afield">
                 <span>Nama produk</span>
-                <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="cth. Titanium Classic" />
+                <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
               </label>
               <label className="afield">
                 <span>Merek</span>
-                <input value={form.brand} onChange={(event) => setForm({ ...form, brand: event.target.value })} placeholder="cth. Ray-Ban" />
+                <input value={form.brand} onChange={(event) => setForm({ ...form, brand: event.target.value })} />
               </label>
               <label className="afield">
                 <span>Harga jual (Rp)</span>
@@ -295,7 +295,6 @@ export default function AdminProdukPage({ type }: Props) {
                   inputMode="numeric"
                   value={form.price}
                   onChange={(event) => setForm({ ...form, price: event.target.value })}
-                  placeholder="cth. 1850000"
                 />
               </label>
               <div className="drawer-foot">
