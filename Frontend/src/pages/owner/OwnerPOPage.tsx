@@ -41,7 +41,6 @@ export default function OwnerPOPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="PENGAWASAN — PEMESANAN"
         title="Monitoring PO"
       />
 

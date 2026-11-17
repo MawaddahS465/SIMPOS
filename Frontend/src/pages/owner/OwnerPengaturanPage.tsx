@@ -212,7 +212,6 @@ export default function OwnerPengaturanPage() {
           <div className="os-settings-avatar" aria-hidden="true">{initialsFromName(ownerName)}</div>
           <div className="os-settings-title">
             <h1>{ownerName}</h1>
-            <p>Pemilik Utama SIMPOS {storeName}</p>
           </div>
           <button className="os-settings-edit" type="button" onClick={editProfile}>
             <Pencil size={15} />
@@ -280,9 +279,7 @@ export default function OwnerPengaturanPage() {
           >
             <div className="os-modal-head">
               <div>
-                <span className="os-eyebrow">EDIT PROFIL PEMILIK</span>
                 <h2 id="edit-profile-title">Edit Profil Pemilik</h2>
-                <p>Perbarui informasi identitas pribadi akun Anda.</p>
               </div>
               <button className="icon-pill" type="button" aria-label="Tutup" onClick={closeProfile} disabled={profileSaving}>
                 <X size={18} />
@@ -359,9 +356,7 @@ export default function OwnerPengaturanPage() {
           >
             <div className="os-modal-head">
               <div>
-                <span className="os-eyebrow">KEAMANAN AKUN</span>
                 <h2 id="change-password-title">Ubah Kata Sandi</h2>
-                <p>Pastikan kata sandi baru kuat dan mudah Anda ingat.</p>
               </div>
               <button className="icon-pill" type="button" aria-label="Tutup" onClick={closeSecurity} disabled={securitySaving}>
                 <X size={18} />

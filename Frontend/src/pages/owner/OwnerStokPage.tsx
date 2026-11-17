@@ -67,7 +67,6 @@ export default function OwnerStokPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="MONITORING — STOK"
         title="Monitoring Stok"
       />
 

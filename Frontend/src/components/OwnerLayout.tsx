@@ -31,7 +31,6 @@ export default function OwnerLayout() {
             <MRLogo size={44} />
             <span className="brand-text">
               <b>Optik Mekar Jaya</b>
-              <span>Sistem Informasi Optik</span>
             </span>
           </div>
 

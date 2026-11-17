@@ -141,7 +141,7 @@ export default function OwnerAlokasiPage() {
 
   return (
     <div className="page">
-      <PageHeader overline="KEPUTUSAN — ALOKASI" title="Alokasi Distribusi" actions={<button className="btn btn-primary" onClick={start}><PackagePlus size={16} />Buat Alokasi</button>} />
+      <PageHeader title="Alokasi Distribusi" actions={<button className="btn btn-primary" onClick={start}><PackagePlus size={16} />Buat Alokasi</button>} />
       <div className="stat-row">
         <StatCard label="Menunggu Diterima" value={String(pendingCount)} caption="Kiriman belum diterima cabang" icon={<Truck size={22} />} tone="amber" />
         <StatCard label="Diterima Sebagian" value={String(partialCount)} caption="Masih ada sisa alokasi" icon={<PackagePlus size={22} />} tone="violet" />
@@ -178,7 +178,7 @@ export default function OwnerAlokasiPage() {
       {open ? (
         <div className="overlay" onClick={() => !saving && setOpen(false)}>
           <div className="drawer" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
-            <div className="drawer-head"><div><h2>Buat Alokasi</h2><div className="section-desc">Alokasi stok pusat untuk cabang</div></div><button className="icon-pill" aria-label="Tutup" onClick={() => setOpen(false)} disabled={saving}><X size={18} /></button></div>
+            <div className="drawer-head"><div><h2>Buat Alokasi</h2></div><button className="icon-pill" aria-label="Tutup" onClick={() => setOpen(false)} disabled={saving}><X size={18} /></button></div>
             <form onSubmit={submit} className="drawer-form" noValidate>
               {error ? <div className="form-error" role="alert">{error}</div> : null}
               <label className="afield"><span>Cabang tujuan *</span><select value={branchId} onChange={(event) => { setBranchId(event.target.value); setRequestId(""); }} required>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.nama_cabang}</option>)}</select></label>

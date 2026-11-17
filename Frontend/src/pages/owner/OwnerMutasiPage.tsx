@@ -106,7 +106,6 @@ export default function OwnerMutasiPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="PENGAWASAN — RIWAYAT MUTASI"
         title="Riwayat Mutasi"
       />
 

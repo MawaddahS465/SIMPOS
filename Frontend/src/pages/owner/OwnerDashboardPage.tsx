@@ -318,7 +318,6 @@ export default function OwnerDashboardPage() {
   return (
     <div className="page dashboard-anim">
       <PageHeader
-        overline="DASHBOARD PEMILIK"
         title="Dashboard Pemilik"
         actions={
           <div className="dash-toolbar-filters">
@@ -411,9 +410,6 @@ export default function OwnerDashboardPage() {
           <div className="section-head">
             <div>
               <h2>Tren Penjualan</h2>
-              <div className="section-desc">
-                Transaksi selesai per tanggal aktif · {range.periodLabel} · {scopeLabel(scope, store.branches)}
-              </div>
             </div>
             {hasComparison ? (
               <div className="chart-legend">

@@ -48,7 +48,6 @@ export default function OwnerTransaksiPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="PENGAWASAN — TRANSAKSI"
         title="Monitoring Transaksi"
       />
 
@@ -125,7 +124,7 @@ export default function OwnerTransaksiPage() {
         <StatCard
           label="Total Omzet"
           value={formatIDR(omzet)}
-          caption={`Transaksi selesai · ${range.label}`}
+          caption=""
           tone="violet"
         />
       </div>
@@ -194,7 +193,6 @@ export default function OwnerTransaksiPage() {
             <div className="drawer-head">
               <div>
                 <h2>{detail.no}</h2>
-                <div className="section-desc">Rincian transaksi dari Kasir.</div>
               </div>
               <button className="icon-pill" aria-label="Tutup" onClick={() => setDetailNo(null)}>
                 <X size={18} />

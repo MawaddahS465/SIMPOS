@@ -758,7 +758,6 @@ export default function OwnerCabangPage() {
   return (
     <div className="page branch-page">
       <PageHeader
-        overline="MONITORING - CABANG"
         title="Monitoring Cabang"
         actions={
           <button className="btn btn-primary" type="button" onClick={openCreate}>

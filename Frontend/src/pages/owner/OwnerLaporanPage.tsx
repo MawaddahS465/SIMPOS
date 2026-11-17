@@ -166,7 +166,6 @@ export default function OwnerLaporanPage() {
   return (
     <div className="page">
       <PageHeader
-        overline="PENGAWASAN — LAPORAN"
         title="Laporan Operasional"
       />
 
