@@ -87,9 +87,9 @@ export default function PemesananPage() {
       />
 
       <div className="stat-row">
-        <StatCard label="Pesanan Baru" value={String(poBaru).padStart(2, "0")} icon={<PackagePlus size={22} />} tone="violet" />
-        <StatCard label="Sedang Diproses" value={String(diproses).padStart(2, "0")} icon={<ClipboardList size={22} />} tone="amber" />
-        <StatCard label="Sudah Datang" value={String(datang).padStart(2, "0")} icon={<PackageCheck size={22} />} tone="green" />
+        <StatCard label="Pesanan Baru" value={String(poBaru).padStart(2, "0")} caption="Menunggu pemrosesan admin" icon={<PackagePlus size={22} />} tone="violet" />
+        <StatCard label="Sedang Diproses" value={String(diproses).padStart(2, "0")} caption="Dalam penanganan cabang" icon={<ClipboardList size={22} />} tone="amber" />
+        <StatCard label="Sudah Datang" value={String(datang).padStart(2, "0")} caption="Siap diambil pelanggan" icon={<PackageCheck size={22} />} tone="green" />
       </div>
 
       {created ? (
@@ -107,6 +107,7 @@ export default function PemesananPage() {
         <div className="section-head">
           <div>
             <h2>Daftar Pemesanan</h2>
+            <div className="section-desc">Informasi pesanan pelanggan dan status terbaru dari Admin Cabang</div>
           </div>
         </div>
 
@@ -161,6 +162,7 @@ export default function PemesananPage() {
                     <div className="tt-num" style={{ fontSize: 13 }}>
                       {o.productLabel}
                     </div>
+                    <div className="tt-sub">{o.items.length ? `${o.items.length} jenis produk` : "Detail produk tersedia di PO"}</div>
                   </td>
                   <td className="tt-center">
                     <StatusPill label={o.status} />
@@ -182,6 +184,9 @@ export default function PemesananPage() {
               ) : null}
             </tbody>
           </table>
+          <div className="table-foot">
+            <span className="foot-note">Menampilkan {rows.length} dari {orders.length} pesanan</span>
+          </div>
         </div>
       </section>
 

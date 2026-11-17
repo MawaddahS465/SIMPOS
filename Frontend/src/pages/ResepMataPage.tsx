@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CheckCircle2, ChevronRight, FileText, Glasses, Pencil, Plus, Printer, X } from "lucide-react";
+import { CalendarDays, CheckCircle2, ChevronRight, FileText, Glasses, Pencil, Plus, Printer, Users, X } from "lucide-react";
 import { type ResepRecord } from "../data/mock";
 import { ApiError, kasirApi, type ApiCustomer, type ApiRecipe } from "../lib/api";
 import { useSharedStore } from "../store/sharedStore";
-import { Avatar, Chip, PageHeader, SearchBox } from "../components/ui";
+import { Avatar, Chip, PageHeader, SearchBox, StatCard } from "../components/ui";
 import MRLogo from "../components/MRLogo";
 import "../styles/pages.css";
 import "../styles/admin.css";
@@ -92,6 +92,7 @@ export default function ResepMataPage() {
 
   const rec = selected ? reseps.find((r) => r.id === selected) : undefined;
   const matchedCustomer = rec ? customers.find((c) => c.name === rec.customer) : undefined;
+  const uniqueCustomersWithRx = new Set(reseps.map((r) => r.customer)).size;
   const formatDate = (date: string) => {
     const parsed = new Date(`${date}T00:00:00`);
     return Number.isNaN(parsed.getTime()) ? date : parsed.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
@@ -161,6 +162,7 @@ export default function ResepMataPage() {
   return (
     <div className="page">
       <PageHeader
+        overline="ARSIP RESEP"
         title="Resep Mata"
         actions={
           <button className="btn btn-primary" onClick={startAdd}>
@@ -169,6 +171,30 @@ export default function ResepMataPage() {
           </button>
         }
       />
+
+      <div className="stat-row">
+        <StatCard
+          label="Total arsip resep"
+          value={String(reseps.length)}
+          caption="Tersimpan di cabang ini"
+          icon={<Glasses size={22} />}
+          tone="violet"
+        />
+        <StatCard
+          label="Pelanggan memiliki resep"
+          value={String(uniqueCustomersWithRx)}
+          caption="Tercatat dalam arsip digital"
+          icon={<Users size={22} />}
+          tone="green"
+        />
+        <StatCard
+          label="Pemeriksaan terbaru"
+          value={reseps[0]?.date ?? "-"}
+          caption={reseps[0] ? `${reseps[0].customer} (${reseps[0].id})` : "Belum ada data"}
+          icon={<CalendarDays size={22} />}
+          tone="blue"
+        />
+      </div>
 
       {notice ? (
         <div className="notice notice-ok" role="status">
@@ -179,6 +205,13 @@ export default function ResepMataPage() {
       {loadError ? <div className="notice" role="alert">{loadError}</div> : null}
 
       <section className="section-block">
+        <div className="section-head">
+          <div>
+            <h2>Daftar Resep</h2>
+            <div className="section-desc">Cari riwayat resep berdasarkan nama atau nomor HP pelanggan</div>
+          </div>
+        </div>
+
         <div className="toolbar">
           <SearchBox
             placeholder="Cari nama pelanggan, nomor HP, atau kode resep..."
@@ -222,13 +255,14 @@ export default function ResepMataPage() {
                   >
                     <td>
                       <div className="tt-num">{formatDate(r.date)}</div>
+                      <div className="tt-sub">{r.id}</div>
                     </td>
                     <td>
                       <div className="cell-person">
                         <Avatar initials={r.initials} size={40} />
                         <span>
                           <b>{r.customer}</b>
-                          <span>{cust?.phone ?? "-"}</span>
+                          <span>{cust?.phone ?? r.id}</span>
                         </span>
                       </div>
                     </td>
@@ -281,6 +315,11 @@ export default function ResepMataPage() {
               ) : null}
             </tbody>
           </table>
+          <div className="table-foot">
+            <span className="foot-note">
+              Menampilkan {rows.length} dari {reseps.length} resep
+            </span>
+          </div>
         </div>
       </section>
 
@@ -292,7 +331,10 @@ export default function ResepMataPage() {
                 <Avatar initials={rec.initials} size={48} />
                 <div>
                   <b>{rec.customer}</b>
-                  <span>{matchedCustomer?.phone ?? "-"}</span>
+                  <span>
+                    {rec.id}
+                    {matchedCustomer ? ` · ${matchedCustomer.phone}` : ""}
+                  </span>
                 </div>
               </div>
               <button className="icon-pill" aria-label="Tutup" onClick={() => setSelected(null)}>
@@ -467,6 +509,7 @@ export default function ResepMataPage() {
                 </div>
                 <div>
                   <h2>{editingId ? `Ubah Resep (${editingId})` : "Tambah Resep Mata"}</h2>
+                  <p>Catat hasil pemeriksaan ukuran mata kanan (OD) &amp; kiri (OS)</p>
                 </div>
               </div>
               <button className="icon-pill" aria-label="Tutup" onClick={() => setOpen(false)}>

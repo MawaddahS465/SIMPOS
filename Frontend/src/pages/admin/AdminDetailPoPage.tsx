@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, Glasses, Lock, TriangleAler
 import type { PoStatus } from "../../data/mock";
 import { adminPoApi, ApiError } from "../../lib/api";
 import { mapApiPo, type KasirPo } from "../../lib/po";
+import { useAuth } from "../../store/auth";
 import { Avatar, PageHeader, StatusPill, formatIDR } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -16,6 +17,7 @@ const NEXT_LABEL: Record<string, string> = {
 
 export default function AdminDetailPoPage() {
   const { id } = useParams();
+  const { session } = useAuth();
   const [note, setNote] = useState("");
   const [cancelReason, setCancelReason] = useState("");
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -91,7 +93,7 @@ export default function AdminDetailPoPage() {
     try {
       const response = await adminPoApi.updateStatus(Number(order.id), target, comment);
       setOrder(mapApiPo(response.order, response.items, response.timeline));
-      setResult({ ok: true, msg: "Status PO berhasil diperbarui." });
+      setResult({ ok: true, msg: "Status PO berhasil diperbarui dan tersinkron ke Kasir." });
       setNote("");
       setCancelReason("");
     } catch (requestError) {
@@ -155,7 +157,10 @@ export default function AdminDetailPoPage() {
 
       <section className="panel" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <div className="section-head">
-          <h2>Progres Pemesanan</h2>
+          <div>
+            <h2>Progres Pemesanan</h2>
+            <div className="section-desc">Timeline beserta aktor — tersimpan lintas reload &amp; tersinkron ke Kasir</div>
+          </div>
         </div>
         <div className="progress" style={{ opacity: cancelled ? 0.45 : 1 }}>
           {FLOW.map((step, i) => {
@@ -175,7 +180,7 @@ export default function AdminDetailPoPage() {
           <div className="notice" role="status">
             <TriangleAlert size={16} />
             <span>
-              PO dibatalkan.
+              PO dibatalkan — alur proses dihentikan.
               {order.timeline.find((t) => t.to === "Dibatalkan")?.note
                 ? ` Alasan: ${order.timeline.find((t) => t.to === "Dibatalkan")?.note}`
                 : ""}
@@ -203,6 +208,9 @@ export default function AdminDetailPoPage() {
         <section className="co-card">
           <div className="section-head">
             <h2>Data Pelanggan</h2>
+            <div className="section-action">
+              <span className="tag-mini">Hanya baca</span>
+            </div>
           </div>
           <div className="cust-card">
             <Avatar initials={order.initials} size={46} />
@@ -240,36 +248,46 @@ export default function AdminDetailPoPage() {
           ) : null}
 
           <div className="section-head" style={{ marginTop: 4 }}>
-            <h2>Resep Mata</h2>
+            <h2>Snapshot Resep (OD/OS)</h2>
+            <div className="section-action">
+              <span className="tag-mini">
+                <Lock size={11} style={{ display: "inline", verticalAlign: -1 }} /> Terkunci
+              </span>
+            </div>
           </div>
           {order.resepSnapshot ? (
-            <table className="rx-table">
-              <thead>
-                <tr>
-                  <th>MATA</th>
-                  <th>SPH</th>
-                  <th>CYL</th>
-                  <th>AXIS</th>
-                  <th>ADD</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>OD (Kanan)</td>
-                  <td>{order.resepSnapshot.od.sph}</td>
-                  <td>{order.resepSnapshot.od.cyl}</td>
-                  <td>{order.resepSnapshot.od.axis}</td>
-                  <td>{order.resepSnapshot.add}</td>
-                </tr>
-                <tr>
-                  <td>OS (Kiri)</td>
-                  <td>{order.resepSnapshot.os.sph}</td>
-                  <td>{order.resepSnapshot.os.cyl}</td>
-                  <td>{order.resepSnapshot.os.axis}</td>
-                  <td>{order.resepSnapshot.add}</td>
-                </tr>
-              </tbody>
-            </table>
+            <>
+              <table className="rx-table">
+                <thead>
+                  <tr>
+                    <th>MATA</th>
+                    <th>SPH</th>
+                    <th>CYL</th>
+                    <th>AXIS</th>
+                    <th>ADD</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>OD (Kanan)</td>
+                    <td>{order.resepSnapshot.od.sph}</td>
+                    <td>{order.resepSnapshot.od.cyl}</td>
+                    <td>{order.resepSnapshot.od.axis}</td>
+                    <td>{order.resepSnapshot.add}</td>
+                  </tr>
+                  <tr>
+                    <td>OS (Kiri)</td>
+                    <td>{order.resepSnapshot.os.sph}</td>
+                    <td>{order.resepSnapshot.os.cyl}</td>
+                    <td>{order.resepSnapshot.os.axis}</td>
+                    <td>{order.resepSnapshot.add}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div className="tt-sub" style={{ fontWeight: 600 }}>
+                Disalin saat PO dibuat ({order.resepSnapshot.at}) — tidak berubah bila arsip resep pelanggan direvisi.
+              </div>
+            </>
           ) : (
             <div className="empty-note">PO ini tidak menyertakan resep.</div>
           )}
@@ -282,11 +300,19 @@ export default function AdminDetailPoPage() {
           {next ? (
             <>
               <form onSubmit={submit} className="drawer-form" noValidate>
+                <div className="tt-sub" style={{ fontWeight: 600, marginTop: 0 }}>
+                  Status saat ini: <b style={{ color: "var(--ink)" }}>{order.status}</b> → <b style={{ color: "var(--accent)" }}>{next}</b>
+                </div>
                 <label className="afield">
                   <span>Catatan proses (opsional)</span>
                   <input
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
+                    placeholder={
+                      next === "Sudah Datang"
+                        ? "cth. barang sudah diterima di cabang"
+                        : "cth. lensa selesai dipotong"
+                    }
                   />
                 </label>
                 <button type="submit" className="btn btn-primary full" disabled={saving}>
@@ -301,11 +327,15 @@ export default function AdminDetailPoPage() {
                     <h2>Batalkan PO</h2>
                   </div>
                   <form onSubmit={doCancel} className="drawer-form" noValidate>
+                    <div className="tt-sub" style={{ fontWeight: 600, marginTop: 0 }}>
+                      Hanya bisa sebelum barang datang. Alasan tercatat di timeline &amp; audit.
+                    </div>
                     <label className="afield">
                       <span>Alasan pembatalan (wajib)</span>
                       <input
                         value={cancelReason}
                         onChange={(e) => setCancelReason(e.target.value)}
+                        placeholder="cth. pelanggan membatalkan pesanan"
                       />
                     </label>
                     <button type="submit" className="btn btn-danger full" disabled={saving || cancelReason.trim().length < 3}>
@@ -321,8 +351,8 @@ export default function AdminDetailPoPage() {
               {order.status === "Selesai"
                 ? `PO selesai melalui transaksi pengambilan${order.linkedTrx ? ` ${order.linkedTrx}` : ""}.`
                 : order.status === "Dibatalkan"
-                  ? "PO sudah dibatalkan."
-                  : "Barang sudah datang dan siap diambil pelanggan di Kasir."}
+                  ? "PO sudah dibatalkan. Tidak ada aksi lanjutan."
+                  : "Barang sudah datang dan siap diambil. PO diselesaikan oleh Kasir melalui transaksi pengambilan."}
             </div>
           )}
           <div className="section-head" style={{ marginTop: 8 }}>
