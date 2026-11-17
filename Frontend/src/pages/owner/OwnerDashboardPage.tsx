@@ -436,7 +436,6 @@ export default function OwnerDashboardPage() {
           <div className="section-head">
             <div>
               <h2>Produk Terlaris</h2>
-              <div className="section-desc">Transaksi selesai · {range.periodLabel}</div>
             </div>
             <Link className="link-action" to="/owner/laporan">
               Lihat Laporan
