@@ -147,7 +147,6 @@ export default function OwnerAlokasiPage() {
         <StatCard label="Diterima Sebagian" value={String(partialCount)} caption="Masih ada sisa alokasi" icon={<PackagePlus size={22} />} tone="violet" />
         <StatCard label="Produk Bisa Dialokasikan" value={String(availableItems)} caption="Saldo pusat dikurangi reservasi" icon={<CheckCircle2 size={22} />} tone="green" />
       </div>
-      <div className="notice" role="note">Saldo awal gudang pusat adalah 0. Alokasi hanya dapat dilakukan setelah saldo pusat diisi melalui proses stok pusat.</div>
       {notice ? <div className="notice notice-ok" role="status">{notice}</div> : null}
       {error && !open ? <div className="notice" role="alert">{error}<button className="btn btn-ghost" onClick={() => void loadData()}>Coba lagi</button></div> : null}
 
