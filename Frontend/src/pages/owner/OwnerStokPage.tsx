@@ -95,7 +95,7 @@ export default function OwnerStokPage() {
       </div>
 
       <div className="toolbar">
-        <SearchBox placeholder="Cari kode, nama, atau merek produk..." value={q} onChange={setQ} />
+        <SearchBox placeholder="" value={q} onChange={setQ} />
         <div className="toolbar-chips">
           <select
             className="chip-select"

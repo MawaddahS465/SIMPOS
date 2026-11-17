@@ -294,7 +294,7 @@ export default function OwnerPengaturanPage() {
                     className="os-input"
                     value={profile.name}
                     onChange={(event) => updateProfile("name", event.target.value)}
-                    placeholder="Nama lengkap pemilik"
+
                     autoComplete="name"
                     autoFocus
                   />
@@ -305,7 +305,7 @@ export default function OwnerPengaturanPage() {
                     className="os-input"
                     value={profile.username}
                     onChange={(event) => updateProfile("username", event.target.value)}
-                    placeholder="Username untuk login"
+
                     autoComplete="username"
                   />
                 </label>
@@ -316,7 +316,7 @@ export default function OwnerPengaturanPage() {
                     type="email"
                     value={profile.email}
                     onChange={(event) => updateProfile("email", event.target.value)}
-                    placeholder="nama@email.com"
+
                     autoComplete="email"
                   />
                 </label>
@@ -327,7 +327,7 @@ export default function OwnerPengaturanPage() {
                     type="tel"
                     value={profile.phone}
                     onChange={(event) => updateProfile("phone", event.target.value)}
-                    placeholder="08xx xxxx xxxx"
+
                     autoComplete="tel"
                   />
                 </label>
@@ -372,7 +372,7 @@ export default function OwnerPengaturanPage() {
                     type={showPasswords ? "text" : "password"}
                     value={securityForm.current}
                     onChange={(event) => setSecurityForm({ ...securityForm, current: event.target.value })}
-                    placeholder="Masukkan kata sandi saat ini"
+
                     autoComplete="current-password"
                     autoFocus
                   />
@@ -395,7 +395,7 @@ export default function OwnerPengaturanPage() {
                     type={showPasswords ? "text" : "password"}
                     value={securityForm.next}
                     onChange={(event) => setSecurityForm({ ...securityForm, next: event.target.value })}
-                    placeholder="Min. 8 karakter"
+
                     autoComplete="new-password"
                   />
                   <button
@@ -428,7 +428,7 @@ export default function OwnerPengaturanPage() {
                     type={showPasswords ? "text" : "password"}
                     value={securityForm.confirm}
                     onChange={(event) => setSecurityForm({ ...securityForm, confirm: event.target.value })}
-                    placeholder="Ulangi kata sandi baru"
+
                     autoComplete="new-password"
                   />
                   <button

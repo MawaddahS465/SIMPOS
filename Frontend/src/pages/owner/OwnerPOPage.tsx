@@ -46,7 +46,7 @@ export default function OwnerPOPage() {
 
       <div className="toolbar">
         <SearchBox
-          placeholder="Cari nomor PO atau pelanggan..."
+
           value={q}
           onChange={setQ}
         />

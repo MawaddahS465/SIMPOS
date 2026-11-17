@@ -152,7 +152,7 @@ export default function OwnerAlokasiPage() {
       {error && !open ? <div className="notice" role="alert">{error}<button className="btn btn-ghost" onClick={() => void loadData()}>Coba lagi</button></div> : null}
 
       <div className="toolbar">
-        <SearchBox placeholder="Cari ID alokasi, cabang, atau produk..." value={query} onChange={setQuery} />
+        <SearchBox placeholder="" value={query} onChange={setQuery} />
         <select className="select-pill" aria-label="Filter Status Alokasi" value={filter} onChange={(event) => setFilter(event.target.value as DistributionStatus)}>
           <option value="Semua">Semua Status</option><option value="Menunggu Diterima">Menunggu Diterima</option><option value="Diterima Sebagian">Diterima Sebagian</option><option value="Diterima">Diterima</option>
         </select>

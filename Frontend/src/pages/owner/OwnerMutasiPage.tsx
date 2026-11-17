@@ -135,7 +135,7 @@ export default function OwnerMutasiPage() {
 
       <div className="toolbar">
         <SearchBox
-          placeholder="Cari ID mutasi, nomor referensi, kode, atau nama produk..."
+
           value={q}
           onChange={setQ}
         />

@@ -86,7 +86,7 @@ export default function OwnerPengajuanPage() {
       {error ? <div className="notice" role="alert">{error}<button className="btn btn-ghost" onClick={() => void loadRequests()}>Coba lagi</button></div> : null}
 
       <div className="toolbar">
-        <SearchBox placeholder="Cari ID pengajuan, produk, atau kode..." value={query} onChange={setQuery} />
+        <SearchBox placeholder="" value={query} onChange={setQuery} />
         <div className="toolbar-chips">
           <select className="chip-select" aria-label="Filter Status Pengajuan" value={status} onChange={(event) => setStatus(event.target.value as StatusFilter)}>
             {STATUSES.map((value) => <option key={value} value={value}>{value === "Semua" ? "Semua Status" : requestStateLabel(value)}</option>)}

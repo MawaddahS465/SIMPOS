@@ -53,7 +53,7 @@ export default function OwnerTransaksiPage() {
 
       <div className="toolbar">
         <SearchBox
-          placeholder="Cari nomor transaksi atau pelanggan..."
+
           value={q}
           onChange={setQ}
         />

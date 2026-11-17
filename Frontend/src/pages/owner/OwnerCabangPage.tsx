@@ -679,7 +679,7 @@ export default function OwnerCabangPage() {
             className="os-input"
             value={branchForm.name}
             onChange={(event) => updateBranchForm("name", event.target.value)}
-            placeholder="Nama cabang"
+
             disabled={central}
             autoFocus={!central}
           />
@@ -690,7 +690,7 @@ export default function OwnerCabangPage() {
             className="os-input"
             value={branchForm.code}
             onChange={(event) => updateBranchForm("code", event.target.value.toUpperCase())}
-            placeholder="Kode cabang"
+
             maxLength={8}
             disabled={central}
           />
@@ -714,7 +714,7 @@ export default function OwnerCabangPage() {
             type="tel"
             value={branchForm.phone}
             onChange={(event) => updateBranchForm("phone", event.target.value)}
-            placeholder="(0751) 123456"
+
             autoComplete="tel"
             autoFocus={central}
           />
@@ -726,7 +726,7 @@ export default function OwnerCabangPage() {
             type="email"
             value={branchForm.email}
             onChange={(event) => updateBranchForm("email", event.target.value)}
-            placeholder="cabang@email.com"
+
             autoComplete="email"
           />
         </label>
@@ -736,7 +736,7 @@ export default function OwnerCabangPage() {
             className="os-input"
             value={branchForm.address}
             onChange={(event) => updateBranchForm("address", event.target.value)}
-            placeholder="Alamat operasional cabang"
+
             autoComplete="street-address"
           />
         </label>
@@ -746,7 +746,7 @@ export default function OwnerCabangPage() {
             className="os-input"
             value={central ? cityFromAddress(branchForm.address) : branchForm.city}
             onChange={(event) => updateBranchForm("city", event.target.value)}
-            placeholder="Kota"
+
             autoComplete="address-level2"
             disabled={central}
           />
@@ -815,7 +815,7 @@ export default function OwnerCabangPage() {
 
           <div className="toolbar branch-search-row">
             <SearchBox
-              placeholder="Cari nama, kode, kota, atau alamat..."
+
               value={q}
               onChange={setQ}
             />
@@ -1213,7 +1213,7 @@ export default function OwnerCabangPage() {
                         className="os-input"
                         value={branchForm.name}
                         onChange={(event) => updateBranchForm("name", event.target.value)}
-                        placeholder="Contoh: Sitoba"
+
                         autoFocus
                       />
                     </label>
@@ -1226,7 +1226,7 @@ export default function OwnerCabangPage() {
                         className="os-input"
                         value={branchForm.code}
                         onChange={(event) => updateBranchForm("code", event.target.value.toUpperCase())}
-                        placeholder="CB008"
+
                         maxLength={8}
                       />
                     </label>
@@ -1248,7 +1248,7 @@ export default function OwnerCabangPage() {
                         type="tel"
                         value={branchForm.phone}
                         onChange={(event) => updateBranchForm("phone", event.target.value)}
-                        placeholder="(0751) 123456"
+
                         autoComplete="tel"
                       />
                     </label>
@@ -1259,7 +1259,7 @@ export default function OwnerCabangPage() {
                         type="email"
                         value={branchForm.email}
                         onChange={(event) => updateBranchForm("email", event.target.value)}
-                        placeholder="cabang@email.com"
+
                         autoComplete="email"
                       />
                     </label>
@@ -1272,7 +1272,7 @@ export default function OwnerCabangPage() {
                         className="os-input"
                         value={branchForm.address}
                         onChange={(event) => updateBranchForm("address", event.target.value)}
-                        placeholder="Alamat operasional cabang"
+
                         autoComplete="street-address"
                       />
                     </label>
@@ -1282,7 +1282,7 @@ export default function OwnerCabangPage() {
                         className="os-input"
                         value={branchForm.city}
                         onChange={(event) => updateBranchForm("city", event.target.value)}
-                        placeholder="Padang"
+
                         autoComplete="address-level2"
                       />
                     </label>
@@ -1394,7 +1394,7 @@ export default function OwnerCabangPage() {
                     className="os-input"
                     value={accountForm.name}
                     onChange={(event) => setAccountForm({ ...accountForm, name: event.target.value })}
-                    placeholder="Nama lengkap pengelola"
+
                     autoComplete="name"
                     autoFocus
                   />
@@ -1418,7 +1418,7 @@ export default function OwnerCabangPage() {
                     className="os-input"
                     value={accountForm.username}
                     onChange={(event) => setAccountForm({ ...accountForm, username: event.target.value })}
-                    placeholder="cth. admin.cabang atau admin@email.com"
+
                     autoComplete="username"
                   />
                 </label>
@@ -1429,7 +1429,7 @@ export default function OwnerCabangPage() {
                     type="tel"
                     value={accountForm.phone}
                     onChange={(event) => setAccountForm({ ...accountForm, phone: event.target.value })}
-                    placeholder="08xx xxxx xxxx"
+
                     autoComplete="tel"
                   />
                 </label>
@@ -1441,7 +1441,7 @@ export default function OwnerCabangPage() {
                       type={showPassword ? "text" : "password"}
                       value={accountForm.password}
                       onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
-                      placeholder="Minimal 8 karakter"
+
                       autoComplete="new-password"
                       required
                       aria-describedby="password-help"
@@ -1525,7 +1525,7 @@ export default function OwnerCabangPage() {
                       className="os-input"
                       value={accountForm.name}
                       onChange={(event) => setAccountForm({ ...accountForm, name: event.target.value })}
-                      placeholder="Contoh: Rina Marliana"
+
                       autoComplete="name"
                       autoFocus
                     />
@@ -1555,7 +1555,7 @@ export default function OwnerCabangPage() {
                       className="os-input"
                       value={accountForm.username}
                       onChange={(event) => setAccountForm({ ...accountForm, username: event.target.value })}
-                      placeholder="rina@optikmekarjaya.com"
+
                       autoComplete="username"
                     />
                   </label>
@@ -1566,7 +1566,7 @@ export default function OwnerCabangPage() {
                       type="tel"
                       value={accountForm.phone}
                       onChange={(event) => setAccountForm({ ...accountForm, phone: event.target.value })}
-                      placeholder="0812-3456-7890"
+
                       autoComplete="tel"
                     />
                   </label>
@@ -1581,7 +1581,7 @@ export default function OwnerCabangPage() {
                         type={showCreatePassword ? "text" : "password"}
                         value={accountForm.password}
                         onChange={(event) => setAccountForm({ ...accountForm, password: event.target.value })}
-                        placeholder="Minimal 8 karakter"
+
                         autoComplete="new-password"
                         aria-describedby="create-password-help"
                       />

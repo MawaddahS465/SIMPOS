@@ -188,7 +188,7 @@ export default function OwnerLaporanPage() {
 
       <div className="toolbar">
         <SearchBox
-          placeholder="Cari pada laporan..."
+
           value={q}
           onChange={(v) => {
             setQ(v);
