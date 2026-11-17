@@ -55,7 +55,7 @@ export function SearchBox({
   onChange,
   width,
 }: {
-  placeholder: string;
+  placeholder?: string;
   value?: string;
   onChange?: (v: string) => void;
   width?: number;
