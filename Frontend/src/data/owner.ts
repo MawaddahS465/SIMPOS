@@ -9,7 +9,7 @@ import {
   Receipt,
   ClipboardList,
   BarChart3,
-  Settings,
+  Users,
 } from "lucide-react";
 
 export type OwnerNavItem = {
@@ -52,7 +52,7 @@ export const OWNER_NAV: OwnerNavGroup[] = [
     ],
   },
   {
-    title: "PENGATURAN",
-    items: [{ label: "Pengaturan", to: "/owner/pengaturan", icon: Settings, ready: true }],
+    title: "AKSES",
+    items: [{ label: "Pengguna", to: "/owner/pengguna", icon: Users, ready: true }],
   },
 ];

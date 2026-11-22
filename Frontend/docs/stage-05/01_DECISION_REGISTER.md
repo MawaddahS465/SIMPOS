@@ -2,7 +2,7 @@
 
 Legenda status: EXPLICIT_PRD = diatur jelas; CONFLICTING_PRD = sumber bertentangan;
 NO_PRD_POLICY = tak ada aturan; TECHNICAL_GAP = butuh backend/teknis.
-Keputusan: PENDING_STAKEHOLDER (semua; tanpa bukti tertulis tidak ada APPROVED).
+Keputusan: PENDING_STAKEHOLDER (semua, kecuali #13 yang APPROVED pada 22 Nov 2026).
 
 | # | Topik asli (verbatim) | PRD | Status | Rekomendasi analis (PROPOSED) | Dampak implementasi | PJ / Prioritas |
 |---|---|---|---|---|---|---|
@@ -18,7 +18,7 @@ Keputusan: PENDING_STAKEHOLDER (semua; tanpa bukti tertulis tidak ada APPROVED).
 | 10 | Template laporan + ekspor-semua-baris | EXPLICIT_PRD (OWN-11/12 wajib ekspor) + NO_PRD_POLICY template — "perlu disahkan" | EXPLICIT_PRD + NO_PRD_POLICY | Opsi H: sahkan template QA + definisi omzet; kunci ekspor = seluruh baris filter | header PDF/XLSX final; tanpa ubah query | Pemilik usaha / P1 |
 | 11 | Refund/DP/parsial/fee gateway/settlement | NO_PRD_POLICY — "belum terinci" (PRD Kasir/Admin/Pemilik) | NO_PRD_POLICY | Opsi I: tanpa alur kas/refund sampai kebijakan + biaya sah | lifecycle payment + event REFUND (backend) | Pemilik usaha + keuangan / P2 |
 | 12 | HPP/margin/laba | NO_PRD_POLICY — "bukan kebutuhan sumber" | NO_PRD_POLICY | Opsi I: tanpa klaim laba; butuh data biaya + rumus disahkan | modul biaya terpisah; laporan laba TERKUNCI sampai ada data | Pemilik usaha / P2 |
-| 13 | Manajemen akun/cabang/role oleh Owner | NO_PRD_POLICY — "perlu dirumuskan"; "belum dijelaskan eksplisit" | NO_PRD_POLICY | Opsi G: least privilege; Owner ≠ superuser transaksi; CRUD akun = otorisasi sah | modul akun + RBAC server; audit admin | Pemilik usaha / P1 |
+| 13 | Manajemen akun/cabang/role oleh Owner | NO_PRD_POLICY — "perlu dirumuskan"; "belum dijelaskan eksplisit" | **APPROVED** (22 Nov 2026): Owner mengelola akun dan master cabang | Opsi G diterima dengan pembatas: role akun sendiri dan Pemilik aktif terakhir tidak dapat dicabut; nonaktifkan sebagai ganti hard delete; aksi tercatat di log | `OwnerPenggunaPage` + `OwnerCabangPage`; guard role di `OwnerManagementApi::saveUser`; `log_message('info')` | Pemilik usaha / P1 |
 | 14 | Stack backend, HTTPS, backup/RPO, SLA | TECHNICAL_GAP — Charter CI4/MySQL vs Bab II React/Supabase; "PRD tidak memutuskan" | TECHNICAL_GAP | Opsi J: ADR + proposal tanpa migrasi; RPO/RTO disetujui | backend + TLS + backup + monitoring (deployment) | Pemilik usaha + tim IT / P0 |
 
 Bukti approval: (kosong — menunggu `04_APPROVAL_SHEET.md` ditandatangani).

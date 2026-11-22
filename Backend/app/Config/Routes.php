@@ -78,7 +78,6 @@ $routes->post('produk/(:num)/aktifkan', 'AdminInventoryApi::activateProduct/$1')
         $routes->post('pengaturan', 'OwnerManagementApi::saveSettings');
         $routes->post('pengaturan/password', 'OwnerManagementApi::changePassword');
         $routes->get('pengajuan-stok', 'OwnerStockFlowApi::requests');
-        $routes->post('pengajuan-stok/(:num)/tolak', 'OwnerStockFlowApi::rejectRequest/$1');
         $routes->get('alokasi-stok/opsi', 'OwnerStockFlowApi::allocationOptions');
         $routes->get('alokasi-stok', 'OwnerStockFlowApi::allocations');
         $routes->post('alokasi-stok', 'OwnerStockFlowApi::createAllocation');

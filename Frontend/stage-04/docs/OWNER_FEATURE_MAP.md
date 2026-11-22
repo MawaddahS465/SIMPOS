@@ -1,4 +1,4 @@
-# OWNER FEATURE MAP — Berdasarkan PRD Pemilik v1.0
+# OWNER FEATURE MAP — Berdasarkan PRD Pemilik v1.0 (+ adendum v1.1)
 
 | Kode | Layar | Kebutuhan utama | Hak Owner |
 |---|---|---|---|
@@ -12,12 +12,15 @@
 | O08 | Transaksi & Pembayaran | Detail/rekap transaksi Kasir | Baca |
 | O09 | Monitoring PO | Keempat status, rincian tiap cabang | Baca |
 | O10 | Laporan & Ekspor | Filter dan ekspor XLSX/PDF | Baca/ekspor |
+| O11 | Manajemen Pengguna | Akun Admin/Kasir/Pemilik, role, cabang, status | Kelola akun |
+| O12 | Manajemen Cabang | Tambah, ubah, nonaktifkan cabang | Kelola cabang |
 
 ## Perbedaan dengan Admin dan Kasir
 - Owner **tidak** menginput transaksi, mengedit resep, memproses pembayaran, atau mengubah status PO.
 - Owner **tidak** mencatat barang diterima; itu kewenangan Admin Cabang.
 - Owner **menentukan kuantitas alokasi pusat ke cabang** dan meninjau pengajuan Admin.
-- Manajemen akun/cabang dan refund bukan scope yang secara eksplisit disetujui.
+- Owner **mengelola akun** (O11) dan **master cabang** (O12), tanpa hard delete.
+- Owner **tidak** memiliki aksi Tolak pengajuan, edit status/bayar PO, atau laba/margin.
 
 ## Prioritas penampilan dashboard
 Rancang minimalis: gunakan satu hero/heading kecil, 3–4 KPI bermakna, ringkasan pengajuan baru dan daftar singkat cabang. Jangan paksa grafik atau puluhan cards jika tidak diperlukan.

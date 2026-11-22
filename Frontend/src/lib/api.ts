@@ -712,11 +712,6 @@ export const ownerStockFlowApi = {
         const search = params.toString();
         return requestData<StockRequestRow[]>(`/api/owner/pengajuan-stok${search ? `?${search}` : ""}`);
       },
-      rejectRequest: (id: number, reason: string) =>
-        requestData<{ rejected: boolean }>(`/api/owner/pengajuan-stok/${id}/tolak`, {
-          method: "POST",
-          body: { reason },
-        }),
       allocationOptions: () => requestData<OwnerAllocationOptions>("/api/owner/alokasi-stok/opsi"),
       allocations: (query = "", status = "") => {
         const params = new URLSearchParams();

@@ -104,60 +104,6 @@ class OwnerStockFlowApi extends BaseController
         return $this->success($rows);
     }
 
-    public function rejectRequest(int $id): ResponseInterface
-    {
-        $data = $this->input();
-        if ($data === null || ! is_string($data['reason'] ?? null)) {
-            return $this->failure(400, 'Alasan penolakan harus berupa teks.');
-        }
-        $reason = trim($data['reason']);
-        if (mb_strlen($reason) < 3 || mb_strlen($reason) > 2000) {
-            return $this->failure(422, 'Alasan penolakan harus 3 sampai 2000 karakter.');
-        }
-
-        $db = db_connect();
-        $db->transBegin();
-        try {
-            $request = $db->query(
-                'SELECT p.id_pengajuan, p.status,
-                    COALESCE((SELECT SUM(d.jumlah_dialokasikan) FROM detail_alokasi_stok d
-                        JOIN alokasi_stok a ON a.id_alokasi = d.alokasi_id WHERE a.pengajuan_id = p.id_pengajuan), 0) AS allocated
-                 FROM pengajuan_stok p WHERE p.id_pengajuan = ? FOR UPDATE',
-                [$id]
-            )->getRowArray();
-
-            if ($request === null) {
-                $db->transRollback();
-                return $this->failure(404, 'Pengajuan tidak ditemukan.');
-            }
-            if ($request['status'] !== 'diajukan' || (int) $request['allocated'] > 0) {
-                $db->transRollback();
-                return $this->failure(409, 'Pengajuan yang sudah ditolak atau mulai dialokasikan tidak dapat ditolak.');
-            }
-
-            $db->table('pengajuan_stok')->where('id_pengajuan', $id)->update([
-                'status'           => 'ditolak',
-                'alasan_penolakan' => $reason,
-                'ditolak_oleh'     => $this->userId(),
-                'ditolak_pada'     => date('Y-m-d H:i:s'),
-                'updated_at'       => date('Y-m-d H:i:s'),
-            ]);
-
-            if (! $db->transStatus() || ! $db->transCommit()) {
-                throw new \RuntimeException('Penolakan pengajuan gagal disimpan.');
-            }
-        } catch (Throwable $error) {
-            $db->transRollback();
-            log_message('error', 'Gagal menolak pengajuan {request}: {message}', [
-                'request' => $id,
-                'message' => $error->getMessage(),
-            ]);
-            return $this->failure(500, 'Pengajuan gagal ditolak.');
-        }
-
-        return $this->success(['rejected' => true]);
-    }
-
     public function allocationOptions(): ResponseInterface
     {
         $db = db_connect();

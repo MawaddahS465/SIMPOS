@@ -434,10 +434,31 @@ class OwnerManagementApi extends BaseController
         }
 
         $model = new UserModel();
+        $existing = $id === null ? null : $model->find($id);
+        if ($id !== null && $existing === null) {
+            return $this->failure(404, 'Pengguna tidak ditemukan.');
+        }
         $duplicate = $model->where('username', $username)->first();
         if ($duplicate !== null && (int) $duplicate['id'] !== $id) {
             return $this->failure(409, 'Username sudah digunakan.');
         }
+
+        // Role Pemilik tidak boleh dicabut dari akun sendiri, dan tidak boleh
+        // menyisakan nol Pemilik aktif.
+        $actorId = (int) session()->get('user_id');
+        if ($existing !== null && $existing['role'] === 'pemilik' && $role !== 'pemilik') {
+            if ((int) $existing['id'] === $actorId) {
+                return $this->failure(409, 'Role akun yang sedang digunakan tidak dapat diturunkan.');
+            }
+            $otherOwners = $model->where('role', 'pemilik')
+                ->where('status', 'aktif')
+                ->where('id !=', $existing['id'])
+                ->countAllResults();
+            if ($otherOwners < 1) {
+                return $this->failure(409, 'Minimal satu akun Pemilik aktif harus tersisa.');
+            }
+        }
+
         $fields = ['nama' => $name, 'username' => $username, 'role' => $role, 'cabang_id' => $cabangId];
         if ($email !== null) {
             $fields['email'] = $email !== '' ? $email : null;
@@ -452,14 +473,18 @@ class OwnerManagementApi extends BaseController
             $fields['status'] = 'aktif';
             $savedId = $model->insert($fields, true);
         } else {
-            if ($model->find($id) === null) {
-                return $this->failure(404, 'Pengguna tidak ditemukan.');
-            }
             $savedId = $model->update($id, $fields) ? $id : false;
         }
         if (! $savedId) {
             return $this->failure(500, 'Data pengguna gagal disimpan.');
         }
+
+        log_message('info', 'Pemilik {actor} {action} akun {user} (role {role})', [
+            'actor'  => $actorId,
+            'action' => $id === null ? 'membuat' : 'mengubah',
+            'user'   => (int) $savedId,
+            'role'   => $role,
+        ]);
 
         return $this->success(['id' => (int) $savedId], $id === null ? 201 : 200);
     }
@@ -486,6 +511,12 @@ class OwnerManagementApi extends BaseController
         if (! $model->update($id, ['status' => $status])) {
             return $this->failure(500, 'Status pengguna gagal diperbarui.');
         }
+
+        log_message('info', 'Pemilik {actor} mengubah status akun {user} menjadi {status}', [
+            'actor'  => (int) session()->get('user_id'),
+            'user'   => $id,
+            'status' => $status,
+        ]);
 
         return $this->success(['updated' => true]);
     }

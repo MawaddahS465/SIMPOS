@@ -35,5 +35,7 @@
 | OWN-07 penerimaan+mutasi | ledger gabungan + trace | CP2-21, U12-U14 |
 | OWN-08/09 monitoring trx/PO | read-only + filter | S1-S6 |
 | OWN-11/12 laporan + ekspor | 4 tab + XLSX/PDF valid | S11/S12 |
+| OWN-13 manajemen pengguna (adendum v1.1) | `OwnerPenggunaPage`, `saveUser`, `setUserStatus` | DEC-13, CP2-33 |
+| OWN-14 manajemen cabang (adendum v1.1) | `OwnerCabangPage` tambah/ubah/nonaktif | DEC-13, CP2-34 |
 
 Konflik redaksional PO Selesai → `NEEDS_CLIENT_APPROVAL` (dipertahankan semua tahap).

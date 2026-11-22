@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle2, Clock, Truck, X } from "lucide-react";
+import { CheckCircle2, Clock, Truck } from "lucide-react";
 import { ApiError, ownerStockFlowApi, type StockRequestRow } from "../../lib/api";
 import { requestStateLabel, type RequestState } from "../../store/requestStatus";
 import { PageHeader, SearchBox, StatCard, StatusPill, TableCols } from "../../components/ui";
@@ -25,13 +25,8 @@ export default function OwnerPengajuanPage() {
   const [query, setQuery] = useState("");
   const [branch, setBranch] = useState("all");
   const [status, setStatus] = useState<StatusFilter>("Semua");
-  const [detail, setDetail] = useState<StockRequestRow | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
   const [error, setError] = useState("");
-  const [rejectError, setRejectError] = useState("");
-  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
-  const [rejecting, setRejecting] = useState(false);
 
   const loadRequests = useCallback(async () => {
     setLoading(true);
@@ -58,30 +53,6 @@ export default function OwnerPengajuanPage() {
   const inProgress = requests.filter((request) => ["Sebagian", "Dialokasikan"].includes(request.state)).length;
   const completed = requests.filter((request) => request.state === "Selesai").length;
 
-  const openDetail = (request: StockRequestRow) => {
-    setDetail(request);
-    setRejectReason("");
-    setRejectError("");
-  };
-
-  const reject = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!detail || rejecting) return;
-    setRejecting(true);
-    setRejectError("");
-    try {
-      await ownerStockFlowApi.rejectRequest(detail.id_pengajuan, rejectReason.trim());
-      setDetail(null);
-      setRejectReason("");
-      setNotice(`Pengajuan ${detail.kode_pengajuan} berhasil ditolak.`);
-      await loadRequests();
-    } catch (requestError) {
-      setRejectError(requestError instanceof ApiError ? requestError.message : "Pengajuan gagal ditolak.");
-    } finally {
-      setRejecting(false);
-    }
-  };
-
   return (
     <div className="page">
       <PageHeader title="Persetujuan Pengajuan" />
@@ -90,7 +61,6 @@ export default function OwnerPengajuanPage() {
         <StatCard label="Sedang Dialokasikan" value={String(inProgress)} caption="Sebagian atau menunggu diterima" icon={<Truck size={22} />} tone="blue" />
         <StatCard label="Selesai Diterima" value={String(completed)} caption="Pengajuan sudah diterima cabang" icon={<CheckCircle2 size={22} />} tone="green" />
       </div>
-      {notice ? <div className="notice notice-ok" role="status">{notice}<button className="icon-pill" aria-label="Tutup" onClick={() => setNotice("")}><X size={14} /></button></div> : null}
       {error ? <div className="notice" role="alert">{error}<button className="btn btn-ghost" onClick={() => void loadRequests()}>Coba lagi</button></div> : null}
 
       <div className="toolbar">
@@ -127,7 +97,6 @@ export default function OwnerPengajuanPage() {
                     {request.state !== "Ditolak" && (request.sisa ?? (request.jumlah_diminta - request.jumlah_dialokasikan)) > 0
                       ? <button className="link-action" onClick={() => navigate(`/owner/alokasi?requestId=${request.id_pengajuan}`)}>Alokasikan</button>
                       : null}
-                    {request.state === "Diajukan" ? <button className="link-action" onClick={() => openDetail(request)}>Tolak</button> : null}
                   </div>
                 </td>
               </tr>
@@ -137,19 +106,6 @@ export default function OwnerPengajuanPage() {
         </table>
         <div className="table-foot"><span className="foot-note">Menampilkan {requests.length} pengajuan</span></div>
       </div>
-
-      {detail ? (
-        <div className="overlay" onClick={() => !rejecting && setDetail(null)}>
-          <div className="confirm" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true">
-            <div className="drawer-head" style={{ padding: 0 }}><div><h2>Tolak Pengajuan</h2><div className="section-desc">{detail.kode_pengajuan} · {detail.nama_cabang}</div></div><button className="icon-pill" aria-label="Tutup" onClick={() => setDetail(null)} disabled={rejecting}><X size={18} /></button></div>
-            <form onSubmit={reject} className="drawer-form">
-              <label className="afield"><span>Alasan penolakan (wajib)</span><textarea rows={4} value={rejectReason} onChange={(event) => setRejectReason(event.target.value)} maxLength={2000} required minLength={3} /></label>
-              {rejectError ? <div className="form-error" role="alert">{rejectError}</div> : null}
-              <div className="drawer-foot"><button type="button" className="btn btn-ghost" onClick={() => setDetail(null)} disabled={rejecting}>Batal</button><button type="submit" className="btn btn-primary" disabled={rejecting}>{rejecting ? "Menyimpan..." : "Tolak Pengajuan"}</button></div>
-            </form>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }

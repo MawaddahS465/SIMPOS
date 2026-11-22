@@ -34,7 +34,7 @@ import OwnerMutasiPage from "./pages/owner/OwnerMutasiPage";
 import OwnerTransaksiPage from "./pages/owner/OwnerTransaksiPage";
 import OwnerPOPage from "./pages/owner/OwnerPOPage";
 import OwnerLaporanPage from "./pages/owner/OwnerLaporanPage";
-import OwnerPengaturanPage from "./pages/owner/OwnerPengaturanPage";
+import OwnerPenggunaPage from "./pages/owner/OwnerPenggunaPage";
 import TitleSync from "./components/TitleSync";
 import ScrollToTop from "./components/ScrollToTop";
 import AsciiReveal from "./components/AsciiReveal";
@@ -141,7 +141,7 @@ function AppRoutes() {
         <Route path="/owner/transaksi" element={<OwnerTransaksiPage />} />
         <Route path="/owner/pemesanan" element={<OwnerPOPage />} />
         <Route path="/owner/laporan" element={<OwnerLaporanPage />} />
-        <Route path="/owner/pengaturan" element={<OwnerPengaturanPage />} />
+        <Route path="/owner/pengguna" element={<OwnerPenggunaPage />} />
       </Route>
       <Route path="*" element={<RootRedirect />} />
     </Routes>
