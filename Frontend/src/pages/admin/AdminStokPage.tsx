@@ -4,7 +4,6 @@ import { FilePlus2, Settings2 } from "lucide-react";
 import { adminInventoryApi, ApiError, type AdminStockRow } from "../../lib/api";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { PageHeader, SearchBox, StatusPill } from "../../components/ui";
-import AdminPagination from "../../components/AdminPagination";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -37,8 +36,6 @@ export default function AdminStokPage() {
   const [minFor, setMinFor] = useState<StockRow | null>(null);
   const [minVal, setMinVal] = useState("");
   const [minError, setMinError] = useState("");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -69,16 +66,6 @@ export default function AdminStokPage() {
     }),
     [stock, filter],
   );
-  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
-  const visibleRows = rows.slice((page - 1) * pageSize, page * pageSize);
-
-  useEffect(() => {
-    setPage(1);
-  }, [filter, debouncedQ]);
-  useEffect(() => {
-    setPage((current) => Math.min(current, pageCount));
-  }, [pageCount]);
-
   const submitMin = async (event: FormEvent) => {
     event.preventDefault();
     const minimum = Number(minVal);
@@ -149,7 +136,7 @@ export default function AdminStokPage() {
           <tbody>
             {loading ? (
               <tr><td colSpan={6}><div className="empty-note">Memuat stok cabang...</div></td></tr>
-            ) : visibleRows.map((row) => {
+            ) : rows.map((row) => {
               const low = row.saldo <= row.minimum;
               const canRequest = ["frame", "lensa"].includes(row.type.toLowerCase());
               return (
@@ -193,13 +180,6 @@ export default function AdminStokPage() {
             ) : null}
           </tbody>
         </table>
-        <AdminPagination
-          page={page}
-          pageSize={pageSize}
-          total={rows.length}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-        />
       </div>
 
       {minFor ? (

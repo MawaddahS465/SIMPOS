@@ -626,12 +626,6 @@ export default function OwnerCabangPage() {
                 ) : null}
               </tbody>
             </table>
-            <div className="table-foot">
-              <span className="foot-note">
-                Menampilkan {filtered.length} dari {rows.length} lokasi ({totalCabang} cabang ritel ·{" "}
-                {store.branches.some((branch) => branch.type === "Pusat") ? 1 : 0} gudang pusat)
-              </span>
-            </div>
           </div>
         </>
       )}

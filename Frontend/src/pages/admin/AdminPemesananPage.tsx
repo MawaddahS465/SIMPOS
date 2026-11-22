@@ -6,7 +6,6 @@ import { adminPoApi, ApiError } from "../../lib/api";
 import { mapApiPo } from "../../lib/po";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { Avatar, PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
-import AdminPagination from "../../components/AdminPagination";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -33,8 +32,6 @@ export default function AdminPemesananPage() {
   const [filter, setFilter] = useState<Filter>(() => filterFromParam(params.get("status")));
   const [query, setQuery] = useState("");
   const [orders, setOrders] = useState<ReturnType<typeof mapApiPo>[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -72,16 +69,6 @@ export default function AdminPemesananPage() {
     diproses: orders.filter((order) => order.status === "Diproses").length,
     datang: orders.filter((order) => order.status === "Sudah Datang").length,
   }), [orders]);
-  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
-  const visibleRows = rows.slice((page - 1) * pageSize, page * pageSize);
-
-  useEffect(() => {
-    setPage(1);
-  }, [filter, debouncedQuery]);
-  useEffect(() => {
-    setPage((current) => Math.min(current, pageCount));
-  }, [pageCount]);
-
   const changeFilter = (value: Filter) => {
     setFilter(value);
     setParams((current) => {
@@ -153,7 +140,7 @@ export default function AdminPemesananPage() {
             <tbody>
               {loading ? (
                 <tr><td colSpan={5}><div className="empty-note">Memuat daftar PO...</div></td></tr>
-              ) : visibleRows.map((o) => (
+              ) : rows.map((o) => (
                 <tr key={o.id}>
                   <td>
                     <div className="tt-num">{o.number}</div>
@@ -201,13 +188,6 @@ export default function AdminPemesananPage() {
               ) : null}
             </tbody>
           </table>
-          <AdminPagination
-            page={page}
-            pageSize={pageSize}
-            total={rows.length}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-          />
         </div>
       </section>
     </div>

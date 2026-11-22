@@ -340,7 +340,6 @@ export default function OwnerPenggunaPage() {
             {!showLoading && filtered.length === 0 ? <tr><td colSpan={6}><div className="empty-note">Tidak ada pengguna yang cocok.</div></td></tr> : null}
           </tbody>
         </table>
-        <div className="table-foot"><span className="foot-note">Menampilkan {filtered.length} dari {total} akun</span></div>
       </div>
 
       {modalOpen ? (

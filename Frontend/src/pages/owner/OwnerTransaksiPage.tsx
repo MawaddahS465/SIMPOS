@@ -181,11 +181,6 @@ export default function OwnerTransaksiPage() {
             ) : null}
           </tbody>
         </table>
-        <div className="table-foot">
-          <span className="foot-note">
-            Menampilkan {rows.length} dari {store.transactions.length} transaksi
-          </span>
-        </div>
       </div>
 
       {detail ? (

@@ -297,9 +297,6 @@ export default function OwnerLaporanPage() {
             ) : null}
           </tbody>
         </table>
-        <div className="table-foot">
-          <span className="foot-note">Menampilkan {data.body.length} baris</span>
-        </div>
       </div>
     </div>
   );

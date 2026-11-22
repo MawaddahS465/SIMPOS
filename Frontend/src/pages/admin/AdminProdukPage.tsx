@@ -4,7 +4,6 @@ import { Pencil, Plus, Power, X } from "lucide-react";
 import { adminInventoryApi, ApiError, type AdminCatalogProduct } from "../../lib/api";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { PageHeader, SearchBox, StatusPill, formatIDR } from "../../components/ui";
-import AdminPagination from "../../components/AdminPagination";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -41,8 +40,6 @@ export default function AdminProdukPage({ type }: Props) {
   const [form, setForm] = useState(empty);
   const [formError, setFormError] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -69,16 +66,6 @@ export default function AdminProdukPage({ type }: Props) {
   useEffect(() => {
     void loadProducts();
   }, [loadProducts]);
-
-  const pageCount = Math.max(1, Math.ceil(products.length / pageSize));
-  const rows = products.slice((page - 1) * pageSize, page * pageSize);
-
-  useEffect(() => {
-    setPage(1);
-  }, [type, status, debouncedQ]);
-  useEffect(() => {
-    setPage((current) => Math.min(current, pageCount));
-  }, [pageCount]);
 
   const startAdd = () => {
     setEditing(null);
@@ -221,7 +208,7 @@ export default function AdminProdukPage({ type }: Props) {
           <tbody>
             {loading ? (
               <tr><td colSpan={4}><div className="empty-note">Memuat produk...</div></td></tr>
-            ) : rows.map((product) => (
+            ) : products.map((product) => (
               <tr key={product.id}>
                 <td>
                   <div className="tt-num">{product.name}</div>
@@ -255,15 +242,6 @@ export default function AdminProdukPage({ type }: Props) {
             ) : null}
           </tbody>
         </table>
-        <div className="table-foot">
-          <AdminPagination
-            page={page}
-            pageSize={pageSize}
-            total={products.length}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-          />
-        </div>
       </div>
 
       {open ? (

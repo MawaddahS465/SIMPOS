@@ -258,11 +258,6 @@ export default function OwnerMutasiPage() {
             ) : null}
           </tbody>
         </table>
-        <div className="table-foot">
-          <span className="foot-note">
-            Menampilkan {rows.length} mutasi stok
-          </span>
-        </div>
       </div>
 
       {directMove ? (

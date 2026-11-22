@@ -104,7 +104,6 @@ export default function OwnerPengajuanPage() {
             {!loading && requests.length === 0 ? <tr><td colSpan={9}><div className="empty-note">Tidak ada pengajuan yang cocok.</div></td></tr> : null}
           </tbody>
         </table>
-        <div className="table-foot"><span className="foot-note">Menampilkan {requests.length} pengajuan</span></div>
       </div>
     </div>
   );

@@ -159,11 +159,6 @@ export default function OwnerPOPage() {
             ) : null}
           </tbody>
         </table>
-        <div className="table-foot">
-          <span className="foot-note">
-            Menampilkan {rows.length} dari {store.pos.length} PO
-          </span>
-        </div>
       </div>
 
       {detail ? (

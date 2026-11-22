@@ -4,7 +4,6 @@ import { adminStockFlowApi, ApiError, type StockMutation } from "../../lib/api";
 import { formatDateTime } from "../../lib/po";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import { PageHeader, SearchBox, StatCard, StatusPill } from "../../components/ui";
-import AdminPagination from "../../components/AdminPagination";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
 
@@ -16,8 +15,6 @@ export default function AdminMutasiPage() {
   const [direction, setDirection] = useState<Direction>("Semua");
   const [source, setSource] = useState("Semua");
   const [reloadKey, setReloadKey] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -50,16 +47,6 @@ export default function AdminMutasiPage() {
   }, [mutations, direction, source, debouncedQuery]);
   const totalIn = mutations.filter((mutation) => mutation.arah === "IN").reduce((total, mutation) => total + mutation.jumlah, 0);
   const totalOut = mutations.filter((mutation) => mutation.arah === "OUT").reduce((total, mutation) => total + mutation.jumlah, 0);
-  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
-  const visibleRows = rows.slice((page - 1) * pageSize, page * pageSize);
-
-  useEffect(() => {
-    setPage(1);
-  }, [direction, source, debouncedQuery]);
-  useEffect(() => {
-    setPage((current) => Math.min(current, pageCount));
-  }, [pageCount]);
-
   return (
     <div className="page">
       <PageHeader title="Riwayat Mutasi" />
@@ -83,7 +70,7 @@ export default function AdminMutasiPage() {
           <thead><tr><th>WAKTU / ID</th><th>PRODUK</th><th className="tt-center">JENIS</th><th>SUMBER / REFERENSI</th><th className="tt-right">MUTASI STOK</th><th>PETUGAS</th></tr></thead>
           <tbody>
             {loading ? <tr><td colSpan={6}><div className="empty-note">Memuat riwayat mutasi...</div></td></tr> : null}
-            {!loading ? visibleRows.map((mutation) => (
+            {!loading ? rows.map((mutation) => (
               <tr key={mutation.id_mutasi}>
                 <td><div className="tt-num">MUT-{mutation.id_mutasi}</div><div className="tt-sub">{formatDateTime(mutation.created_at)}</div></td>
                 <td><div className="tt-num">{mutation.nama_barang}</div><div className="tt-sub">{mutation.kode_barang} · {mutation.jenis}</div></td>
@@ -96,13 +83,6 @@ export default function AdminMutasiPage() {
             {!loading && rows.length === 0 ? <tr><td colSpan={6}><div className="empty-note">Tidak ada mutasi yang cocok dengan filter.</div></td></tr> : null}
           </tbody>
         </table>
-        <AdminPagination
-          page={page}
-          pageSize={pageSize}
-          total={rows.length}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-        />
       </div>
     </div>
   );
