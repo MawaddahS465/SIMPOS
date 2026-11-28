@@ -53,7 +53,6 @@ textarea {
 :focus-visible {
   outline: none;
   box-shadow: var(--ring);
-  border-radius: 10px;
 }
 
 .visually-hidden {

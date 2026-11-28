@@ -19,6 +19,7 @@ import {
   type BranchStatus,
 } from "../../store/sharedStore";
 import { ApiError, ownerManagementApi } from "../../lib/api";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { PageHeader, SearchBox, StatCard, StatusPill, TableCols } from "../../components/ui";
 import "../../styles/pages.css";
 import "../../styles/admin.css";
@@ -174,6 +175,8 @@ export default function OwnerCabangPage() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
 
+  useModalDismiss(modalOpen, closeModal);
+
   const rows = store.branches.map((branch) => {
     const stock = store.stockForBranch(branch.id);
     const units = stock.reduce((total, row) => total + row.saldo, 0);
@@ -254,19 +257,6 @@ export default function OwnerCabangPage() {
     setModalOpen(true);
     setSearchParams({}, { replace: true });
   }, [hasBranches, searchParams, setSearchParams, store.branches, store.settings]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      if (modalOpen && !saving) {
-        setModalOpen(false);
-        setFormError("");
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [modalOpen, saving]);
 
   function openCreate() {
     setModalMode("create");

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { useSearchParams } from "react-router-dom";
 import { CheckCircle2, PackagePlus, Truck, X } from "lucide-react";
 import { ApiError, ownerStockFlowApi, type OwnerAllocationOptions, type StockDistribution } from "../../lib/api";
@@ -24,6 +25,10 @@ export default function OwnerAlokasiPage() {
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useModalDismiss(open, () => {
+    if (!saving) setOpen(false);
+  });
 
   const loadData = useCallback(async () => {
     setLoading(true);

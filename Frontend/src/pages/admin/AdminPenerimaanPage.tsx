@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { Link } from "react-router-dom";
 import { CheckCircle2, Clock, PackageCheck, TriangleAlert, Truck, X } from "lucide-react";
 import { adminStockFlowApi, ApiError, type StockDistribution, type StockReceipt } from "../../lib/api";
@@ -21,6 +22,10 @@ export default function AdminPenerimaanPage() {
   const [confirmError, setConfirmError] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useModalDismiss(confirm !== null, () => {
+    if (!saving) setConfirm(null);
+  });
 
   const loadData = useCallback(async () => {
     setLoading(true);

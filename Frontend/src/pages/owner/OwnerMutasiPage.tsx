@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { ArrowDownLeft, ArrowUpRight, Check, ChevronRight, Clock, History, Info, X } from "lucide-react";
 import { useSharedStore } from "../../store/sharedStore";
 import { requestState, requestStateLabel } from "../../store/requestStatus";
@@ -23,6 +24,8 @@ export default function OwnerMutasiPage() {
   const [arah, setArah] = useState<"Semua" | "Masuk" | "Keluar">("Semua");
   const [sumber, setSumber] = useState("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useModalDismiss(selectedId !== null, () => setSelectedId(null));
 
   const scopedMutations = useMemo(
     () =>

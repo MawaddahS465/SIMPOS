@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../lib/useModalDismiss";
 import { useSearchParams } from "react-router-dom";
 import { CalendarDays, CheckCircle2, ChevronRight, FileText, Glasses, Pencil, Plus, Printer, Users, X } from "lucide-react";
 import { type ResepRecord } from "../data/mock";
@@ -26,6 +27,10 @@ export default function ResepMataPage() {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [printOpen, setPrintOpen] = useState(false);
+
+  useModalDismiss(selected !== null, () => setSelected(null));
+  useModalDismiss(printOpen, () => setPrintOpen(false));
+  useModalDismiss(open, () => setOpen(false));
   const [notice, setNotice] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [formError, setFormError] = useState("");

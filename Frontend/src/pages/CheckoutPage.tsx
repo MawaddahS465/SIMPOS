@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../lib/useModalDismiss";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -79,6 +80,8 @@ export default function CheckoutPage() {
     return cart.cashInput.trim() !== "" && cart.cashPaid !== gross ? "manual" : "exact";
   });
   const [addOpen, setAddOpen] = useState(false);
+
+  useModalDismiss(addOpen, () => setAddOpen(false));
   const [addForm, setAddForm] = useState({ name: "", phone: "", email: "" });
   const [addError, setAddError] = useState("");
   const [customers, setCustomers] = useState<Customer[]>([]);

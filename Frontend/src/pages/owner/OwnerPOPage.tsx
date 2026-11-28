@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { ArrowRight, Check, Lock, X } from "lucide-react";
 import { useSharedStore } from "../../store/sharedStore";
 import { inPeriod, periodRange, type PeriodKey } from "../../store/reports";
@@ -23,6 +24,8 @@ export default function OwnerPOPage() {
   const [cTo, setCTo] = useState("");
   const [status, setStatus] = useState<"all" | PoStatus>("all");
   const [detailId, setDetailId] = useState<string | null>(null);
+
+  useModalDismiss(detailId !== null, () => setDetailId(null));
 
   const range = periodRange(period, cFrom, cTo);
 
@@ -90,7 +93,7 @@ export default function OwnerPOPage() {
         </div>
       ) : null}
 
-      <div className="stat-row" style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
+      <div className="stat-row">
         <StatCard
           label="Semua PO"
           value={String(rows.length)}

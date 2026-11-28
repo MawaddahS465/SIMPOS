@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useModalDismiss } from "../lib/useModalDismiss";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Eye, Glasses, History, Package, Printer, X } from "lucide-react";
 import { useCart } from "../context/CartContext";
@@ -23,6 +24,8 @@ export default function TransaksiBerhasilPage() {
   const { session } = useAuth();
   const [searchParams] = useSearchParams();
   const [strukOpen, setStrukOpen] = useState(false);
+
+  useModalDismiss(strukOpen, () => setStrukOpen(false));
   const transactionId = searchParams.get("id");
   const [savedReceipt, setSavedReceipt] = useState<typeof cart.receipt>(cart.receipt);
   const [loadError, setLoadError] = useState("");

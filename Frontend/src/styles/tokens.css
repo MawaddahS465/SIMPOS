@@ -10,8 +10,10 @@
   /* Text */
   --ink: #122a45;
   --ink-2: #3c5a78;
-  --muted: #7b94ad;
-  --muted-2: #9db3c8;
+  /* Dua tingkat teks sekunder. Keduanya ≥ 4.5:1 di atas --panel (#fff)
+     maupun --panel-2 (#e8f4fe) agar lolos WCAG AA untuk teks kecil. */
+  --muted: #4f6b86;
+  --muted-2: #52708c;
 
   /* Lines */
   --line: #dcebf7;

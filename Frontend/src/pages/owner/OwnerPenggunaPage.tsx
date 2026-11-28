@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { Eye, EyeOff, Pencil, Plus, UserRound, X } from "lucide-react";
 import { ApiError, ownerManagementApi } from "../../lib/api";
 import { useAuth } from "../../store/auth";
@@ -79,6 +80,8 @@ export default function OwnerPenggunaPage() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [showFormPassword, setShowFormPassword] = useState(false);
+
+  useModalDismiss(modalOpen, closeModal);
 
   const selfId = String(session?.id ?? "");
 
@@ -264,7 +267,7 @@ export default function OwnerPenggunaPage() {
         }
       />
 
-      <div className="stat-row" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
+      <div className="stat-row stat-row--4">
         <StatCard label="Total Akun" value={String(total)} caption="Seluruh role" icon={<UserRound size={22} />} tone="violet" />
         <StatCard label="Admin" value={String(adminCount)} caption="Admin cabang & gudang" icon={<UserRound size={22} />} tone="blue" />
         <StatCard label="Kasir" value={String(kasirCount)} caption="Kasir cabang" icon={<UserRound size={22} />} tone="green" />

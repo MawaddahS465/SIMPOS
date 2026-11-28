@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { useSearchParams } from "react-router-dom";
 import { AlertTriangle, CheckCircle2, Clock, FilePlus2, FileText, X } from "lucide-react";
 import { adminInventoryApi, adminStockFlowApi, ApiError, type AdminStockRow, type StockRequestRow } from "../../lib/api";
@@ -28,6 +29,10 @@ export default function AdminPengajuanPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("Semua");
   const [open, setOpen] = useState(false);
+
+  useModalDismiss(open, () => {
+    if (!saving) setOpen(false);
+  });
   const [productId, setProductId] = useState("");
   const [quantity, setQuantity] = useState("");
   const [note, setNote] = useState("");

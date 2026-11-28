@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { Link } from "react-router-dom";
 import { FilePlus2, Settings2 } from "lucide-react";
 import { adminInventoryApi, ApiError, type AdminStockRow } from "../../lib/api";
@@ -34,6 +35,10 @@ export default function AdminStokPage() {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"Semua" | "Aman" | "Menipis">("Semua");
   const [minFor, setMinFor] = useState<StockRow | null>(null);
+
+  useModalDismiss(minFor !== null, () => {
+    if (!saving) setMinFor(null);
+  });
   const [minVal, setMinVal] = useState("");
   const [minError, setMinError] = useState("");
   const [loading, setLoading] = useState(true);

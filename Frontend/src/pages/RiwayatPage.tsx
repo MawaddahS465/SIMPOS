@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useModalDismiss } from "../lib/useModalDismiss";
 import {
   Banknote,
   CalendarDays,
@@ -195,6 +196,8 @@ export default function RiwayatPage() {
   const [query, setQuery] = useState("");
   const [pageSize, setPageSize] = useState(25);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  useModalDismiss(selectedId !== null, () => setSelectedId(null));
   const [strukId, setStrukId] = useState<string | null>(null);
   const [notice, setNotice] = useState(false);
 

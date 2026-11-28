@@ -56,7 +56,7 @@ export default function OwnerPengajuanPage() {
   return (
     <div className="page">
       <PageHeader title="Persetujuan Pengajuan" />
-      <div className="stat-row" style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
+      <div className="stat-row">
         <StatCard label="Menunggu Tinjauan" value={String(waiting)} caption="Belum mendapat alokasi" icon={<Clock size={22} />} tone="amber" />
         <StatCard label="Sedang Dialokasikan" value={String(inProgress)} caption="Sebagian atau menunggu diterima" icon={<Truck size={22} />} tone="blue" />
         <StatCard label="Selesai Diterima" value={String(completed)} caption="Pengajuan sudah diterima cabang" icon={<CheckCircle2 size={22} />} tone="green" />

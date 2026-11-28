@@ -64,6 +64,7 @@
 .pagehead-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   padding-top: 8px;
   flex: none;
@@ -270,6 +271,10 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
+}
+
+.stat-row--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .stat-card {
@@ -1982,7 +1987,8 @@ table.tt.owner-table.owner-table-pengajuan {
 }
 
 @media (max-width: 900px) {
-  .stat-row {
+  .stat-row,
+  .stat-row--4 {
     grid-template-columns: 1fr;
   }
   .two-col {

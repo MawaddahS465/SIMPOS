@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../../lib/useModalDismiss";
 import { useSearchParams } from "react-router-dom";
 import { Pencil, Plus, Power, X } from "lucide-react";
 import { adminInventoryApi, ApiError, type AdminCatalogProduct } from "../../lib/api";
@@ -36,10 +37,18 @@ export default function AdminProdukPage({ type }: Props) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"Semua" | "Aktif" | "Nonaktif">("Semua");
   const [open, setOpen] = useState(false);
+
+  useModalDismiss(open, () => {
+    if (!saving) setOpen(false);
+  });
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
   const [formError, setFormError] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
+
+  useModalDismiss(confirmId !== null, () => {
+    if (!saving) setConfirmId(null);
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");

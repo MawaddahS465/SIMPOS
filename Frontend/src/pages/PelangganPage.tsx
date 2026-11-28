@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { useModalDismiss } from "../lib/useModalDismiss";
 import { Glasses, MessageSquare, Pencil, UserPlus, Users, X } from "lucide-react";
 import { type Customer } from "../data/customers";
 import { ApiError, kasirApi, type ApiCustomer } from "../lib/api";
@@ -15,6 +16,8 @@ export default function PelangganPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"Semua" | "Resep" | "PO">("Semua");
   const [open, setOpen] = useState(false);
+
+  useModalDismiss(open, () => setOpen(false));
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [formError, setFormError] = useState("");
