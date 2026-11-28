@@ -1,0 +1,69 @@
+name: Deploy frontend ke InfinityFree
+
+# Build SPA lalu unggah hasilnya ke /htdocs/app lewat FTP.
+# Tidak menyentuh backend PHP, .env, atau database di server.
+#
+# Rahasia yang wajib diisi di Settings > Secrets and variables > Actions:
+#   FTP_SERVER   ftpupload.net
+#   FTP_USERNAME if0_43530649
+#   FTP_PASSWORD password akun hosting (bukan password database)
+
+on:
+  push:
+    branches: [frontend]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend-infinityfree
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Siapkan Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Pasang dependensi
+        working-directory: Frontend
+        run: npm ci
+
+      - name: Cek tipe
+        working-directory: Frontend
+        run: npm run typecheck
+
+      - name: Build SPA
+        working-directory: Frontend
+        env:
+          # Same-origin: SPA memanggil /api pada host yang sama.
+          VITE_API_BASE_URL: /
+        run: npm run build
+
+      - name: Unggah hasil build ke /htdocs/app
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: Backend/public/app/
+          server-dir: /htdocs/app/
+          dangerous-clean-slate: false
+          log-level: minimal
+
+      - name: Hapus bundle lama di server
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: python3 .github/scripts/prune-remote-assets.py

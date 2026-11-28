@@ -17,3 +17,6 @@ Frontend/.env
 # OS
 .DS_Store
 Thumbs.db
+# Berkas sementara Python
+__pycache__/
+*.pyc
